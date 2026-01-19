@@ -5,14 +5,14 @@ import {
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
-import { Request, Response } from 'express';
+import { Request as ExpressRequest, Response as ExpressResponse } from 'express';
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
-    const response = ctx.getResponse<Response>();
-    const request = ctx.getRequest<Request>();
+    const response = ctx.getResponse<ExpressResponse>();
+    const request = ctx.getRequest<ExpressRequest>();
 
     const status =
       exception instanceof HttpException
@@ -27,8 +27,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const errorResponse = {
       statusCode: status,
       timestamp: new Date().toISOString(),
-      path: request.url,
-      method: request.method,
+      path: (request as any).url,
+      method: (request as any).method,
       message,
     };
 
@@ -38,6 +38,6 @@ export class AllExceptionsFilter implements ExceptionFilter {
       stack: exception instanceof Error ? exception.stack : undefined,
     });
 
-    response.status(status).json(errorResponse);
+    (response as any).status(status).json(errorResponse);
   }
 }
