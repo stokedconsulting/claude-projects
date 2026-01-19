@@ -10,6 +10,7 @@ export enum SessionStatus {
   COMPLETED = 'completed',
   FAILED = 'failed',
   STALLED = 'stalled',
+  ARCHIVED = 'archived',
 }
 
 @Schema({
@@ -71,14 +72,15 @@ SessionSchema.index({ project_id: 1, status: 1 });
 SessionSchema.index({ machine_id: 1, status: 1 });
 
 // TTL index: automatically delete completed/failed sessions after 30 days
-// Only applies to sessions with completed_at set
+// Only applies to sessions with completed_at set and status not archived
 SessionSchema.index(
   { completed_at: 1 },
   {
     expireAfterSeconds: 30 * 24 * 60 * 60, // 30 days
     partialFilterExpression: {
       completed_at: { $exists: true },
-      status: { $in: [SessionStatus.COMPLETED, SessionStatus.FAILED] }
+      status: { $in: [SessionStatus.COMPLETED, SessionStatus.FAILED] },
+      $nor: [{ status: SessionStatus.ARCHIVED }]
     }
   }
 );
