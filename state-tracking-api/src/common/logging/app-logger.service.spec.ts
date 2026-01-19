@@ -25,7 +25,8 @@ describe('AppLoggerService', () => {
       ],
     }).compile();
 
-    service = module.get<AppLoggerService>(AppLoggerService);
+    // Use resolve() for TRANSIENT scope providers
+    service = await module.resolve<AppLoggerService>(AppLoggerService);
     configService = module.get<ConfigService>(ConfigService);
 
     // Spy on console.log to capture output
@@ -33,7 +34,9 @@ describe('AppLoggerService', () => {
   });
 
   afterEach(() => {
-    consoleLogSpy.mockRestore();
+    if (consoleLogSpy) {
+      consoleLogSpy.mockRestore();
+    }
   });
 
   describe('Basic Logging', () => {
