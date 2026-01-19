@@ -1,7 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { Session, SessionDocument } from '../../schemas/session.schema';
+import { Model, FilterQuery } from 'mongoose';
+import { Session, SessionDocument, SessionStatus } from '../../schemas/session.schema';
+import { CreateSessionDto } from './dto/create-session.dto';
+import { UpdateSessionDto } from './dto/update-session.dto';
+import { SessionQueryDto } from './dto/session-query.dto';
+import { randomUUID } from 'crypto';
 
 @Injectable()
 export class SessionsService {
@@ -9,26 +13,218 @@ export class SessionsService {
     @InjectModel(Session.name) private sessionModel: Model<SessionDocument>,
   ) {}
 
-  async findAll(): Promise<Session[]> {
-    return this.sessionModel.find().exec();
-  }
+  /**
+   * Find all sessions with optional filtering and pagination
+   * @param queryDto - Query parameters for filtering
+   * @returns Array of sessions matching the query
+   */
+  async findAll(queryDto?: SessionQueryDto): Promise<Session[]> {
+    const filter: FilterQuery<SessionDocument> = {};
 
-  async findOne(sessionId: string): Promise<Session | null> {
-    return this.sessionModel.findOne({ session_id: sessionId }).exec();
-  }
+    if (queryDto?.status) {
+      filter.status = queryDto.status;
+    }
+    if (queryDto?.project_id) {
+      filter.project_id = queryDto.project_id;
+    }
+    if (queryDto?.machine_id) {
+      filter.machine_id = queryDto.machine_id;
+    }
 
-  async create(session: Partial<Session>): Promise<Session> {
-    const createdSession = new this.sessionModel(session);
-    return createdSession.save();
-  }
+    const limit = queryDto?.limit || 20;
+    const offset = queryDto?.offset || 0;
 
-  async update(sessionId: string, update: Partial<Session>): Promise<Session | null> {
     return this.sessionModel
-      .findOneAndUpdate({ session_id: sessionId }, update, { new: true })
+      .find(filter)
+      .sort({ created_at: -1 })
+      .limit(limit)
+      .skip(offset)
       .exec();
   }
 
-  async delete(sessionId: string): Promise<Session | null> {
-    return this.sessionModel.findOneAndDelete({ session_id: sessionId }).exec();
+  /**
+   * Find a single session by ID
+   * @param sessionId - The session ID to find
+   * @returns Session if found
+   * @throws NotFoundException if session not found
+   */
+  async findOne(sessionId: string): Promise<Session> {
+    const session = await this.sessionModel
+      .findOne({ session_id: sessionId })
+      .exec();
+
+    if (!session) {
+      throw new NotFoundException(`Session with ID ${sessionId} not found`);
+    }
+
+    return session;
+  }
+
+  /**
+   * Create a new session
+   * @param createSessionDto - The session data to create
+   * @returns Created session
+   */
+  async create(createSessionDto: CreateSessionDto): Promise<Session> {
+    const now = new Date();
+    const sessionData = {
+      session_id: randomUUID(),
+      ...createSessionDto,
+      status: SessionStatus.ACTIVE,
+      started_at: now,
+      last_heartbeat: now,
+      metadata: createSessionDto.metadata || {},
+    };
+
+    const createdSession = new this.sessionModel(sessionData);
+    return createdSession.save();
+  }
+
+  /**
+   * Update a session
+   * @param sessionId - The session ID to update
+   * @param updateSessionDto - The fields to update
+   * @returns Updated session
+   * @throws NotFoundException if session not found
+   * @throws BadRequestException if trying to update immutable fields
+   */
+  async update(sessionId: string, updateSessionDto: UpdateSessionDto): Promise<Session> {
+    // Verify session exists
+    await this.findOne(sessionId);
+
+    // Prepare update data
+    const updateData: any = {
+      ...updateSessionDto,
+    };
+
+    // If metadata is being updated, merge with existing
+    if (updateSessionDto.metadata) {
+      const session = await this.sessionModel
+        .findOne({ session_id: sessionId })
+        .exec();
+
+      if (session) {
+        updateData.metadata = {
+          ...(session.metadata || {}),
+          ...updateSessionDto.metadata,
+        };
+      }
+    }
+
+    const updatedSession = await this.sessionModel
+      .findOneAndUpdate(
+        { session_id: sessionId },
+        { $set: updateData },
+        { new: true, runValidators: true }
+      )
+      .exec();
+
+    if (!updatedSession) {
+      throw new NotFoundException(`Session with ID ${sessionId} not found`);
+    }
+
+    return updatedSession;
+  }
+
+  /**
+   * Soft delete a session by marking it as completed
+   * @param sessionId - The session ID to delete
+   * @throws NotFoundException if session not found
+   */
+  async delete(sessionId: string): Promise<void> {
+    // Verify session exists
+    await this.findOne(sessionId);
+
+    const now = new Date();
+    const result = await this.sessionModel
+      .findOneAndUpdate(
+        { session_id: sessionId },
+        {
+          $set: {
+            status: SessionStatus.COMPLETED,
+            completed_at: now,
+          }
+        },
+        { new: true }
+      )
+      .exec();
+
+    if (!result) {
+      throw new NotFoundException(`Session with ID ${sessionId} not found`);
+    }
+  }
+
+  /**
+   * Update session heartbeat timestamp and reactivate if stalled
+   * @param sessionId - The session ID to update
+   * @returns Updated session
+   * @throws NotFoundException if session not found
+   * @throws BadRequestException if session is completed or failed
+   */
+  async updateHeartbeat(sessionId: string): Promise<Session> {
+    const session = await this.findOne(sessionId);
+
+    if (!session) {
+      throw new NotFoundException(`Session with ID ${sessionId} not found`);
+    }
+
+    // Don't allow heartbeat updates for completed/failed sessions
+    if (session.status === SessionStatus.COMPLETED || session.status === SessionStatus.FAILED) {
+      throw new BadRequestException(
+        `Cannot update heartbeat for ${session.status} session`
+      );
+    }
+
+    const now = new Date();
+    const updateData: Partial<Session> = {
+      last_heartbeat: now,
+    };
+
+    // If session is stalled, change it back to active
+    if (session.status === SessionStatus.STALLED) {
+      updateData.status = SessionStatus.ACTIVE;
+    }
+
+    const updatedSession = await this.sessionModel
+      .findOneAndUpdate(
+        { session_id: sessionId },
+        { $set: updateData },
+        { new: true }
+      )
+      .exec();
+
+    return updatedSession!;
+  }
+
+  /**
+   * Detect and mark sessions as stalled if heartbeat is older than threshold
+   * @param thresholdMinutes - Minutes after which a session is considered stalled (default: 5)
+   * @returns Array of stalled session IDs
+   */
+  async detectStaleSessions(thresholdMinutes: number = 5): Promise<string[]> {
+    const thresholdTime = new Date(Date.now() - thresholdMinutes * 60 * 1000);
+
+    const result = await this.sessionModel
+      .updateMany(
+        {
+          last_heartbeat: { $lt: thresholdTime },
+          status: { $in: [SessionStatus.ACTIVE, SessionStatus.PAUSED] }
+        },
+        {
+          $set: { status: SessionStatus.STALLED }
+        }
+      )
+      .exec();
+
+    // Fetch the IDs of sessions that were marked as stalled
+    const stalledSessions = await this.sessionModel
+      .find({
+        last_heartbeat: { $lt: thresholdTime },
+        status: SessionStatus.STALLED
+      })
+      .select('session_id')
+      .exec();
+
+    return stalledSessions.map(s => s.session_id);
   }
 }
