@@ -3,8 +3,8 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
-  Tool,
 } from '@modelcontextprotocol/sdk/types.js';
+import { ToolRegistry } from './tools/registry.js';
 
 /**
  * MCP Server for Claude Projects API and Extension Communication
@@ -16,7 +16,7 @@ import {
  */
 export class MCPServer {
   private server: Server;
-  private tools: Tool[] = [];
+  private registry: ToolRegistry;
 
   constructor() {
     this.server = new Server(
@@ -31,7 +31,15 @@ export class MCPServer {
       }
     );
 
+    this.registry = new ToolRegistry();
     this.setupHandlers();
+  }
+
+  /**
+   * Get the tool registry (for testing and tool registration)
+   */
+  getRegistry(): ToolRegistry {
+    return this.registry;
   }
 
   /**
@@ -41,7 +49,7 @@ export class MCPServer {
     // List available tools
     this.server.setRequestHandler(ListToolsRequestSchema, async () => {
       return {
-        tools: this.tools,
+        tools: this.registry.listTools(),
       };
     });
 
@@ -49,8 +57,10 @@ export class MCPServer {
     this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
       const { name, arguments: args } = request.params;
 
-      // Tool execution will be implemented in future work items
-      throw new Error(`Tool not implemented: ${name}`);
+      // Execute tool through registry with validation and error handling
+      const result = await this.registry.executeTool(name, args || {});
+
+      return result;
     });
   }
 

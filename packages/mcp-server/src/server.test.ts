@@ -1,0 +1,82 @@
+import { MCPServer } from './server';
+import { JSONSchemaType } from 'ajv';
+
+describe('MCPServer - Tool Registry Integration', () => {
+  let server: MCPServer;
+
+  beforeEach(() => {
+    server = new MCPServer();
+  });
+
+  it('should expose the tool registry for tool registration', () => {
+    const registry = server.getRegistry();
+    expect(registry).toBeDefined();
+    expect(registry.getToolCount()).toBe(0);
+  });
+
+  it('should allow registering tools through the registry', () => {
+    interface EchoParams {
+      message: string;
+    }
+
+    const schema: JSONSchemaType<EchoParams> = {
+      type: 'object',
+      properties: {
+        message: { type: 'string' },
+      },
+      required: ['message'],
+      additionalProperties: false,
+    };
+
+    const registry = server.getRegistry();
+    registry.registerTool({
+      name: 'echo',
+      description: 'Echo test',
+      inputSchema: schema,
+      handler: async (params) => ({
+        content: [{ type: 'text', text: params.message }],
+      }),
+    });
+
+    expect(registry.getToolCount()).toBe(1);
+    expect(registry.hasTool('echo')).toBe(true);
+
+    const tools = registry.listTools();
+    expect(tools).toHaveLength(1);
+    expect(tools[0].name).toBe('echo');
+  });
+
+  it('should integrate registry with server handlers', async () => {
+    interface TestParams {
+      value: number;
+    }
+
+    const schema: JSONSchemaType<TestParams> = {
+      type: 'object',
+      properties: {
+        value: { type: 'number' },
+      },
+      required: ['value'],
+      additionalProperties: false,
+    };
+
+    const registry = server.getRegistry();
+    registry.registerTool({
+      name: 'double',
+      description: 'Double a number',
+      inputSchema: schema,
+      handler: async (params) => ({
+        content: [{ type: 'text', text: String(params.value * 2) }],
+      }),
+    });
+
+    // Test successful execution
+    const result = await registry.executeTool('double', { value: 21 });
+    expect(result.isError).toBeUndefined();
+    expect(result.content[0].text).toBe('42');
+
+    // Test validation error
+    const errorResult = await registry.executeTool('double', { value: 'not-a-number' });
+    expect(errorResult.isError).toBe(true);
+  });
+});
