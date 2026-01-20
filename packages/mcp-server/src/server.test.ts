@@ -30,13 +30,17 @@ describe('MCPServer - Tool Registry Integration', () => {
   it('should expose the tool registry for tool registration', () => {
     const registry = server.getRegistry();
     expect(registry).toBeDefined();
-    // Multiple tools are automatically registered (health_check, read_project, get_issue_details, get_project_phases, list_issues)
-    expect(registry.getToolCount()).toBe(5);
+    // Multiple tools are automatically registered (health_check, read_project, get_issue_details, get_project_phases, list_issues, update_issue, update_issue_phase, update_issue_status, create_issue)
+    expect(registry.getToolCount()).toBe(9);
     expect(registry.hasTool('health_check')).toBe(true);
     expect(registry.hasTool('read_project')).toBe(true);
     expect(registry.hasTool('get_issue_details')).toBe(true);
     expect(registry.hasTool('get_project_phases')).toBe(true);
     expect(registry.hasTool('list_issues')).toBe(true);
+    expect(registry.hasTool('update_issue')).toBe(true);
+    expect(registry.hasTool('update_issue_phase')).toBe(true);
+    expect(registry.hasTool('update_issue_status')).toBe(true);
+    expect(registry.hasTool('create_issue')).toBe(true);
   });
 
   it('should allow registering tools through the registry', () => {
@@ -63,13 +67,13 @@ describe('MCPServer - Tool Registry Integration', () => {
       }),
     });
 
-    // 5 tools are registered automatically, plus echo = 6 tools
-    expect(registry.getToolCount()).toBe(6);
+    // 9 tools are registered automatically, plus echo = 10 tools
+    expect(registry.getToolCount()).toBe(10);
     expect(registry.hasTool('echo')).toBe(true);
     expect(registry.hasTool('health_check')).toBe(true);
 
     const tools = registry.listTools();
-    expect(tools).toHaveLength(6);
+    expect(tools).toHaveLength(10);
     const echoTool = tools.find((t) => t.name === 'echo');
     expect(echoTool).toBeDefined();
     expect(echoTool?.name).toBe('echo');
