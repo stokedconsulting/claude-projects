@@ -16,6 +16,8 @@ import { createUpdateIssueTool } from './tools/update-issue.js';
 import { createUpdateIssuePhaseTool } from './tools/update-issue-phase.js';
 import { createUpdateIssueStatusTool } from './tools/update-issue-status.js';
 import { createCreateIssueTool } from './tools/create-issue.js';
+import { WebSocketNotificationServer } from './events/websocket-server.js';
+import { eventBus } from './events/event-bus.js';
 
 /**
  * MCP Server for Claude Projects API and Extension Communication
@@ -30,6 +32,7 @@ export class MCPServer {
   private registry: ToolRegistry;
   private config: ServerConfig;
   private logger: Logger;
+  private wsServer?: WebSocketNotificationServer;
 
   constructor(config: ServerConfig, logger: Logger) {
     this.config = config;
@@ -144,6 +147,24 @@ export class MCPServer {
     this.logger.info('Server version: 0.1.0');
     this.logger.info('Protocol: MCP via stdio transport');
     this.logger.info('Capabilities: tools');
+
+    // Start WebSocket server for real-time notifications
+    this.wsServer = new WebSocketNotificationServer({
+      port: this.config.wsPort,
+      apiKey: this.config.wsApiKey,
+      eventBus,
+      logger: this.logger,
+    });
+    await this.wsServer.start();
+  }
+
+  /**
+   * Stop the MCP server and WebSocket server
+   */
+  async stop(): Promise<void> {
+    if (this.wsServer) {
+      await this.wsServer.stop();
+    }
   }
 
   /**

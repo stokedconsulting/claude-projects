@@ -21,6 +21,12 @@ export interface ServerConfig {
 
   /** Number of retry attempts for failed requests */
   retryAttempts: number;
+
+  /** WebSocket server port for real-time notifications */
+  wsPort: number;
+
+  /** WebSocket API key for client authentication (required for WS server) */
+  wsApiKey: string;
 }
 
 /**
@@ -31,6 +37,7 @@ const DEFAULT_CONFIG: Partial<ServerConfig> = {
   logLevel: 'info',
   requestTimeout: 10000,
   retryAttempts: 3,
+  wsPort: 8080,
 };
 
 /**
@@ -64,11 +71,18 @@ export function loadConfig(): ServerConfig {
     throw new Error('Required environment variable STATE_TRACKING_API_KEY not set');
   }
 
+  // Validate required WebSocket API key
+  const wsApiKey = process.env.WS_API_KEY;
+  if (!wsApiKey) {
+    throw new Error('Required environment variable WS_API_KEY not set');
+  }
+
   // Load optional configuration with defaults
   const apiBaseUrl = process.env.STATE_TRACKING_API_URL || DEFAULT_CONFIG.apiBaseUrl!;
   const logLevel = (process.env.LOG_LEVEL || DEFAULT_CONFIG.logLevel!) as ServerConfig['logLevel'];
   const requestTimeout = parseInt(process.env.REQUEST_TIMEOUT_MS || String(DEFAULT_CONFIG.requestTimeout!), 10);
   const retryAttempts = parseInt(process.env.RETRY_ATTEMPTS || String(DEFAULT_CONFIG.retryAttempts!), 10);
+  const wsPort = parseInt(process.env.WS_PORT || String(DEFAULT_CONFIG.wsPort!), 10);
 
   // Validate log level
   if (!VALID_LOG_LEVELS.includes(logLevel)) {
@@ -86,6 +100,10 @@ export function loadConfig(): ServerConfig {
     throw new Error(`Invalid RETRY_ATTEMPTS: must be a non-negative number`);
   }
 
+  if (isNaN(wsPort) || wsPort <= 0 || wsPort > 65535) {
+    throw new Error(`Invalid WS_PORT: must be a valid port number (1-65535)`);
+  }
+
   // Create and store configuration
   configInstance = {
     apiKey,
@@ -93,6 +111,8 @@ export function loadConfig(): ServerConfig {
     logLevel,
     requestTimeout,
     retryAttempts,
+    wsPort,
+    wsApiKey,
   };
 
   return configInstance;

@@ -270,6 +270,8 @@ describe('Logger', () => {
         logLevel: 'debug',
         requestTimeout: 10000,
         retryAttempts: 3,
+        wsPort: 8080,
+        wsApiKey: 'test-ws-key',
       };
       logger = createLogger(config);
     });
@@ -311,6 +313,8 @@ describe('Logger', () => {
         logLevel: 'info',
         requestTimeout: 10000,
         retryAttempts: 3,
+        wsPort: 8080,
+        wsApiKey: 'test-ws-key',
       };
       logger = createLogger(config);
 
@@ -336,6 +340,8 @@ describe('Logger', () => {
         logLevel: 'warn',
         requestTimeout: 10000,
         retryAttempts: 3,
+        wsPort: 8080,
+        wsApiKey: 'test-ws-key',
       };
       logger = createLogger(config);
 
@@ -363,6 +369,8 @@ describe('Logger', () => {
         logLevel: 'error',
         requestTimeout: 10000,
         retryAttempts: 3,
+        wsPort: 8080,
+        wsApiKey: 'test-ws-key',
       };
       logger = createLogger(config);
 
@@ -394,6 +402,8 @@ describe('Logger', () => {
         logLevel: 'debug',
         requestTimeout: 10000,
         retryAttempts: 3,
+        wsPort: 8080,
+        wsApiKey: 'test-ws-key',
       };
       logger = createLogger(config);
     });
@@ -454,6 +464,8 @@ describe('Logger', () => {
         logLevel: 'info',
         requestTimeout: 10000,
         retryAttempts: 3,
+        wsPort: 8080,
+        wsApiKey: 'test-ws-key',
       };
       createLogger(config);
 
@@ -474,6 +486,8 @@ describe('Logger', () => {
         logLevel: 'info',
         requestTimeout: 10000,
         retryAttempts: 3,
+        wsPort: 8080,
+        wsApiKey: 'test-ws-key',
       };
       createLogger(config);
 

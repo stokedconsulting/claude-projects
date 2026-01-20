@@ -17,6 +17,8 @@ const mockConfig: ServerConfig = {
   logLevel: 'info',
   requestTimeout: 10000,
   retryAttempts: 3,
+  wsPort: 8080,
+  wsApiKey: 'test-ws-key',
 };
 
 describe('MCPServer - Tool Registry Integration', () => {

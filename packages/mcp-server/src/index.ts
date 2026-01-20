@@ -26,15 +26,21 @@ async function main() {
     const server = new MCPServer(config, logger);
     await server.start();
 
-    // Keep the process alive
-    process.on('SIGINT', () => {
-      logger.info('Received SIGINT, shutting down gracefully...');
+    // Keep the process alive and handle graceful shutdown
+    const shutdown = async () => {
+      logger.info('Shutting down gracefully...');
+      await server.stop();
       process.exit(0);
+    };
+
+    process.on('SIGINT', () => {
+      logger.info('Received SIGINT');
+      shutdown();
     });
 
     process.on('SIGTERM', () => {
-      logger.info('Received SIGTERM, shutting down gracefully...');
-      process.exit(0);
+      logger.info('Received SIGTERM');
+      shutdown();
     });
   } catch (error) {
     console.error('Failed to start MCP server:', error);
