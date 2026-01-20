@@ -60,6 +60,19 @@ importers:
 
   apps/slack-app: {}
 
+  packages/mcp-server:
+    dependencies:
+      '@modelcontextprotocol/sdk':
+        specifier: 1.6.1
+        version: 1.6.1
+    devDependencies:
+      '@types/node':
+        specifier: ^20.10.6
+        version: 20.19.30
+      typescript:
+        specifier: ^5.3.3
+        version: 5.9.3
+
   packages/state-tracking-api:
     dependencies:
       '@codegenie/serverless-express':
