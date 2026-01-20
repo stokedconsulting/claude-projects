@@ -159,6 +159,41 @@ curl -H "X-API-Key: YOUR_API_KEY" http://localhost:3000/sessions
 4. Use different keys for different environments
 5. Monitor API key usage through request logs
 
+## VSCode Extension Integration
+
+This API includes a TypeScript client library for easy integration with VSCode extensions.
+
+### Quick Start
+
+```typescript
+import { StateTrackingApiClient } from './state-tracking-client';
+
+const client = new StateTrackingApiClient({
+  baseUrl: 'https://your-api-domain.com',
+  apiKey: 'your-api-key',
+});
+
+const session = await client.createSession({
+  project_id: '123',
+  machine_id: 'my-machine',
+});
+```
+
+### Building the Client Library
+
+```bash
+# Build standalone client library
+pnpm run build:client
+
+# Output will be in dist/client/
+```
+
+### Documentation
+
+- [VSCode Integration Guide](./docs/VSCODE_INTEGRATION.md) - Complete integration guide with examples
+- [Client Library README](./src/client/README.md) - Client API reference
+- [Complete Example](./examples/vscode-extension-example.ts) - Full working example
+
 ## Testing
 
 ```bash
