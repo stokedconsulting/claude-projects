@@ -5,6 +5,7 @@ import {
   ListToolsRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
 import { ToolRegistry } from './tools/registry.js';
+import { ServerConfig, Logger } from './config.js';
 
 /**
  * MCP Server for Claude Projects API and Extension Communication
@@ -17,8 +18,13 @@ import { ToolRegistry } from './tools/registry.js';
 export class MCPServer {
   private server: Server;
   private registry: ToolRegistry;
+  private config: ServerConfig;
+  private logger: Logger;
 
-  constructor() {
+  constructor(config: ServerConfig, logger: Logger) {
+    this.config = config;
+    this.logger = logger;
+
     this.server = new Server(
       {
         name: 'claude-projects-mcp-server',
@@ -71,11 +77,11 @@ export class MCPServer {
     const transport = new StdioServerTransport();
     await this.server.connect(transport);
 
-    console.error('MCP Server started successfully');
-    console.error('Server name: claude-projects-mcp-server');
-    console.error('Server version: 0.1.0');
-    console.error('Protocol: MCP via stdio transport');
-    console.error('Capabilities: tools');
+    this.logger.info('MCP Server started successfully');
+    this.logger.info('Server name: claude-projects-mcp-server');
+    this.logger.info('Server version: 0.1.0');
+    this.logger.info('Protocol: MCP via stdio transport');
+    this.logger.info('Capabilities: tools');
   }
 
   /**

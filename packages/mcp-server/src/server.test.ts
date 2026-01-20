@@ -1,11 +1,30 @@
 import { MCPServer } from './server';
 import { JSONSchemaType } from 'ajv';
+import { ServerConfig, Logger } from './config';
+
+// Mock logger for testing
+const mockLogger: Logger = {
+  debug: jest.fn(),
+  info: jest.fn(),
+  warn: jest.fn(),
+  error: jest.fn(),
+};
+
+// Mock config for testing
+const mockConfig: ServerConfig = {
+  apiKey: 'test-api-key',
+  apiBaseUrl: 'https://test.example.com',
+  logLevel: 'info',
+  requestTimeout: 10000,
+  retryAttempts: 3,
+};
 
 describe('MCPServer - Tool Registry Integration', () => {
   let server: MCPServer;
 
   beforeEach(() => {
-    server = new MCPServer();
+    jest.clearAllMocks();
+    server = new MCPServer(mockConfig, mockLogger);
   });
 
   it('should expose the tool registry for tool registration', () => {

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { MCPServer } from './server.js';
+import { loadConfig, createLogger, getLogger } from './config.js';
 
 /**
  * Main entry point for the MCP server
@@ -10,17 +11,29 @@ import { MCPServer } from './server.js';
  */
 async function main() {
   try {
-    const server = new MCPServer();
+    // Load and validate configuration
+    const config = loadConfig();
+    const logger = createLogger(config);
+
+    logger.info('Configuration loaded successfully', {
+      apiBaseUrl: config.apiBaseUrl,
+      logLevel: config.logLevel,
+      requestTimeout: config.requestTimeout,
+      retryAttempts: config.retryAttempts,
+    });
+
+    // Start MCP server
+    const server = new MCPServer(config, logger);
     await server.start();
 
     // Keep the process alive
     process.on('SIGINT', () => {
-      console.error('Received SIGINT, shutting down gracefully...');
+      logger.info('Received SIGINT, shutting down gracefully...');
       process.exit(0);
     });
 
     process.on('SIGTERM', () => {
-      console.error('Received SIGTERM, shutting down gracefully...');
+      logger.info('Received SIGTERM, shutting down gracefully...');
       process.exit(0);
     });
   } catch (error) {
