@@ -148,6 +148,7 @@ export class TasksController {
    * POST /tasks/:id/start - Start task
    */
   @Post(':id/start')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Start task',
     description: 'Transition task from pending to in_progress, set started_at timestamp, and update session current_task_id'
@@ -173,6 +174,7 @@ export class TasksController {
    * POST /tasks/:id/complete - Complete task
    */
   @Post(':id/complete')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Complete task',
     description: 'Mark task as completed, set completed_at timestamp, and clear session current_task_id if applicable'
@@ -198,6 +200,7 @@ export class TasksController {
    * POST /tasks/:id/fail - Fail task
    */
   @Post(':id/fail')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Fail task',
     description: 'Mark task as failed with error message, set completed_at timestamp, and clear session current_task_id if applicable'

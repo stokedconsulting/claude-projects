@@ -178,6 +178,24 @@ export class SessionsService {
   }
 
   /**
+   * Clear the current_task_id from a session
+   * @param sessionId - The session ID to update
+   * @throws NotFoundException if session not found
+   */
+  async clearCurrentTaskId(sessionId: string): Promise<void> {
+    // Verify session exists
+    await this.findOne(sessionId);
+
+    await this.sessionModel
+      .findOneAndUpdate(
+        { session_id: sessionId },
+        { $unset: { current_task_id: 1 } },
+        { new: true }
+      )
+      .exec();
+  }
+
+  /**
    * Update session heartbeat timestamp and reactivate if stalled
    * @param sessionId - The session ID to update
    * @returns Updated session

@@ -119,6 +119,14 @@ export class TasksService {
 
     const updateData: any = { ...updateTaskDto };
 
+    // Handle metadata merging if metadata is being updated
+    if (updateTaskDto.metadata) {
+      updateData.metadata = {
+        ...(task.metadata || {}),
+        ...updateTaskDto.metadata,
+      };
+    }
+
     // Handle status-specific updates
     if (updateTaskDto.status === TaskStatus.IN_PROGRESS && task.status === TaskStatus.PENDING) {
       updateData.started_at = new Date();
@@ -253,9 +261,7 @@ export class TasksService {
     // Clear session's current_task_id if this is the current task
     const session = await this.sessionsService.findOne(task.session_id);
     if (session.current_task_id === taskId) {
-      await this.sessionsService.update(task.session_id, {
-        current_task_id: undefined,
-      });
+      await this.sessionsService.clearCurrentTaskId(task.session_id);
     }
 
     return updatedTask;
@@ -302,9 +308,7 @@ export class TasksService {
     // Clear session's current_task_id if this is the current task
     const session = await this.sessionsService.findOne(task.session_id);
     if (session.current_task_id === taskId) {
-      await this.sessionsService.update(task.session_id, {
-        current_task_id: undefined,
-      });
+      await this.sessionsService.clearCurrentTaskId(task.session_id);
     }
 
     return updatedTask;

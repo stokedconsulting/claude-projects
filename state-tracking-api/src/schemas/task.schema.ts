@@ -53,6 +53,10 @@ export class Task {
   @Prop({ required: false })
   error_message?: string;
 
+  @ApiProperty({ description: 'Task metadata', required: false })
+  @Prop({ required: false, type: Object })
+  metadata?: Record<string, any>;
+
   @ApiProperty({ description: 'Document creation timestamp' })
   created_at?: Date;
 
