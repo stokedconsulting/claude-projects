@@ -1,6 +1,7 @@
 import { JSONSchemaType } from 'ajv';
 import { ToolDefinition, ToolResult } from './registry.js';
 import { APIClient, Issue, NotFoundError } from '../api-client.js';
+import { eventBus } from '../events/event-bus.js';
 
 /**
  * Issue creation response from API
@@ -162,6 +163,14 @@ export function createCreateIssueTool(apiClient: APIClient): ToolDefinition<Crea
         const createdIssue = await apiClient.post<CreatedIssue>(
           `/api/projects/${projectNumber}/issues`,
           payload
+        );
+
+        // Emit issue.created event (AC-4.1.a)
+        eventBus.emit(
+          'issue.created',
+          projectNumber,
+          createdIssue,
+          createdIssue.number
         );
 
         // Return successful result with created issue

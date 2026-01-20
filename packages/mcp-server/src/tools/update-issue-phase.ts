@@ -1,6 +1,7 @@
 import { JSONSchemaType } from 'ajv';
 import { ToolDefinition, ToolResult } from './registry.js';
 import { APIClient, Issue, NotFoundError } from '../api-client.js';
+import { eventBus } from '../events/event-bus.js';
 
 /**
  * Input parameters for update_issue_phase tool
@@ -246,6 +247,14 @@ export function createUpdateIssuePhaseTool(
           { phaseName }
         );
 
+        // Emit phase.updated event (AC-4.1.a)
+        eventBus.emit(
+          'phase.updated',
+          projectNumber,
+          { ...updatedIssue, phaseName },
+          issueNumber
+        );
+
         // Step 3: Return updated Issue object
         return {
           content: [
@@ -255,8 +264,6 @@ export function createUpdateIssuePhaseTool(
             },
           ],
         };
-
-        // Note: Notification event (AC-3.2.a) is stubbed for Phase 4
       } catch (error) {
         // Handle NotFoundError for non-existent issues or projects
         if (error instanceof NotFoundError) {
