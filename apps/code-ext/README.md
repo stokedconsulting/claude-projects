@@ -42,6 +42,12 @@ Claude Projects brings GitHub Projects (V2) directly into your VS Code sidebar. 
 - **Cache System** - Instant loading with smart background refresh
 - **Optimistic Updates** - Immediate UI feedback while syncing
 
+### 🔔 Real-Time Notifications
+- **WebSocket Integration** - Live updates when Claude modifies projects via MCP
+- **Instant Sync** - UI updates automatically when issues change
+- **Event Buffering** - Missed events replayed on reconnection
+- **Low Latency** - <100ms notification delivery
+
 ## Installation
 
 ### From VS Code Marketplace
@@ -126,14 +132,60 @@ Items are automatically grouped by naming convention:
 
 ### Extension Settings
 
-Currently, the extension uses sensible defaults:
+Access settings via `Cmd+,` (or `Ctrl+,`) and search for "Claude Projects":
 
 | Setting | Default | Description |
 |---------|---------|-------------|
+| **WebSocket Notifications** | | |
+| `ghProjects.notifications.enabled` | `true` | Enable real-time notifications via WebSocket |
+| `ghProjects.notifications.websocketUrl` | `ws://localhost:8080/notifications` | WebSocket URL for the MCP notification server |
+| `ghProjects.mcp.apiKey` | *(empty)* | API key for MCP server authentication (required for notifications) |
+| **Claude Sessions** | | |
 | Inactivity Threshold | 60 seconds | Time before sending continuation prompt |
 | Check Interval | 10 seconds | How often to check for Claude activity |
 
-Future versions will expose these as configurable VS Code settings.
+### WebSocket Notification Setup
+
+To enable real-time notifications when Claude modifies projects:
+
+1. **Start the MCP Server** with WebSocket support:
+   ```bash
+   cd packages/mcp-server
+   # Ensure WS_API_KEY is set in .env
+   pnpm start
+   ```
+
+2. **Configure the Extension** with matching API key:
+   - Open VSCode Settings (`Cmd+,` or `Ctrl+,`)
+   - Search for "Claude Projects"
+   - Set `ghProjects.mcp.apiKey` to match the `WS_API_KEY` in MCP server `.env`
+   - Verify `ghProjects.notifications.websocketUrl` points to MCP server (default: `ws://localhost:8080/notifications`)
+   - Ensure `ghProjects.notifications.enabled` is `true`
+
+3. **Verify Connection**:
+   - Check VSCode Output panel → "Claude Projects" channel
+   - Look for: `WebSocket connected to ws://localhost:8080/notifications`
+   - If connection fails, check MCP server is running and API key matches
+
+### Configuration Example
+
+**VSCode Settings (settings.json)**:
+```json
+{
+  "ghProjects.notifications.enabled": true,
+  "ghProjects.notifications.websocketUrl": "ws://localhost:8080/notifications",
+  "ghProjects.mcp.apiKey": "ws_your_api_key_here"
+}
+```
+
+**MCP Server (.env)**:
+```bash
+STATE_TRACKING_API_KEY=sk_your_api_key_here
+WS_API_KEY=ws_your_api_key_here
+WS_PORT=8080
+```
+
+**Important**: The `WS_API_KEY` in MCP server `.env` must match the `ghProjects.mcp.apiKey` in VSCode settings.
 
 ## Troubleshooting
 
@@ -152,6 +204,50 @@ Future versions will expose these as configurable VS Code settings.
 ### Cache Issues
 
 Click the 🔄 refresh button to force a fresh data fetch.
+
+### WebSocket Connection Issues
+
+**Problem**: Not receiving real-time updates when Claude modifies projects
+
+**Checklist**:
+1. **Verify MCP server is running**:
+   ```bash
+   cd packages/mcp-server
+   pnpm start
+   ```
+
+2. **Check API key configuration**:
+   - MCP server `.env` has `WS_API_KEY=ws_your_key_here`
+   - VSCode settings has `ghProjects.mcp.apiKey` with matching key
+
+3. **Verify WebSocket URL**:
+   - Default: `ws://localhost:8080/notifications`
+   - Check `WS_PORT` in MCP server `.env` matches port in URL
+
+4. **Check Output panel**:
+   - Open VSCode Output panel (`Cmd+Shift+U` or `Ctrl+Shift+U`)
+   - Select "Claude Projects" from dropdown
+   - Look for connection errors or authentication failures
+
+5. **Test MCP server WebSocket**:
+   ```bash
+   # Test if WebSocket server is listening
+   telnet localhost 8080
+   # or
+   curl -i -N -H "Connection: Upgrade" -H "Upgrade: websocket" \
+        "http://localhost:8080/notifications?apiKey=ws_your_key_here"
+   ```
+
+**Common Errors**:
+
+- `WebSocket connection failed: ECONNREFUSED`
+  - Solution: Start the MCP server (`pnpm start` in `packages/mcp-server`)
+
+- `WebSocket authentication failed`
+  - Solution: Verify API keys match between MCP server and VSCode settings
+
+- `WebSocket closed with code 1006`
+  - Solution: Check MCP server logs for errors; may indicate server crash or configuration issue
 
 ## Commands
 
