@@ -77,6 +77,26 @@
                     "group": "navigation"
                 }
             ]
+        },
+        "configuration": {
+            "title": "Claude Projects",
+            "properties": {
+                "ghProjects.notifications.websocketUrl": {
+                    "type": "string",
+                    "default": "ws://localhost:8080/notifications",
+                    "description": "WebSocket URL for real-time notifications from the MCP notification server"
+                },
+                "ghProjects.notifications.enabled": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enable real-time notifications via WebSocket"
+                },
+                "ghProjects.mcp.apiKey": {
+                    "type": "string",
+                    "default": "",
+                    "description": "API key for MCP server authentication (used for both HTTP API and WebSocket)"
+                }
+            }
         }
     },
     "scripts": {
@@ -107,6 +127,8 @@
     },
     "dependencies": {
         "@types/uuid": "^10.0.0",
-        "uuid": "^13.0.0"
+        "@types/ws": "^8.18.1",
+        "uuid": "^13.0.0",
+        "ws": "^8.19.0"
     }
 }

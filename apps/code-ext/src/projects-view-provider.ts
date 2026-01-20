@@ -10,6 +10,7 @@ import { GitHubProjectCreator } from './github-project-creator';
 import { detectFilePath, getTypeaheadResults, extractInput } from './input-detection';
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import { WebSocketNotificationClient, WebSocketEvent } from './notifications/websocket-client';
 
 const execAsync = promisify(exec);
 
@@ -26,10 +27,13 @@ export class ProjectsViewProvider implements vscode.WebviewViewProvider {
     private _projectCreator?: GitHubProjectCreator;
     private _outputChannel: vscode.OutputChannel;
     private _showOrgProjects: boolean = true;
+    private _wsClient?: WebSocketNotificationClient;
+    private _activeProjectNumbers: number[] = [];
 
     constructor(
         private readonly _extensionUri: vscode.Uri,
         private readonly _context: vscode.ExtensionContext,
+        wsClient?: WebSocketNotificationClient,
     ) {
         this._githubAPI = new GitHubAPI();
         this._cacheManager = new CacheManager(_context);
@@ -37,6 +41,82 @@ export class ProjectsViewProvider implements vscode.WebviewViewProvider {
         this._claudeAPI = new ClaudeAPI();
         this._projectCreator = new GitHubProjectCreator();
         this._outputChannel = vscode.window.createOutputChannel('Claude Projects');
+        this._wsClient = wsClient;
+
+        // Register WebSocket event handlers
+        if (this._wsClient) {
+            this.setupWebSocketHandlers();
+        }
+    }
+
+    /**
+     * Setup WebSocket event handlers for real-time updates
+     */
+    private setupWebSocketHandlers(): void {
+        if (!this._wsClient) return;
+
+        // Handle issue created events
+        this._wsClient.on('issue.created', (event: WebSocketEvent) => {
+            this._outputChannel.appendLine(`[WS] Issue created: ${event.data.title}`);
+            // Refresh the entire project tree (could be optimized to just add the new issue)
+            this.handleWebSocketUpdate('issue.created', event.data);
+        });
+
+        // Handle issue updated events
+        this._wsClient.on('issue.updated', (event: WebSocketEvent) => {
+            this._outputChannel.appendLine(`[WS] Issue updated: ${event.data.title}`);
+            // Update specific issue in UI without full refresh
+            this.handleWebSocketUpdate('issue.updated', event.data);
+        });
+
+        // Handle issue deleted events
+        this._wsClient.on('issue.deleted', (event: WebSocketEvent) => {
+            this._outputChannel.appendLine(`[WS] Issue deleted: ${event.data.id}`);
+            // Remove issue from UI
+            this.handleWebSocketUpdate('issue.deleted', event.data);
+        });
+
+        // Handle project updated events
+        this._wsClient.on('project.updated', (event: WebSocketEvent) => {
+            this._outputChannel.appendLine(`[WS] Project updated: ${event.data.title}`);
+            // Refresh project metadata
+            this.handleWebSocketUpdate('project.updated', event.data);
+        });
+
+        // Handle phase updated events
+        this._wsClient.on('phase.updated', (event: WebSocketEvent) => {
+            this._outputChannel.appendLine(`[WS] Phase updated: ${event.data.phase}`);
+            // Refresh phase structure
+            this.handleWebSocketUpdate('phase.updated', event.data);
+        });
+    }
+
+    /**
+     * Handle WebSocket update events
+     */
+    private async handleWebSocketUpdate(eventType: string, data: any): Promise<void> {
+        // For now, just refresh the entire view
+        // Could be optimized to update only specific items
+        try {
+            // Clear cache for affected project
+            if (data.projectNumber && this._currentOwner && this._currentRepo) {
+                await this._cacheManager.clearCache(this._currentOwner, this._currentRepo);
+            }
+
+            // Refresh the view
+            await this.refresh();
+
+            // Notify user of the update
+            if (this._view) {
+                this._view.webview.postMessage({
+                    type: 'notification',
+                    eventType,
+                    data,
+                });
+            }
+        } catch (error) {
+            this._outputChannel.appendLine(`[WS] Error handling update: ${error}`);
+        }
     }
 
     public async resolveWebviewView(
@@ -1078,6 +1158,66 @@ export class ProjectsViewProvider implements vscode.WebviewViewProvider {
             orgProjectsData,
             statusOptions
         );
+
+        // Connect to WebSocket for real-time notifications
+        await this.connectWebSocket(allProjects);
+    }
+
+    /**
+     * Connect to WebSocket server for real-time notifications
+     */
+    private async connectWebSocket(projects: any[]): Promise<void> {
+        if (!this._wsClient) return;
+
+        // Check if notifications are enabled
+        const wsEnabled = vscode.workspace.getConfiguration('ghProjects.notifications').get<boolean>('enabled', true);
+        if (!wsEnabled) {
+            this._outputChannel.appendLine('[WebSocket] Notifications disabled in settings');
+            return;
+        }
+
+        // Get configuration
+        const wsUrl = vscode.workspace.getConfiguration('ghProjects.notifications').get<string>('websocketUrl', 'ws://localhost:8080/notifications');
+        const apiKey = vscode.workspace.getConfiguration('ghProjects.mcp').get<string>('apiKey', '');
+
+        if (!apiKey) {
+            this._outputChannel.appendLine('[WebSocket] No API key configured');
+            return;
+        }
+
+        // Extract project numbers
+        const projectNumbers = projects.map(p => p.number).filter(n => n);
+        this._activeProjectNumbers = projectNumbers;
+
+        if (projectNumbers.length === 0) {
+            this._outputChannel.appendLine('[WebSocket] No projects to subscribe to');
+            return;
+        }
+
+        // Connect if not already connected
+        if (!this._wsClient.isConnected()) {
+            try {
+                await this._wsClient.connect({
+                    url: wsUrl,
+                    apiKey: apiKey,
+                    projectNumbers: projectNumbers,
+                });
+                this._outputChannel.appendLine(`[WebSocket] Connected and subscribed to ${projectNumbers.length} projects`);
+            } catch (error) {
+                this._outputChannel.appendLine(`[WebSocket] Connection failed: ${error}`);
+                vscode.window.showErrorMessage(
+                    `Failed to connect to notification server. Check WebSocket URL in settings: ${wsUrl}`,
+                    'Open Settings'
+                ).then(selection => {
+                    if (selection === 'Open Settings') {
+                        vscode.commands.executeCommand('workbench.action.openSettings', 'ghProjects.notifications');
+                    }
+                });
+            }
+        } else {
+            // Already connected, just update subscriptions
+            this._wsClient.subscribe(projectNumbers);
+        }
     }
 
 

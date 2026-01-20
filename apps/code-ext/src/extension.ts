@@ -1,11 +1,19 @@
 import * as vscode from 'vscode';
 import { ProjectsViewProvider } from './projects-view-provider';
 import { GitHubAPI } from './github-api';
+import { WebSocketNotificationClient } from './notifications/websocket-client';
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('Congratulations, your extension "gh-projects-vscode" is now active!');
 
-    const provider = new ProjectsViewProvider(context.extensionUri, context);
+    // Create output channel for notifications
+    const notificationOutputChannel = vscode.window.createOutputChannel('Claude Projects - Notifications');
+    context.subscriptions.push(notificationOutputChannel);
+
+    // Create WebSocket client
+    const wsClient = new WebSocketNotificationClient(notificationOutputChannel);
+
+    const provider = new ProjectsViewProvider(context.extensionUri, context, wsClient);
 
     context.subscriptions.push(
         vscode.window.registerWebviewViewProvider(ProjectsViewProvider.viewType, provider)
@@ -102,6 +110,31 @@ export function activate(context: vscode.ExtensionContext) {
             vscode.window.showInformationMessage(`Found ${linkedResult.projects.length} repo projects, ${orgProjects.length} org projects`);
         })
     );
+
+    // Initialize WebSocket connection if enabled
+    const wsEnabled = vscode.workspace.getConfiguration('ghProjects.notifications').get<boolean>('enabled', true);
+    if (wsEnabled) {
+        const wsUrl = vscode.workspace.getConfiguration('ghProjects.notifications').get<string>('websocketUrl', 'ws://localhost:8080/notifications');
+        const apiKey = vscode.workspace.getConfiguration('ghProjects.mcp').get<string>('apiKey', '');
+
+        if (!apiKey) {
+            notificationOutputChannel.appendLine('[WebSocket] No API key configured. Set ghProjects.mcp.apiKey in settings to enable real-time notifications.');
+            vscode.window.showWarningMessage('Configure API key in settings to enable real-time notifications');
+        } else {
+            // We'll connect once we have project numbers from the provider
+            // The provider will call wsClient.connect() when projects are loaded
+            notificationOutputChannel.appendLine('[WebSocket] Real-time notifications enabled. Will connect once projects are loaded.');
+        }
+    } else {
+        notificationOutputChannel.appendLine('[WebSocket] Real-time notifications disabled in settings');
+    }
+
+    // Cleanup on deactivation
+    context.subscriptions.push({
+        dispose: () => {
+            wsClient.disconnect();
+        }
+    });
 }
 
 export function deactivate() { }
