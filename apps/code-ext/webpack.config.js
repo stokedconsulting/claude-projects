@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 const path = require('path');
 const webpack = require('webpack');
+const CopyPlugin = require('copy-webpack-plugin');
 
 module.exports = {
     mode: 'none', // this leaves the source code as close as possible to the original (when packaging we set this to 'production')
@@ -41,5 +42,10 @@ module.exports = {
         new webpack.NormalModuleReplacementPlugin(/node:/, (resource) => {
             resource.request = resource.request.replace(/^node:/, "");
         }),
+        new CopyPlugin({
+            patterns: [
+                { from: 'commands', to: 'commands' }
+            ]
+        })
     ]
 };

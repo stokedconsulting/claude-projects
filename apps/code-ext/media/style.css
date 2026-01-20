@@ -653,3 +653,9 @@ ul {
     padding: 2px 8px;
     margin-left: auto;
 }
+
+/* Context menu button on items */
+.item-context-button {
+    flex-shrink: 0;
+    margin-left: auto;
+}

@@ -22,6 +22,8 @@ export class ProjectsViewProvider implements vscode.WebviewViewProvider {
     private _cacheManager: CacheManager;
     private _currentOwner?: string;
     private _currentRepo?: string;
+    private _currentRepoId?: string; // Cache the repository node ID
+    private _lastRepoCheck?: string; // Track last checked repo for debouncing
     private _projectFlowManager?: ProjectFlowManager;
     private _claudeAPI?: ClaudeAPI;
     private _projectCreator?: GitHubProjectCreator;
@@ -35,12 +37,12 @@ export class ProjectsViewProvider implements vscode.WebviewViewProvider {
         private readonly _context: vscode.ExtensionContext,
         wsClient?: WebSocketNotificationClient,
     ) {
-        this._githubAPI = new GitHubAPI();
+        this._outputChannel = vscode.window.createOutputChannel('Claude Projects');
+        this._githubAPI = new GitHubAPI(this._outputChannel);
         this._cacheManager = new CacheManager(_context);
         this._projectFlowManager = new ProjectFlowManager(_context);
         this._claudeAPI = new ClaudeAPI();
         this._projectCreator = new GitHubProjectCreator();
-        this._outputChannel = vscode.window.createOutputChannel('Claude Projects');
         this._wsClient = wsClient;
 
         // Register WebSocket event handlers
@@ -117,6 +119,8 @@ export class ProjectsViewProvider implements vscode.WebviewViewProvider {
         } catch (error) {
             this._outputChannel.appendLine(`[WS] Error handling update: ${error}`);
         }
+=======
+>>>>>>> Stashed changes
     }
 
     public async resolveWebviewView(
@@ -222,6 +226,7 @@ export class ProjectsViewProvider implements vscode.WebviewViewProvider {
                 }
                 case 'modeChanged': {
                     this._showOrgProjects = data.showOrgProjects;
+                    this._outputChannel.appendLine(`\n>>> MODE SWITCHED: Now showing ${this._showOrgProjects ? 'ORGANIZATION' : 'REPOSITORY'} projects`);
                     this.updateViewTitle();
                     break;
                 }
@@ -237,17 +242,70 @@ export class ProjectsViewProvider implements vscode.WebviewViewProvider {
                     await this.handleUnlinkProjectFromRepo(data.projectId, data.projectNumber);
                     break;
                 }
+                case 'reviewProject': {
+                    await this.handleReviewProject(data.projectNumber);
+                    break;
+                }
+                case 'reviewPhase': {
+                    await this.handleReviewPhase(data.projectNumber, data.phaseNumber);
+                    break;
+                }
+                case 'reviewItem': {
+                    await this.handleReviewItem(data.projectNumber, data.phaseItemNumber);
+                    break;
+                }
             }
         });
 
-        // Initial load
-        // Don't await refresh so the view resolves immediately. Errors are handled via postMessage.
-        this.refresh().catch(e => {
-            console.error('Initial refresh failed:', e);
-            if (this._view) {
-                this._view.webview.postMessage({ type: 'error', message: `Initial load failed: ${e instanceof Error ? e.message : String(e)}` });
-            }
-        });
+        // Initial load - only refresh if we don't have any cached data
+        // Check if we have owner/repo context first
+        const folders = vscode.workspace.workspaceFolders;
+        if (folders && folders.length > 0) {
+            this.getRepoContext().then(async ({ owner, repo }) => {
+                if (owner && repo) {
+                    const cached = await this._cacheManager.loadCache(owner, repo);
+                    if (!cached) {
+                        // No cache exists, do initial refresh
+                        this.refresh().catch(e => {
+                            console.error('Initial refresh failed:', e);
+                            if (this._view) {
+                                this._view.webview.postMessage({ type: 'error', message: `Initial load failed: ${e instanceof Error ? e.message : String(e)}` });
+                            }
+                        });
+                    } else {
+                        // We have cached data, send it to the webview
+                        this._currentOwner = owner;
+                        this._currentRepo = repo;
+                        this._view?.webview.postMessage({
+                            type: 'repoInfo',
+                            owner: owner,
+                            repo: repo
+                        });
+                        this.updateViewTitle();
+
+                        // Send cached data to webview
+                        const cacheAge = this._cacheManager.getCacheAge(cached);
+                        const isStale = this._cacheManager.isCacheStale(cached);
+                        this._view?.webview.postMessage({
+                            type: 'cachedData',
+                            repoProjects: cached.repoProjects,
+                            orgProjects: cached.orgProjects,
+                            statusOptions: cached.statusOptions,
+                            isStale,
+                            cacheAge,
+                        });
+                    }
+                }
+            }).catch(e => {
+                console.error('Failed to get repo context:', e);
+                if (this._view) {
+                    this._view.webview.postMessage({
+                        type: 'error',
+                        message: e instanceof Error ? e.message : 'Could not determine GitHub repository. Ensure a folder with a git remote is open.'
+                    });
+                }
+            });
+        }
     }
 
     /**
@@ -467,6 +525,87 @@ export class ProjectsViewProvider implements vscode.WebviewViewProvider {
         });
 
         try {
+            // Check if project link status has changed by fetching current linked projects
+            if (!this._currentOwner || !this._currentRepo) {
+                throw new Error('No repository context available');
+            }
+
+            const linkedResult = await this._githubAPI.getLinkedProjects(this._currentOwner, this._currentRepo);
+            const isNowLinked = linkedResult.projects.some(p => p.id === projectId);
+
+            // Check if this project was unlinked from the repo
+            if (!isNowLinked) {
+                this._outputChannel.appendLine(`[gh-projects] Project #${projectNumber} is not linked to ${this._currentOwner}/${this._currentRepo}`);
+
+                // Load current cache
+                const cached = await this._cacheManager.loadCache(this._currentOwner, this._currentRepo);
+                if (cached) {
+                    // Check if it's still an org project
+                    const allOrgProjects = await this._githubAPI.getOrganizationProjects(this._currentOwner);
+                    const isOrgProject = allOrgProjects.some(p => p.id === projectId);
+
+                    if (!isOrgProject) {
+                        // Not in org or repo - project was deleted or moved
+                        this._outputChannel.appendLine(`[gh-projects] Project #${projectNumber} no longer exists in org - removing`);
+
+                        // Remove from both lists
+                        const updatedRepoProjects = cached.repoProjects.filter((p: any) => p.id !== projectId);
+                        const updatedOrgProjects = cached.orgProjects.filter((p: any) => p.id !== projectId);
+
+                        // Update cache
+                        await this._cacheManager.saveCache(
+                            this._currentOwner,
+                            this._currentRepo,
+                            updatedRepoProjects,
+                            updatedOrgProjects,
+                            cached.statusOptions
+                        );
+
+                        // Tell UI to remove the project
+                        this._view.webview.postMessage({
+                            type: 'projectRemoved',
+                            projectId: projectId
+                        });
+
+                        return; // Don't send projectUpdate
+                    } else {
+                        // It's an org project - update cache to ensure it's in the right list
+                        this._outputChannel.appendLine(`[gh-projects] Project #${projectNumber} is an org project - refreshing data`);
+
+                        const updatedRepoProjects = cached.repoProjects.filter((p: any) => p.id !== projectId);
+                        let updatedOrgProjects = cached.orgProjects;
+
+                        // Ensure it's in orgProjects
+                        const alreadyInOrgProjects = updatedOrgProjects.some((p: any) => p.id === projectId);
+                        if (!alreadyInOrgProjects) {
+                            const orgProject = allOrgProjects.find(p => p.id === projectId);
+                            if (orgProject) {
+                                updatedOrgProjects = [...updatedOrgProjects, {
+                                    ...orgProject,
+                                    phases: [],
+                                    itemCount: 0,
+                                    notDoneCount: 0,
+                                    items: [],
+                                    statusOptions: [],
+                                    isLoading: true
+                                }];
+                            }
+                        }
+
+                        // Update cache
+                        await this._cacheManager.saveCache(
+                            this._currentOwner,
+                            this._currentRepo,
+                            updatedRepoProjects,
+                            updatedOrgProjects,
+                            cached.statusOptions
+                        );
+
+                        // Continue to fetch fresh data below (don't return here!)
+                    }
+                }
+            }
+
             // Fetch fresh items for this specific project
             const items = await this._githubAPI.getProjectItems(projectId);
             const phases = groupItemsByPhase(items);
@@ -501,12 +640,33 @@ export class ProjectsViewProvider implements vscode.WebviewViewProvider {
                 isLoading: false
             };
 
-            // Send update for just this project
+            // Update the cache with fresh data
+            const cached = await this._cacheManager.loadCache(this._currentOwner, this._currentRepo);
+            if (cached) {
+                // Update the project in repoProjects or orgProjects
+                const updatedRepoProjects = cached.repoProjects.map((p: any) =>
+                    p.id === projectId ? { ...p, ...projectData } : p
+                );
+                const updatedOrgProjects = cached.orgProjects.map((p: any) =>
+                    p.id === projectId ? { ...p, ...projectData } : p
+                );
+
+                await this._cacheManager.saveCache(
+                    this._currentOwner,
+                    this._currentRepo,
+                    updatedRepoProjects,
+                    updatedOrgProjects,
+                    cached.statusOptions
+                );
+            }
+
+            // Send update for this project
             this._view.webview.postMessage({
                 type: 'projectUpdate',
                 projectId: projectId,
                 projectData: projectData,
-                statusOptions: statusOptions
+                statusOptions: statusOptions,
+                isLinked: isNowLinked
             });
 
         } catch (error) {
@@ -526,22 +686,25 @@ export class ProjectsViewProvider implements vscode.WebviewViewProvider {
             return;
         }
 
+        if (!this._currentRepoId) {
+            vscode.window.showErrorMessage('Repository ID not available. Please refresh the extension first.');
+            return;
+        }
+
         try {
-            // Get the repository ID
-            const repositoryId = await this._githubAPI.getRepositoryId(this._currentOwner, this._currentRepo);
-            if (!repositoryId) {
-                vscode.window.showErrorMessage('Failed to get repository ID');
-                return;
-            }
+            this._outputChannel.appendLine(`[gh-projects] Linking project #${projectNumber} to ${this._currentOwner}/${this._currentRepo} (repo ID: ${this._currentRepoId})`);
+            const repositoryId = this._currentRepoId;
 
             // Link the project to the repository
             const success = await this._githubAPI.linkProjectToRepository(projectId, repositoryId);
 
             if (success) {
                 vscode.window.showInformationMessage(`Project #${projectNumber} linked to ${this._currentOwner}/${this._currentRepo}`);
-                // Clear cache to force fresh data fetch
+                // Clear cache FIRST to prevent stale data from being sent
                 await this._cacheManager.clearCache(this._currentOwner, this._currentRepo);
-                // Refresh the view to show updated project status
+                // Show loading indicator
+                this._view?.webview.postMessage({ type: 'loading' });
+                // Do full refresh (no optimistic update to avoid race conditions)
                 await this.refresh();
             } else {
                 vscode.window.showErrorMessage('Failed to link project to repository');
@@ -558,22 +721,25 @@ export class ProjectsViewProvider implements vscode.WebviewViewProvider {
             return;
         }
 
+        if (!this._currentRepoId) {
+            vscode.window.showErrorMessage('Repository ID not available. Please refresh the extension first.');
+            return;
+        }
+
         try {
-            // Get the repository ID
-            const repositoryId = await this._githubAPI.getRepositoryId(this._currentOwner, this._currentRepo);
-            if (!repositoryId) {
-                vscode.window.showErrorMessage('Failed to get repository ID');
-                return;
-            }
+            this._outputChannel.appendLine(`[gh-projects] Unlinking project #${projectNumber} from ${this._currentOwner}/${this._currentRepo} (repo ID: ${this._currentRepoId})`);
+            const repositoryId = this._currentRepoId;
 
             // Unlink the project from the repository
             const success = await this._githubAPI.unlinkProjectFromRepository(projectId, repositoryId);
 
             if (success) {
                 vscode.window.showInformationMessage(`Project #${projectNumber} unlinked from ${this._currentOwner}/${this._currentRepo}`);
-                // Clear cache to force fresh data fetch
+                // Clear cache FIRST to prevent stale data from being sent
                 await this._cacheManager.clearCache(this._currentOwner, this._currentRepo);
-                // Refresh the view to show updated project status
+                // Show loading indicator
+                this._view?.webview.postMessage({ type: 'loading' });
+                // Do full refresh (no optimistic update to avoid race conditions)
                 await this.refresh();
             } else {
                 vscode.window.showErrorMessage('Failed to unlink project from repository');
@@ -582,6 +748,66 @@ export class ProjectsViewProvider implements vscode.WebviewViewProvider {
             console.error('[gh-projects] Error unlinking project from repository:', error);
             vscode.window.showErrorMessage(`Failed to unlink project: ${error instanceof Error ? error.message : String(error)}`);
         }
+    }
+
+    private async handleReviewProject(projectNumber: number) {
+        const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+        if (!workspaceRoot) {
+            vscode.window.showErrorMessage('No workspace folder found');
+            return;
+        }
+
+        // Find existing terminal or create new one
+        let terminal = vscode.window.terminals.find(t => t.name === `Review Project #${projectNumber}`);
+        if (!terminal) {
+            terminal = vscode.window.createTerminal({
+                name: `Review Project #${projectNumber}`,
+                cwd: workspaceRoot
+            });
+        }
+
+        terminal.show();
+        terminal.sendText(`claude --dangerously-skip-permissions /review-project ${projectNumber}`);
+    }
+
+    private async handleReviewPhase(projectNumber: number, phaseNumber: number) {
+        const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+        if (!workspaceRoot) {
+            vscode.window.showErrorMessage('No workspace folder found');
+            return;
+        }
+
+        // Find existing terminal or create new one
+        let terminal = vscode.window.terminals.find(t => t.name === `Review Phase ${phaseNumber} - Project #${projectNumber}`);
+        if (!terminal) {
+            terminal = vscode.window.createTerminal({
+                name: `Review Phase ${phaseNumber} - Project #${projectNumber}`,
+                cwd: workspaceRoot
+            });
+        }
+
+        terminal.show();
+        terminal.sendText(`claude --dangerously-skip-permissions /review-phase ${projectNumber} ${phaseNumber}`);
+    }
+
+    private async handleReviewItem(projectNumber: number, phaseItemNumber: string) {
+        const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+        if (!workspaceRoot) {
+            vscode.window.showErrorMessage('No workspace folder found');
+            return;
+        }
+
+        // Find existing terminal or create new one
+        let terminal = vscode.window.terminals.find(t => t.name === `Review Item ${phaseItemNumber} - Project #${projectNumber}`);
+        if (!terminal) {
+            terminal = vscode.window.createTerminal({
+                name: `Review Item ${phaseItemNumber} - Project #${projectNumber}`,
+                cwd: workspaceRoot
+            });
+        }
+
+        terminal.show();
+        terminal.sendText(`claude --dangerously-skip-permissions /review-item ${projectNumber} ${phaseItemNumber}`);
     }
 
     private async handleStartProject(projectNumber: number, context?: string) {
@@ -665,7 +891,7 @@ export class ProjectsViewProvider implements vscode.WebviewViewProvider {
             console.error('Error checking worktrees:', error);
         }
 
-        let claudePrompt = `/do ${projectNumber}`;
+        let claudePrompt = `/project-start ${projectNumber}`;
 
         // Add context to the prompt if provided
         if (context) {
@@ -761,7 +987,7 @@ export class ProjectsViewProvider implements vscode.WebviewViewProvider {
         const sessionFile = `.claude-sessions/${sessionId}.response.md`;
 
         // Send the command
-        const command = `claude --dangerously-skip-permissions "/project ${projectText}"`;
+        const command = `claude --dangerously-skip-permissions "/project-create ${projectText}"`;
         terminal.sendText(command);
 
         vscode.window.showInformationMessage(
@@ -780,81 +1006,99 @@ export class ProjectsViewProvider implements vscode.WebviewViewProvider {
         });
     }
 
+    /**
+     * Get the current repository owner and name from git remote
+     */
+    private async getRepoContext(): Promise<{ owner: string; repo: string }> {
+        const folders = vscode.workspace.workspaceFolders;
+        if (!folders || folders.length === 0) {
+            throw new Error('No workspace folder open');
+        }
+
+        const gitExtension = vscode.extensions.getExtension('vscode.git');
+        if (!gitExtension) {
+            throw new Error('VS Code Git extension not found');
+        }
+
+        if (!gitExtension.isActive) {
+            await gitExtension.activate();
+        }
+        const git = gitExtension.exports.getAPI(1);
+
+        // Poll for repositories if not immediately available
+        let retries = 5;
+        while (git.repositories.length === 0 && retries > 0) {
+            await new Promise(resolve => setTimeout(resolve, 500));
+            retries--;
+        }
+
+        if (git.repositories.length === 0) {
+            throw new Error('No git repository found');
+        }
+
+        const repo = git.repositories[0];
+
+        // Wait for remotes to populate
+        let remoteRetries = 10;
+        while (repo.state.remotes.length === 0 && remoteRetries > 0) {
+            await new Promise(resolve => setTimeout(resolve, 500));
+            remoteRetries--;
+        }
+
+        const remote = repo.state.remotes.find((r: any) => r.name === 'origin') || repo.state.remotes[0];
+
+        if (!remote || !remote.fetchUrl) {
+            throw new Error('No remote found in current repository');
+        }
+
+        // Extract owner/repo from URL
+        const match = remote.fetchUrl.match(/github\.com[:/]([^/]+)\/(.+?)(?:\.git)?$/);
+        if (!match) {
+            throw new Error(`Could not parse GitHub URL: ${remote.fetchUrl}`);
+        }
+
+        return {
+            owner: match[1],
+            repo: match[2]
+        };
+    }
+
+    /**
+     * Check if we should refresh when the active editor changes
+     * Returns true if we've switched to a different repository
+     */
+    public shouldRefreshOnEditorChange(): boolean {
+        const folders = vscode.workspace.workspaceFolders;
+        if (!folders || folders.length === 0) {
+            return false;
+        }
+
+        // Get current repo path as a simple check
+        const currentFolder = folders[0].uri.fsPath;
+        const repoKey = `${currentFolder}`;
+
+        // Check if this is a different repo than last time
+        if (this._lastRepoCheck && this._lastRepoCheck !== repoKey) {
+            this._lastRepoCheck = repoKey;
+            return true;
+        }
+
+        this._lastRepoCheck = repoKey;
+        return false;
+    }
+
     public async refresh() {
         if (!this._view) return;
 
-        // Determine current repo owner/test
-        // For MVP, we'll try to get it from the workspace git config or just ask user?
-        // Better: use the git extension API or just assume first workspace folder has a git repo
-
-        // Simplest for now: User must have a workspace
-        const folders = vscode.workspace.workspaceFolders;
-        if (!folders || folders.length === 0) {
-            this._view.webview.postMessage({ type: 'error', message: 'No workspace folder open.' });
-            return;
+        try {
+            const { owner, repo } = await this.getRepoContext();
+            await this.loadData(owner, repo);
+        } catch (error) {
+            this._view.webview.postMessage({
+                type: 'error',
+                message: error instanceof Error ? error.message : 'Could not determine GitHub repository. Ensure a folder with a git remote is open.'
+            });
         }
-
-        // Try to get owner/repo from git extension? 
-        // Or just parse .git/config? 
-        // Let's rely on a hardcoded test or config for now given the prompt didn't specify discovery
-        // Actually, the user said "projects linked to the existing repo".
-        // Let's try to infer from git remote.
-
-        const gitExtension = vscode.extensions.getExtension('vscode.git');
-        if (gitExtension) {
-            if (!gitExtension.isActive) {
-                await gitExtension.activate();
-            }
-            const git = gitExtension.exports.getAPI(1);
-
-            // Poll for repositories if not immediately available (race condition after activation)
-            let retries = 5;
-            while (git.repositories.length === 0 && retries > 0) {
-                await new Promise(resolve => setTimeout(resolve, 500));
-                retries--;
-            }
-
-            if (git.repositories.length > 0) {
-                const repo = git.repositories[0];
-
-                // Wait for remotes to populate
-                let remoteRetries = 10;
-                while (repo.state.remotes.length === 0 && remoteRetries > 0) {
-                    await new Promise(resolve => setTimeout(resolve, 500));
-                    remoteRetries--;
-                }
-
-                const remote = repo.state.remotes.find((r: any) => r.name === 'origin') || repo.state.remotes[0]; // fallback to first remote if origin missing
-
-                if (remote && remote.fetchUrl) {
-                    // Extract owner/repo from URL
-                    // Regex handles:
-                    // git@github.com:owner/repo.with.dots.git
-                    // https://github.com/owner/repo.git
-                    const match = remote.fetchUrl.match(/github\.com[:/]([^/]+)\/(.+?)(?:\.git)?$/);
-                    if (match) {
-                        const owner = match[1];
-                        const repoName = match[2];
-                        await this.loadData(owner, repoName);
-                        return;
-                    } else {
-                        // Log regex failure for debugging
-                        this._view.webview.postMessage({ type: 'error', message: `Could not parse GitHub URL: ${remote.fetchUrl}` });
-                        return;
-                    }
-                } else {
-                    const repoRoot = repo.rootUri.fsPath;
-                    const remoteCount = repo.state.remotes.length;
-                    this._view.webview.postMessage({ type: 'error', message: `No remote found in current repository.Root: ${repoRoot}, Remotes: ${remoteCount}` });
-                    return;
-                }
-            }
-        } else {
-            console.warn('VS Code Git extension not found.');
-        }
-
-        // Fallback or error
-        this._view.webview.postMessage({ type: 'error', message: 'Could not determine GitHub repository. Ensure a folder with a git remote is open.' });
     }
 
     private async loadData(owner: string, repo: string) {
@@ -862,6 +1106,13 @@ export class ProjectsViewProvider implements vscode.WebviewViewProvider {
 
         this._currentOwner = owner;
         this._currentRepo = repo;
+
+        // Send repo info to webview for GitHub button
+        this._view.webview.postMessage({
+            type: 'repoInfo',
+            owner: owner,
+            repo: repo
+        });
 
         // Update the view title based on current mode
         this.updateViewTitle();
@@ -888,7 +1139,7 @@ export class ProjectsViewProvider implements vscode.WebviewViewProvider {
 
         // Now fetch fresh data asynchronously
         if (!this._githubAPI) { // Should not happen if initialized
-            const api = new GitHubAPI();
+            const api = new GitHubAPI(this._outputChannel);
             const success = await api.initialize();
             if (success) {
                 this._githubAPI = api;
@@ -909,28 +1160,57 @@ export class ProjectsViewProvider implements vscode.WebviewViewProvider {
             this._view.webview.postMessage({ type: 'error', message: linkedResult.error });
             return;
         }
-        // Fetch repository-linked projects (includes both repo-level and org projects linked to this repo)
+        // Fetch repository-linked projects (projects linked to this specific repo)
         const repoProjects = linkedResult.projects;
 
-        // Fetch all organization projects (includes projects linked and not linked to this repo)
+        // Cache the repository ID for link/unlink operations
+        if (linkedResult.repositoryId) {
+            this._currentRepoId = linkedResult.repositoryId;
+            this._outputChannel.appendLine(`[gh-projects] Cached repository ID: ${this._currentRepoId}`);
+        }
+
+        this._outputChannel.appendLine(`\n========== REFRESH DEBUG ==========`);
+        this._outputChannel.appendLine(`[gh-projects] RAW REPO PROJECTS (from getLinkedProjects):`);
+        repoProjects.forEach(p => this._outputChannel.appendLine(`  - #${p.number}: ${p.title} (id: ${p.id})`));
+
+        // Fetch organization projects NOT linked to ANY repository
+        // These are mutually exclusive with repoProjects, but we deduplicate as a safety net
         const allOrgProjects = await this._githubAPI!.getOrganizationProjects(owner);
 
-        // Deduplicate: only show org projects NOT already in repo-linked projects
+        this._outputChannel.appendLine(`[gh-projects] RAW ORG PROJECTS (from getOrganizationProjects):`);
+        allOrgProjects.forEach(p => this._outputChannel.appendLine(`  - #${p.number}: ${p.title} (id: ${p.id})`));
+
+        // Safety deduplication: filter out any org projects that might also be in repo projects
+        // (Should already be filtered by the API, but this is a defensive check)
         const repoProjectIds = new Set(repoProjects.map(p => p.id));
         const uniqueOrgProjects = allOrgProjects.filter(p => !repoProjectIds.has(p.id));
 
-        console.log(`[gh-projects] Fetched ${repoProjects.length} repo-linked projects and ${allOrgProjects.length} org projects (${uniqueOrgProjects.length} unique)`);
-        console.log(`[gh-projects] Repo-linked projects: ${repoProjects.map(p => `#${p.number}`).join(', ')}`);
-        console.log(`[gh-projects] Unique org projects: ${uniqueOrgProjects.map(p => `#${p.number}`).join(', ')}`);
+        this._outputChannel.appendLine(`[gh-projects] AFTER DEDUPLICATION:`);
+        this._outputChannel.appendLine(`  Repo projects: ${repoProjects.length} - [${repoProjects.map(p => `#${p.number}`).join(', ')}]`);
+        this._outputChannel.appendLine(`  Org projects: ${uniqueOrgProjects.length} - [${uniqueOrgProjects.map(p => `#${p.number}`).join(', ')}]`);
+        this._outputChannel.appendLine(`  Removed from org list: ${allOrgProjects.length - uniqueOrgProjects.length} duplicates`);
+        this._outputChannel.appendLine(`===================================\n`);
 
         // Print project names and numbers to Output panel
         this._outputChannel.clear();
-        this._outputChannel.appendLine('=== Claude Projects ===');
-        this._outputChannel.appendLine(`\nRepo-linked projects (${repoProjects.length}):`);
-        repoProjects.forEach(p => this._outputChannel.appendLine(`  #${p.number}: ${p.title}`));
-        this._outputChannel.appendLine(`\nUnique organization projects (${uniqueOrgProjects.length}):`);
-        uniqueOrgProjects.forEach(p => this._outputChannel.appendLine(`  #${p.number}: ${p.title}`));
-        // Don't force panel switch - user can open Output panel manually if needed
+        this._outputChannel.appendLine('========== PROJECTS REFRESH ==========');
+        this._outputChannel.appendLine(`Repository: ${owner}/${repo}`);
+        this._outputChannel.appendLine(`Mode: ${this._showOrgProjects ? 'Organization Projects' : 'Repository Projects'}`);
+        this._outputChannel.appendLine('');
+        this._outputChannel.appendLine(`REPO-LINKED PROJECTS (${repoProjects.length}):`);
+        if (repoProjects.length === 0) {
+            this._outputChannel.appendLine('  (none)');
+        } else {
+            repoProjects.forEach(p => this._outputChannel.appendLine(`  #${p.number}: ${p.title}`));
+        }
+        this._outputChannel.appendLine('');
+        this._outputChannel.appendLine(`ORG PROJECTS (not linked to any repo) (${uniqueOrgProjects.length}):`);
+        if (uniqueOrgProjects.length === 0) {
+            this._outputChannel.appendLine('  (none)');
+        } else {
+            uniqueOrgProjects.forEach(p => this._outputChannel.appendLine(`  #${p.number}: ${p.title}`));
+        }
+        this._outputChannel.appendLine('======================================');
 
         if (repoProjects.length === 0 && uniqueOrgProjects.length === 0) {
             const rawErrors = linkedResult.errors ? JSON.stringify(linkedResult.errors) : 'None';
@@ -961,7 +1241,7 @@ export class ProjectsViewProvider implements vscode.WebviewViewProvider {
                 isLoading: true
             }));
 
-            console.log(`[gh-projects] Sending quick metadata for ${quickRepoProjects.length + quickOrgProjects.length} projects`);
+            this._outputChannel.appendLine(`[gh-projects] Sending quick metadata for ${quickRepoProjects.length + quickOrgProjects.length} projects`);
             this._view.webview.postMessage({
                 type: 'data',
                 repoProjects: quickRepoProjects,
@@ -975,13 +1255,13 @@ export class ProjectsViewProvider implements vscode.WebviewViewProvider {
 
         const processProjectList = async (projects: Project[]) => {
             const results = [];
-            console.log(`[gh-projects] Processing ${projects.length} projects...`);
+            this._outputChannel.appendLine(`[gh-projects] Processing ${projects.length} projects...`);
 
             for (const project of projects) {
                 try {
-                    console.log(`[gh-projects] Processing project #${project.number}...`);
+                    this._outputChannel.appendLine(`[gh-projects] Processing project #${project.number}...`);
                     const items = await this._githubAPI!.getProjectItems(project.id);
-                    console.log(`[gh-projects] Project #${project.number}: ${items.length} items`);
+                    this._outputChannel.appendLine(`[gh-projects] Project #${project.number}: ${items.length} items`);
                     const phases = groupItemsByPhase(items);
 
                     // --- Auto-Update Fields Logic ---
@@ -1079,9 +1359,9 @@ export class ProjectsViewProvider implements vscode.WebviewViewProvider {
                         statusFieldId: statusField?.id,
                         isLoading: false  // Explicitly clear loading state
                     });
-                    console.log(`[gh-projects] Project #${project.number} processed successfully`);
+                    this._outputChannel.appendLine(`[gh-projects] Project #${project.number} processed successfully`);
                 } catch (error) {
-                    console.error(`[gh-projects] Error processing project #${project.number}:`, error);
+                    this._outputChannel.appendLine(`[gh-projects] ERROR processing project #${project.number}: ${error instanceof Error ? error.message : String(error)}`);
                     // Still include the project but with empty items and loading cleared
                     results.push({
                         ...project,
@@ -1095,7 +1375,7 @@ export class ProjectsViewProvider implements vscode.WebviewViewProvider {
                     });
                 }
             }
-            console.log(`[gh-projects] Finished processing ${results.length} projects`);
+            this._outputChannel.appendLine(`[gh-projects] Finished processing ${results.length} projects`);
             return results;
         };
 
@@ -1106,7 +1386,7 @@ export class ProjectsViewProvider implements vscode.WebviewViewProvider {
             repoProjectsData = await processProjectList(repoProjects);
             orgProjectsData = await processProjectList(uniqueOrgProjects);
         } catch (error) {
-            console.error('[gh-projects] Error in processProjectList:', error);
+            this._outputChannel.appendLine(`[gh-projects] ERROR in processProjectList: ${error instanceof Error ? error.message : String(error)}`);
             // Send what we have with loading cleared
             repoProjectsData = repoProjects.map(p => ({ ...p, phases: [], items: [], isLoading: false }));
             orgProjectsData = uniqueOrgProjects.map(p => ({ ...p, phases: [], items: [], isLoading: false }));

@@ -8,7 +8,13 @@
     const contentDiv = document.getElementById('content');
 
     // Track expansion state and filter preferences
-    const state = vscode.getState() || { expandedProjects: {}, expandedPhases: {}, showCompleted: false, showOrgProjects: true };
+    const state = vscode.getState() || {
+        expandedProjects: {},
+        expandedPhases: {},
+        showCompleted: false,
+        showOrgProjects: true,
+        lastData: null // Store last rendered data for instant restore
+    };
 
     // Loading timeout to prevent infinite loading states
     let loadingTimeoutId = null;
@@ -17,7 +23,15 @@
     // Track currently open context menu
     let currentContextMenu = null;
 
-    // Request data when webview is loaded/restored
+    // If we have cached data from a previous session, render it immediately
+    if (state.lastData) {
+        // Hide loading and show cached data immediately
+        hideLoading();
+        const { repoProjects, orgProjects, statusOptions } = state.lastData;
+        renderAllProjects(repoProjects, orgProjects, statusOptions, true, false, 0, false);
+    }
+
+    // Request data when webview is loaded/restored (for background refresh)
     vscode.postMessage({ type: 'ready' });
 
     // Close context menu when clicking anywhere else
@@ -75,10 +89,22 @@
                 showProjectRefreshing(message.projectId);
                 break;
             case 'projectUpdate':
-                updateProjectInDOM(message.projectId, message.projectData, message.statusOptions);
+                updateProjectInDOM(message.projectId, message.projectData, message.statusOptions, message.isLinked);
                 break;
             case 'projectRefreshError':
                 clearProjectRefreshing(message.projectId);
+                break;
+            case 'projectRemoved':
+                handleProjectRemoved(message.projectId);
+                break;
+            case 'projectLinked':
+                handleProjectLinked(message.projectId);
+                break;
+            case 'projectUnlinked':
+                handleProjectUnlinked(message.projectId);
+                break;
+            case 'repoInfo':
+                updateRepoInfo(message.owner, message.repo);
                 break;
         }
     });
@@ -156,10 +182,26 @@
             vscode.postMessage({ type: 'addProject' });
         };
 
+        // View on GitHub button
+        const githubButton = document.createElement('button');
+        githubButton.className = 'toolbar-button github-repo-button';
+        githubButton.title = 'View repository on GitHub';
+        githubButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>';
+        githubButton.onclick = () => {
+            if (currentRepoOwner && currentRepoName) {
+                vscode.postMessage({
+                    type: 'openUrl',
+                    url: `https://github.com/${currentRepoOwner}/${currentRepoName}`
+                });
+            }
+        };
+        githubButton.style.display = 'none'; // Hidden until repo info is available
+
         toolbar.appendChild(refreshButton);
         toolbar.appendChild(clearCacheButton);
         toolbar.appendChild(orgToggleButton);
         toolbar.appendChild(toggleButton);
+        toolbar.appendChild(githubButton);
         toolbar.appendChild(addProjectButton);
         return toolbar;
     }
@@ -211,7 +253,7 @@
 
         // Start Work button
         const startItem = createContextMenuItem(
-            'Start Working (Standard)',
+            'Start',
             '▶',
             () => {
                 vscode.postMessage({
@@ -224,7 +266,7 @@
 
         // Start with Context button
         const startContextItem = createContextMenuItem(
-            'Start with Custom Context',
+            'Start with Context',
             '+',
             () => {
                 vscode.postMessage({
@@ -235,9 +277,9 @@
             }
         );
 
-        // Link to Current Project (only show when in org mode and not already linked)
+        // Link to Current Project (only show when not already linked)
         let linkItem = null;
-        if (state.showOrgProjects && !project.isRepoLinked) {
+        if (!project.isRepoLinked) {
             linkItem = createContextMenuItem(
                 'Link to Current Project',
                 '🔗',
@@ -252,9 +294,9 @@
             );
         }
 
-        // Unlink from Repository (only show when in repo mode and already linked)
+        // Unlink from Repository (only show when already linked)
         let unlinkItem = null;
-        if (!state.showOrgProjects && project.isRepoLinked) {
+        if (project.isRepoLinked) {
             unlinkItem = createContextMenuItem(
                 'Unlink from Repository',
                 '🔓',
@@ -268,6 +310,19 @@
                 }
             );
         }
+
+        // Review Project button
+        const reviewItem = createContextMenuItem(
+            'Review Project',
+            '📋',
+            () => {
+                vscode.postMessage({
+                    type: 'reviewProject',
+                    projectNumber: project.number
+                });
+                closeContextMenu();
+            }
+        );
 
         // Mark All Done button
         const markDoneItem = createContextMenuItem(
@@ -308,6 +363,7 @@
         if (unlinkItem) {
             menu.appendChild(unlinkItem);
         }
+        menu.appendChild(reviewItem);
         menu.appendChild(markDoneItem);
         menu.appendChild(deleteItem);
 
@@ -352,7 +408,181 @@
     }
 
     /**
+     * Create and show context popup for phase actions
+     * @param {MouseEvent} event
+     * @param {any} phase
+     * @param {string} projectId
+     * @param {number} projectNumber
+     */
+    function showPhaseContextMenu(event, phase, projectId, projectNumber) {
+        event.stopPropagation();
+
+        // Close any existing menu
+        closeContextMenu();
+
+        // Create context menu
+        const menu = document.createElement('div');
+        menu.className = 'context-menu';
+
+        // Position the menu near the click
+        const rect = event.target.getBoundingClientRect();
+        menu.style.top = `${rect.bottom + 5}px`;
+        menu.style.left = `${rect.left}px`;
+
+        // Review Phase button
+        const reviewItem = createContextMenuItem(
+            'Review Phase',
+            '📋',
+            () => {
+                vscode.postMessage({
+                    type: 'reviewPhase',
+                    projectNumber: projectNumber,
+                    phaseNumber: phase.phaseNumber
+                });
+                closeContextMenu();
+            }
+        );
+
+        // Mark Phase Done button
+        const markDoneItem = createContextMenuItem(
+            'Mark Phase Done',
+            '✓',
+            () => {
+                // Collect all item IDs in this phase
+                const itemIds = phase.workItems.map(item => item.id);
+                if (phase.masterItem) {
+                    itemIds.push(phase.masterItem.id);
+                }
+                vscode.postMessage({
+                    type: 'markPhaseDone',
+                    projectId: projectId,
+                    itemIds: itemIds,
+                    phaseName: phase.phaseName
+                });
+                closeContextMenu();
+            }
+        );
+
+        // Delete Phase Master button (only if master item exists)
+        let deleteItem = null;
+        if (phase.masterItem) {
+            deleteItem = createContextMenuItem(
+                'Delete Phase Master',
+                '🗑️',
+                () => {
+                    vscode.postMessage({
+                        type: 'deleteItem',
+                        projectId: projectId,
+                        itemId: phase.masterItem.id,
+                        itemTitle: phase.phaseName + ' (Master)'
+                    });
+                    closeContextMenu();
+                },
+                'delete'
+            );
+        }
+
+        // Add items to menu
+        menu.appendChild(reviewItem);
+        menu.appendChild(markDoneItem);
+        if (deleteItem) {
+            menu.appendChild(deleteItem);
+        }
+
+        // Add to document
+        document.body.appendChild(menu);
+        currentContextMenu = menu;
+
+        // Position adjustment if menu goes off screen
+        const menuRect = menu.getBoundingClientRect();
+        if (menuRect.right > window.innerWidth) {
+            menu.style.left = `${window.innerWidth - menuRect.width - 10}px`;
+        }
+        if (menuRect.bottom > window.innerHeight) {
+            menu.style.top = `${rect.top - menuRect.height - 5}px`;
+        }
+    }
+
+    /**
+     * Create and show context popup for item actions
+     * @param {MouseEvent} event
+     * @param {any} item
+     * @param {string} projectId
+     * @param {number} projectNumber
+     */
+    function showItemContextMenu(event, item, projectId, projectNumber) {
+        event.stopPropagation();
+
+        // Close any existing menu
+        closeContextMenu();
+
+        // Create context menu
+        const menu = document.createElement('div');
+        menu.className = 'context-menu';
+
+        // Position the menu near the click
+        const rect = event.target.getBoundingClientRect();
+        menu.style.top = `${rect.bottom + 5}px`;
+        menu.style.left = `${rect.left}px`;
+
+        // Extract phase item number from title (e.g., "2.2" from "(2.2) Task name")
+        let phaseItemNumber = '';
+        const match = item.content.title.match(/\((\d+\.\d+)\)/);
+        if (match) {
+            phaseItemNumber = match[1];
+        }
+
+        // Review Item button
+        const reviewItem = createContextMenuItem(
+            'Review Item',
+            '📋',
+            () => {
+                vscode.postMessage({
+                    type: 'reviewItem',
+                    projectNumber: projectNumber,
+                    phaseItemNumber: phaseItemNumber || item.content.number.toString()
+                });
+                closeContextMenu();
+            }
+        );
+
+        // Delete Item button
+        const deleteItem = createContextMenuItem(
+            'Delete Item',
+            '🗑️',
+            () => {
+                vscode.postMessage({
+                    type: 'deleteItem',
+                    projectId: projectId,
+                    itemId: item.id,
+                    itemTitle: item.content.title
+                });
+                closeContextMenu();
+            },
+            'delete'
+        );
+
+        // Add items to menu
+        menu.appendChild(reviewItem);
+        menu.appendChild(deleteItem);
+
+        // Add to document
+        document.body.appendChild(menu);
+        currentContextMenu = menu;
+
+        // Position adjustment if menu goes off screen
+        const menuRect = menu.getBoundingClientRect();
+        if (menuRect.right > window.innerWidth) {
+            menu.style.left = `${window.innerWidth - menuRect.width - 10}px`;
+        }
+        if (menuRect.bottom > window.innerHeight) {
+            menu.style.top = `${rect.top - menuRect.height - 5}px`;
+        }
+    }
+
+    /**
      * Toggle visibility of completed items without re-fetching data
+     * Also respects the org/repo view filter
      */
     function toggleCompletedItemsVisibility() {
         const allProjects = document.querySelectorAll('.project-card');
@@ -362,8 +592,16 @@
             const isClosed = projectCard.getAttribute('data-is-closed') === 'true';
             const notDoneCount = parseInt(projectCard.getAttribute('data-not-done-count') || '0', 10);
             const hasNoActiveItems = notDoneCount === 0;
+            const isRepoLinked = projectCard.getAttribute('data-is-repo-linked') === 'true';
 
-            if (!state.showCompleted && (isDone || isClosed || hasNoActiveItems)) {
+            // Check if should be hidden due to completion status
+            const hiddenByCompletion = !state.showCompleted && (isDone || isClosed || hasNoActiveItems);
+
+            // Check if should be hidden due to org/repo filter
+            const hiddenByOrgFilter = state.showOrgProjects ? isRepoLinked : !isRepoLinked;
+
+            // Hide if either filter applies
+            if (hiddenByCompletion || hiddenByOrgFilter) {
                 projectCard.style.display = 'none';
             } else {
                 projectCard.style.display = 'block';
@@ -397,28 +635,31 @@
 
     /**
      * Toggle visibility of org-only projects (those not linked to current repo)
+     * Also respects the completed items filter
      */
     function toggleOrgProjectsVisibility() {
         const allProjects = document.querySelectorAll('.project-card');
 
         allProjects.forEach(projectCard => {
             const isRepoLinked = projectCard.getAttribute('data-is-repo-linked') === 'true';
+            const isDone = projectCard.getAttribute('data-is-done') === 'true';
+            const isClosed = projectCard.getAttribute('data-is-closed') === 'true';
+            const notDoneCount = parseInt(projectCard.getAttribute('data-not-done-count') || '0', 10);
+            const hasNoActiveItems = notDoneCount === 0;
 
-            // If showOrgProjects is false, hide org-only projects
-            if (!state.showOrgProjects && !isRepoLinked) {
+            // Check if should be hidden due to org/repo filter
+            // state.showOrgProjects = true means "show ONLY org projects" (hide repo-linked)
+            // state.showOrgProjects = false means "show ONLY repo-linked projects" (hide org)
+            const hiddenByOrgFilter = state.showOrgProjects ? isRepoLinked : !isRepoLinked;
+
+            // Check if should be hidden due to completion status
+            const hiddenByCompletion = !state.showCompleted && (isDone || isClosed || hasNoActiveItems);
+
+            // Hide if either filter applies
+            if (hiddenByOrgFilter || hiddenByCompletion) {
                 projectCard.style.display = 'none';
             } else {
-                // Respect other visibility filters (completed toggle)
-                const isDone = projectCard.getAttribute('data-is-done') === 'true';
-                const isClosed = projectCard.getAttribute('data-is-closed') === 'true';
-                const notDoneCount = parseInt(projectCard.getAttribute('data-not-done-count') || '0', 10);
-                const hasNoActiveItems = notDoneCount === 0;
-
-                if (!state.showCompleted && (isDone || isClosed || hasNoActiveItems)) {
-                    projectCard.style.display = 'none';
-                } else {
-                    projectCard.style.display = 'block';
-                }
+                projectCard.style.display = 'block';
             }
         });
     }
@@ -437,6 +678,12 @@
         if (!contentDiv) return;
 
         hideLoading();
+
+        // Save data to state for instant restoration on tab switch
+        if (!isPartial) {
+            state.lastData = { repoProjects, orgProjects, statusOptions };
+            vscode.setState(state);
+        }
 
         // Show/hide refresh indicator based on partial data
         if (isPartial) {
@@ -578,7 +825,7 @@
             phasesContainer.className = 'phases-container';
 
             project.phases.forEach((phase) => {
-                const phaseEl = createPhaseElement(phase, project.id, statusOptions);
+                const phaseEl = createPhaseElement(phase, project.id, project.number, statusOptions);
                 if (phaseEl) {
                     phasesContainer.appendChild(phaseEl);
                 }
@@ -596,7 +843,7 @@
             // Flat list if no phases
             const list = document.createElement('ul');
             project.items.forEach((item) => {
-                const li = createItemElement(item, project.id, statusOptions);
+                const li = createItemElement(item, project.id, project.number, statusOptions);
                 list.appendChild(li);
             });
             contentContainer.appendChild(list);
@@ -609,9 +856,10 @@
     /**
      * @param {any} phase
      * @param {string} projectId
+     * @param {number} projectNumber
      * @param {any} statusOptions
      */
-    function createPhaseElement(phase, projectId, statusOptions) {
+    function createPhaseElement(phase, projectId, projectNumber, statusOptions) {
         // Calculate aggregate status based on work items
         const workItems = phase.workItems || [];
         const allStatuses = workItems.map(item => item.fieldValues['Status'] || 'Todo');
@@ -675,55 +923,21 @@
         phaseTitle.style.flex = '1';
         phaseTitle.innerHTML = `<span class="phase-name" style="color: ${textColor}">${phaseDisplayName}</span> <span class="phase-status status-${displayStatus.toLowerCase().replace(/\\s+/g, '-')}">${displayStatus}</span>`;
 
-        // Button container for right-aligned buttons
-        const buttonContainer = document.createElement('div');
-        buttonContainer.className = 'phase-buttons';
-
-        // Mark Phase Done button
-        const markDoneButton = document.createElement('button');
-        markDoneButton.className = 'action-button mark-done-button';
-        markDoneButton.textContent = '✓';
-        markDoneButton.title = 'Mark all phase items as Done';
-        markDoneButton.onclick = (e) => {
-            e.stopPropagation();
-            // Collect all item IDs in this phase
-            const itemIds = phase.workItems.map(item => item.id);
-            if (phase.masterItem) {
-                itemIds.push(phase.masterItem.id);
-            }
-            vscode.postMessage({
-                type: 'markPhaseDone',
-                projectId: projectId,
-                itemIds: itemIds,
-                phaseName: phase.phaseName
-            });
+        // Context menu button (three dots)
+        const contextMenuButton = document.createElement('button');
+        contextMenuButton.className = 'action-button context-menu-button';
+        contextMenuButton.textContent = '⋮';
+        contextMenuButton.title = 'Phase actions';
+        contextMenuButton.onclick = (e) => {
+            showPhaseContextMenu(e, phase, projectId, projectNumber);
         };
-        buttonContainer.appendChild(markDoneButton);
-
-        // Add delete button for master item if it exists
-        if (phase.masterItem) {
-            const deleteButton = document.createElement('button');
-            deleteButton.className = 'action-button delete-button';
-            deleteButton.textContent = '🗑️';
-            deleteButton.title = 'Delete phase master item';
-            deleteButton.onclick = (e) => {
-                e.stopPropagation();
-                vscode.postMessage({
-                    type: 'deleteItem',
-                    projectId: projectId,
-                    itemId: phase.masterItem.id,
-                    itemTitle: phase.phaseName + ' (Master)'
-                });
-            };
-            buttonContainer.appendChild(deleteButton);
-        }
 
         phaseHeader.appendChild(expandIcon);
         phaseHeader.appendChild(phaseTitle);
-        phaseHeader.appendChild(buttonContainer);
+        phaseHeader.appendChild(contextMenuButton);
 
         phaseHeader.onclick = (e) => {
-            if (e.target.classList.contains('delete-button')) return;
+            if (e.target === contextMenuButton) return;
             togglePhaseExpansion(phaseKey, phaseEl, expandIcon);
         };
 
@@ -738,7 +952,7 @@
         let hasItems = false;
 
         phase.workItems.forEach((item) => {
-            const li = createItemElement(item, projectId, statusOptions);
+            const li = createItemElement(item, projectId, projectNumber, statusOptions);
             itemsList.appendChild(li);
             hasItems = true;
         });
@@ -755,9 +969,10 @@
     /**
      * @param {any} item
      * @param {string} projectId
+     * @param {number} projectNumber
      * @param {any} statusOptions
      */
-    function createItemElement(item, projectId, statusOptions) {
+    function createItemElement(item, projectId, projectNumber, statusOptions) {
         const li = document.createElement('li');
         li.className = 'project-item !flex w-full items-center gap-2 min-w-0';
         li.setAttribute('data-item-id', item.id);
@@ -834,26 +1049,16 @@
 
         li.appendChild(itemLink);
 
-        // Delete button - now at the end for right alignment
-        const deleteButton = document.createElement('button');
-        deleteButton.className = 'action-button delete-button item-delete-button right-0';
-        deleteButton.textContent = '🗑️';
-        // Enhanced tooltip showing item title
-        const shortTitle = item.content.title.length > 50
-            ? item.content.title.substring(0, 50) + '...'
-            : item.content.title;
-        deleteButton.title = `Delete: ${shortTitle}`;
-        deleteButton.onclick = (e) => {
-            e.stopPropagation();
-            vscode.postMessage({
-                type: 'deleteItem',
-                projectId: projectId,
-                itemId: item.id,
-                itemTitle: item.content.title
-            });
+        // Context menu button (three dots)
+        const contextMenuButton = document.createElement('button');
+        contextMenuButton.className = 'action-button context-menu-button item-context-button';
+        contextMenuButton.textContent = '⋮';
+        contextMenuButton.title = 'Item actions';
+        contextMenuButton.onclick = (e) => {
+            showItemContextMenu(e, item, projectId, projectNumber);
         };
 
-        li.appendChild(deleteButton);
+        li.appendChild(contextMenuButton);
 
         return li;
     }
@@ -961,6 +1166,80 @@
                 setTimeout(() => card.remove(), 300);
             }
         });
+    }
+
+    /**
+     * Handle project linked - remove from org projects list immediately
+     */
+    function handleProjectLinked(projectId) {
+        console.log('Project linked:', projectId);
+        // Remove from org projects in the UI (it's now in repo projects)
+        const projectCards = document.querySelectorAll('.project-card');
+        projectCards.forEach(card => {
+            const projectIdAttr = card.getAttribute('data-project-id');
+            const isRepoLinked = card.getAttribute('data-is-repo-linked') === 'true';
+            if (projectIdAttr === projectId && !isRepoLinked) {
+                // This is the org version - remove it
+                card.style.transition = 'opacity 0.3s';
+                card.style.opacity = '0';
+                setTimeout(() => card.remove(), 300);
+            } else if (projectIdAttr === projectId && isRepoLinked) {
+                // Update the repo version to show it's linked
+                card.setAttribute('data-is-repo-linked', 'true');
+            }
+        });
+    }
+
+    /**
+     * Handle project unlinked - remove from repo projects list immediately
+     */
+    function handleProjectUnlinked(projectId) {
+        console.log('Project unlinked:', projectId);
+        // Remove from repo projects in the UI (it's now only in org projects)
+        const projectCards = document.querySelectorAll('.project-card');
+        projectCards.forEach(card => {
+            const projectIdAttr = card.getAttribute('data-project-id');
+            const isRepoLinked = card.getAttribute('data-is-repo-linked') === 'true';
+            if (projectIdAttr === projectId && isRepoLinked) {
+                // This is the repo version - remove it
+                card.style.transition = 'opacity 0.3s';
+                card.style.opacity = '0';
+                setTimeout(() => card.remove(), 300);
+            }
+        });
+    }
+
+    /**
+     * Handle project removed - remove from view entirely (not linked to this repo or org)
+     */
+    function handleProjectRemoved(projectId) {
+        console.log('Project removed:', projectId);
+        // Remove all instances of this project from the UI
+        const projectCards = document.querySelectorAll('.project-card');
+        projectCards.forEach(card => {
+            const projectIdAttr = card.getAttribute('data-project-id');
+            if (projectIdAttr === projectId) {
+                card.style.transition = 'opacity 0.3s';
+                card.style.opacity = '0';
+                setTimeout(() => card.remove(), 300);
+            }
+        });
+    }
+
+    /**
+     * Store current repo info for GitHub button
+     */
+    let currentRepoOwner = null;
+    let currentRepoName = null;
+
+    function updateRepoInfo(owner, repo) {
+        currentRepoOwner = owner;
+        currentRepoName = repo;
+        // Update GitHub button if it exists
+        const githubButton = document.querySelector('.github-repo-button');
+        if (githubButton) {
+            githubButton.style.display = owner && repo ? 'block' : 'none';
+        }
     }
 
     function showLoading() {
@@ -1160,6 +1439,11 @@
         const projectCard = document.querySelector(`.project-card[data-project-id="${projectId}"]`);
         if (!projectCard) return;
 
+        // Extract project number from the header h3
+        const projectHeader = projectCard.querySelector('h3');
+        const projectNumberMatch = projectHeader?.textContent?.match(/#(\d+)/);
+        const projectNumber = projectNumberMatch ? parseInt(projectNumberMatch[1]) : 0;
+
         // Find the appropriate phase or items list
         const phasesContainer = projectCard.querySelector('.phases-container');
         if (phasesContainer) {
@@ -1168,7 +1452,7 @@
             // This is simplified - in production you'd want to match the phase properly
             const firstPhase = phasesContainer.querySelector('.phase-content ul');
             if (firstPhase) {
-                const li = createItemElement(item, projectId, statusOptions);
+                const li = createItemElement(item, projectId, projectNumber, statusOptions);
                 firstPhase.appendChild(li);
 
                 // Animate in
@@ -1228,12 +1512,34 @@
      * @param {any} projectData
      * @param {any} statusOptions
      */
-    function updateProjectInDOM(projectId, projectData, statusOptions) {
+    function updateProjectInDOM(projectId, projectData, statusOptions, isLinked) {
         const projectCard = document.querySelector(`.project-card[data-project-id="${projectId}"]`);
         if (!projectCard) return;
 
         // Clear refreshing state
         clearProjectRefreshing(projectId);
+
+        // Check if link status has changed
+        if (isLinked !== undefined) {
+            const currentLinkStatus = projectCard.getAttribute('data-is-repo-linked') === 'true';
+            const newLinkStatus = isLinked;
+
+            // If link status changed, trigger appropriate handler and do a full refresh
+            if (currentLinkStatus !== newLinkStatus) {
+                console.log(`Project ${projectId} link status changed: ${currentLinkStatus} -> ${newLinkStatus}`);
+
+                // Trigger the appropriate link/unlink handler
+                if (newLinkStatus) {
+                    handleProjectLinked(projectId);
+                } else {
+                    handleProjectUnlinked(projectId);
+                }
+
+                // Request full refresh to get project in correct list
+                vscode.postMessage({ type: 'refresh' });
+                return;
+            }
+        }
 
         // Preserve expansion state
         const projectKey = `project-${projectId}`;
@@ -1247,6 +1553,9 @@
 
         // Update data attributes
         projectCard.setAttribute('data-not-done-count', (projectData.notDoneCount || 0).toString());
+        if (isLinked !== undefined) {
+            projectCard.setAttribute('data-is-repo-linked', isLinked.toString());
+        }
 
         // Update project-all-done class based on new data
         if (projectData.notDoneCount === 0 && projectData.itemCount > 0) {
@@ -1267,7 +1576,7 @@
                 phasesContainer.className = 'phases-container';
 
                 projectData.phases.forEach((phase) => {
-                    const phaseEl = createPhaseElement(phase, projectId, statusOptions);
+                    const phaseEl = createPhaseElement(phase, projectId, projectData.number, statusOptions);
                     if (phaseEl) {
                         phasesContainer.appendChild(phaseEl);
                     }
@@ -1285,7 +1594,7 @@
                 // Flat list if no phases
                 const list = document.createElement('ul');
                 (projectData.items || []).forEach((item) => {
-                    const li = createItemElement(item, projectId, statusOptions);
+                    const li = createItemElement(item, projectId, projectData.number, statusOptions);
                     list.appendChild(li);
                 });
                 contentContainer.appendChild(list);

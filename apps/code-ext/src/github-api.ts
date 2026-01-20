@@ -28,8 +28,11 @@ export interface ProjectItem {
 
 export class GitHubAPI {
   private session: vscode.AuthenticationSession | undefined;
+  private _outputChannel?: vscode.OutputChannel;
 
-  constructor() { }
+  constructor(outputChannel?: vscode.OutputChannel) {
+    this._outputChannel = outputChannel;
+  }
 
   async initialize(): Promise<boolean> {
     try {
@@ -67,10 +70,11 @@ export class GitHubAPI {
     }
   }
 
-  async getLinkedProjects(owner: string, repo: string): Promise<{ projects: Project[], error?: string, errors?: any[] }> {
+  async getLinkedProjects(owner: string, repo: string): Promise<{ projects: Project[], repositoryId?: string, error?: string, errors?: any[] }> {
     const query = `
             query($owner: String!, $repo: String!) {
                 repository(owner: $owner, name: $repo) {
+                    id
                     projectsV2(first: 100) {
                         nodes {
                             id
@@ -93,9 +97,10 @@ export class GitHubAPI {
     }
 
     const nodes = data?.repository?.projectsV2?.nodes || [];
+    const repositoryId = data?.repository?.id;
     // Filter nulls
     const projects = nodes.filter((n: any) => n !== null);
-    return { projects, errors: errors || undefined };
+    return { projects, repositoryId, errors: errors || undefined };
   }
 
   async getProjectItems(projectId: string): Promise<ProjectItem[]> {
@@ -190,7 +195,7 @@ export class GitHubAPI {
       });
   }
   async getOrganizationProjects(owner: string): Promise<Project[]> {
-    // First try organization query
+    // First try organization query - include repositories to filter out linked projects
     const orgQuery = `
             query($owner: String!) {
                 organization(login: $owner) {
@@ -200,6 +205,9 @@ export class GitHubAPI {
                             number
                             title
                             url
+                            repositories(first: 1) {
+                                totalCount
+                            }
                         }
                     }
                 }
@@ -209,14 +217,32 @@ export class GitHubAPI {
     const { data: orgData, errors: orgErrors } = await this.fetchGraphQL(orgQuery, { owner });
 
     // Log any errors for debugging
-    if (orgErrors) {
-      console.log(`[gh-projects] Organization query errors for ${owner}:`, orgErrors);
+    if (orgErrors && this._outputChannel) {
+      this._outputChannel.appendLine(`[gh-projects] Organization query errors for ${owner}: ${JSON.stringify(orgErrors)}`);
     }
 
     const orgNodes = orgData?.organization?.projectsV2?.nodes || [];
-    const orgProjects = orgNodes.filter((n: any) => n !== null);
 
-    console.log(`[gh-projects] Organization query returned ${orgProjects.length} projects for ${owner}`);
+    if (this._outputChannel) {
+      this._outputChannel.appendLine(`[gh-projects] Organization query raw results for ${owner}:`);
+      orgNodes.forEach((n: any) => {
+        if (n !== null) {
+          this._outputChannel!.appendLine(`  - #${n.number}: ${n.title} (linked repos: ${n.repositories?.totalCount})`);
+        }
+      });
+    }
+
+    // Filter out nulls AND projects that are linked to any repository
+    const orgProjects = orgNodes
+      .filter((n: any) => n !== null && n.repositories?.totalCount === 0)
+      .map((n: any) => ({ id: n.id, number: n.number, title: n.title, url: n.url }));
+
+    if (this._outputChannel) {
+      this._outputChannel.appendLine(`[gh-projects] Organization query returned ${orgProjects.length} unlinked projects for ${owner} (filtered from ${orgNodes.length} total)`);
+      if (orgProjects.length > 0) {
+        this._outputChannel.appendLine(`  Unlinked org projects: ${orgProjects.map((p: Project) => `#${p.number}`).join(', ')}`);
+      }
+    }
 
     // If organization query found projects, return them
     if (orgProjects.length > 0) {
@@ -224,7 +250,9 @@ export class GitHubAPI {
     }
 
     // Fallback: try user query (owner might be a user, not an org)
-    console.log(`[gh-projects] Trying user query fallback for ${owner}`);
+    if (this._outputChannel) {
+      this._outputChannel.appendLine(`[gh-projects] Trying user query fallback for ${owner}`);
+    }
 
     const userQuery = `
             query($owner: String!) {
@@ -235,6 +263,9 @@ export class GitHubAPI {
                             number
                             title
                             url
+                            repositories(first: 1) {
+                                totalCount
+                            }
                         }
                     }
                 }
@@ -243,14 +274,32 @@ export class GitHubAPI {
 
     const { data: userData, errors: userErrors } = await this.fetchGraphQL(userQuery, { owner });
 
-    if (userErrors) {
-      console.log(`[gh-projects] User query errors for ${owner}:`, userErrors);
+    if (userErrors && this._outputChannel) {
+      this._outputChannel.appendLine(`[gh-projects] User query errors for ${owner}: ${JSON.stringify(userErrors)}`);
     }
 
     const userNodes = userData?.user?.projectsV2?.nodes || [];
-    const userProjects = userNodes.filter((n: any) => n !== null);
 
-    console.log(`[gh-projects] User query returned ${userProjects.length} projects for ${owner}`);
+    if (this._outputChannel) {
+      this._outputChannel.appendLine(`[gh-projects] User query raw results for ${owner}:`);
+      userNodes.forEach((n: any) => {
+        if (n !== null) {
+          this._outputChannel!.appendLine(`  - #${n.number}: ${n.title} (linked repos: ${n.repositories?.totalCount})`);
+        }
+      });
+    }
+
+    // Filter out nulls AND projects that are linked to any repository
+    const userProjects = userNodes
+      .filter((n: any) => n !== null && n.repositories?.totalCount === 0)
+      .map((n: any) => ({ id: n.id, number: n.number, title: n.title, url: n.url }));
+
+    if (this._outputChannel) {
+      this._outputChannel.appendLine(`[gh-projects] User query returned ${userProjects.length} unlinked projects for ${owner} (filtered from ${userNodes.length} total)`);
+      if (userProjects.length > 0) {
+        this._outputChannel.appendLine(`  Unlinked user projects: ${userProjects.map((p: Project) => `#${p.number}`).join(', ')}`);
+      }
+    }
 
     return userProjects;
   }
@@ -396,7 +445,12 @@ export class GitHubAPI {
         `;
     const { data, errors } = await this.fetchGraphQL(query, { owner, repo });
     if (errors || !data?.repository?.id) {
-      console.error('Failed to get repository ID:', errors);
+      console.error('Failed to get repository ID:', { owner, repo, errors, data });
+      if (this._outputChannel) {
+        this._outputChannel.appendLine(`[gh-projects] Failed to get repository ID for ${owner}/${repo}`);
+        this._outputChannel.appendLine(`  Errors: ${JSON.stringify(errors)}`);
+        this._outputChannel.appendLine(`  Data: ${JSON.stringify(data)}`);
+      }
       return null;
     }
     return data.repository.id;

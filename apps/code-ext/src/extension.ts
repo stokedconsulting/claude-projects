@@ -1,10 +1,64 @@
 import * as vscode from 'vscode';
+import * as fs from 'fs';
+import * as path from 'path';
 import { ProjectsViewProvider } from './projects-view-provider';
 import { GitHubAPI } from './github-api';
 import { WebSocketNotificationClient } from './notifications/websocket-client';
 
+async function installClaudeCommands(context: vscode.ExtensionContext) {
+    const homeDir = require('os').homedir();
+    const claudeCommandsDir = path.join(homeDir, '.claude', 'commands');
+
+    // Create ~/.claude/commands if it doesn't exist
+    if (!fs.existsSync(claudeCommandsDir)) {
+        fs.mkdirSync(claudeCommandsDir, { recursive: true });
+    }
+
+    const commands = [
+        'review-item.md',
+        'review-phase.md',
+        'review-project.md',
+        'project-start.md',
+        'project-create.md'
+    ];
+    let installedCount = 0;
+
+    for (const command of commands) {
+        const targetPath = path.join(claudeCommandsDir, command);
+
+        // Only install if it doesn't exist
+        if (!fs.existsSync(targetPath)) {
+            const sourcePath = vscode.Uri.joinPath(context.extensionUri, 'commands', command);
+            try {
+                const content = await vscode.workspace.fs.readFile(sourcePath);
+                fs.writeFileSync(targetPath, content);
+                installedCount++;
+                console.log(`[gh-projects] Installed Claude command: ${command}`);
+            } catch (error) {
+                console.error(`[gh-projects] Failed to install ${command}:`, error);
+            }
+        }
+    }
+
+    if (installedCount > 0) {
+        vscode.window.showInformationMessage(
+            `Claude Projects: Installed ${installedCount} Claude command(s) to ~/.claude/commands/`,
+            'Learn More'
+        ).then(selection => {
+            if (selection === 'Learn More') {
+                vscode.env.openExternal(vscode.Uri.parse('https://github.com/anthropics/claude-code'));
+            }
+        });
+    }
+}
+
 export function activate(context: vscode.ExtensionContext) {
     console.log('Congratulations, your extension "gh-projects-vscode" is now active!');
+
+    // Install Claude commands if needed
+    installClaudeCommands(context).catch(err => {
+        console.error('[gh-projects] Failed to install Claude commands:', err);
+    });
 
     // Create output channel for notifications
     const notificationOutputChannel = vscode.window.createOutputChannel('Claude Projects - Notifications');
@@ -17,6 +71,25 @@ export function activate(context: vscode.ExtensionContext) {
 
     context.subscriptions.push(
         vscode.window.registerWebviewViewProvider(ProjectsViewProvider.viewType, provider)
+    );
+
+    // Watch for workspace folder changes and refresh
+    context.subscriptions.push(
+        vscode.workspace.onDidChangeWorkspaceFolders(() => {
+            console.log('[gh-projects] Workspace folder changed, refreshing...');
+            provider.refresh();
+        })
+    );
+
+    // Watch for active text editor changes (switching between projects)
+    context.subscriptions.push(
+        vscode.window.onDidChangeActiveTextEditor(() => {
+            // Debounce this to avoid excessive refreshes
+            if (provider.shouldRefreshOnEditorChange()) {
+                console.log('[gh-projects] Active editor changed to different repo, refreshing...');
+                provider.refresh();
+            }
+        })
     );
 
     context.subscriptions.push(

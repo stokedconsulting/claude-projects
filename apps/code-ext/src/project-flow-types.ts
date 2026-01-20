@@ -1,5 +1,5 @@
 /**
- * TypeScript interfaces and types for the extension-driven /project flow
+ * TypeScript interfaces and types for the extension-driven /project-create flow
  */
 
 /**

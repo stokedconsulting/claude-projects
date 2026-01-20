@@ -1,46 +1,15 @@
-# Claude Projects for VS Code
+# Claude Projects VSCode Extension
 
-<p align="center">
-  <img src="media/extension-icon.png" alt="Claude Projects Logo" width="128" height="128">
-</p>
-
-<p align="center">
-  <strong>Integrate GitHub Projects directly into VS Code with AI-powered automation</strong>
-</p>
-
-<p align="center">
-  <a href="#features">Features</a> •
-  <a href="#installation">Installation</a> •
-  <a href="#prerequisites">Prerequisites</a> •
-  <a href="#usage">Usage</a> •
-  <a href="#configuration">Configuration</a>
-</p>
-
----
-
-## What is Claude Projects?
-
-Claude Projects brings GitHub Projects (V2) directly into your VS Code sidebar. View your project boards, update item statuses, and organize work by phases — all without leaving your editor. Plus, leverage Claude AI orchestration with auto-continuation for seamless project execution.
+Manage GitHub Projects with real-time sync and Claude AI integration.
 
 ## Features
 
-### 📊 GitHub Projects Integration
-- **View Projects** - Browse repository and organization projects in the sidebar
-- **Phase Organization** - Items automatically grouped by phase prefixes (`[Phase 1]`, `[P1.1]`)
-- **Inline Status Updates** - Change item status directly from VS Code
-- **Auto-Sync** - Phase master items automatically update based on work item progress
-- **Filter Controls** - Toggle visibility of completed items
-
-### 🤖 Claude AI Orchestration
-- **One-Click Start** - Launch Claude sessions tied to specific projects
-- **Auto-Continuation** - Monitors for stalled sessions and sends continuation prompts
-- **Session Logging** - Complete audit trails in `.claude-sessions/`
-- **Multi-Session Support** - Run multiple project sessions concurrently
-
-### ⚡ Smart Automation
-- **Auto-Close Issues** - GitHub issues automatically close when marked Done
-- **Cache System** - Instant loading with smart background refresh
-- **Optimistic Updates** - Immediate UI feedback while syncing
+- **View Projects**: Repository-linked and organization projects
+- **Auto-Refresh**: Automatically updates when Claude Code completes tasks
+- **Link/Unlink**: Link organization projects to repositories
+- **Phase-Based Organization**: Group work items by project phases
+- **Claude Integration**: Launch Claude Code sessions with context
+- **Review Commands**: Built-in quality review system
 
 ### 🔔 Real-Time Notifications
 - **WebSocket Integration** - Live updates when Claude modifies projects via MCP
@@ -50,61 +19,55 @@ Claude Projects brings GitHub Projects (V2) directly into your VS Code sidebar. 
 
 ## Installation
 
-### From VS Code Marketplace
-1. Open VS Code
-2. Go to Extensions (`Cmd+Shift+X` / `Ctrl+Shift+X`)
-3. Search for "Claude Projects"
-4. Click **Install**
+1. Install the extension in VSCode
+2. Reload VSCode
+3. The extension will automatically install Claude review commands to `~/.claude/commands/`
 
-### From Source
-```bash
-git clone https://github.com/stokedconsulting/gh-projects-vscode.git
-cd gh-projects-vscode
-npm install
-npm run compile
-```
+## Claude Commands
 
-Then press `F5` to run in Extension Development Host.
+The extension includes five Claude commands that are automatically installed.
 
-## Prerequisites
+### Commands Installed
 
-Before using Claude Projects, ensure you have:
+**Review Commands:**
+- `/review-item` - Review individual issues
+- `/review-phase` - Review all items in a phase
+- `/review-project` - Full project review
 
-| Requirement | Description |
-|-------------|-------------|
-| **VS Code** | Version 1.96.0 or higher |
-| **GitHub Account** | With access to GitHub Projects (V2) |
-| **Git Repository** | Workspace must contain a git repo with GitHub remote |
-| **Claude CLI** | *(Optional)* Required for AI orchestration features |
+**Project Commands:**
+- `/project-start` - Start working on a project with Claude
+- `/project-create` - Create a new GitHub project with Claude
 
-### GitHub Authentication
-
-The extension uses VS Code's built-in GitHub authentication. On first use:
-1. You'll be prompted to authorize VS Code
-2. Grant access to your repositories and projects
-3. Authentication persists across sessions
+See `examples/REVIEW_COMMANDS.md` in the main repo for detailed usage.
 
 ## Usage
 
-### Viewing Projects
+### View Projects
+1. Open the **Claude Projects** panel (bottom panel)
+2. Projects are organized by phases
+3. Click on items to view details
 
-1. Open a folder containing a GitHub repository
-2. Look for the **Claude Projects** panel in the bottom panel area
-3. Click on the **Claude Projects** tab (the title shows your org or repository name)
+### Link Projects
+1. Right-click an organization project
+2. Select **"Link to Current Project"** 🔗
+3. Project moves to Repository Projects
 
-The extension automatically discovers:
-- Projects linked to your repository
-- Organization-level projects (if accessible)
+### Start Working
+1. Right-click a project
+2. Select **"Start"** or **"Start with Context"**
+3. Claude Code launches in a new terminal
 
-### Managing Items
+### Review Work
+1. Right-click a project/phase/item
+2. Select **"Review Project/Phase/Item"** 📋
+3. Claude analyzes and updates status
 
-| Action | How |
-|--------|-----|
-| **View on GitHub** | Click any project or item title |
-| **Change Status** | Use the status dropdown next to each item |
-| **Delete Item** | Click the 🗑️ button |
-| **Mark Phase Done** | Click ✓ on any phase header |
-| **Refresh Data** | Click the 🔄 button in the toolbar |
+## Requirements
+
+- **VSCode** 1.80.0 or higher
+- **GitHub CLI** (`gh`) installed and authenticated
+- **Claude Code** installed
+- Git repository with GitHub remote
 
 ### Phase Organization
 
@@ -286,10 +249,4 @@ Contributions welcome! Please:
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) for details.
-
----
-
-<p align="center">
-  Built with ❤️ for seamless GitHub Projects integration
-</p>
+UNLICENSED - Private use only
