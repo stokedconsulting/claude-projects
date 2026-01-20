@@ -117,7 +117,7 @@ export interface APIClientConfig {
  * HTTP request options
  */
 interface RequestOptions {
-  method: 'GET' | 'POST' | 'PUT' | 'DELETE';
+  method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
   path: string;
   body?: unknown;
   headers?: Record<string, string>;
@@ -276,6 +276,13 @@ export class APIClient {
    */
   async put<T>(path: string, body?: unknown, headers?: Record<string, string>): Promise<T> {
     return this.request<T>({ method: 'PUT', path, body, headers });
+  }
+
+  /**
+   * PATCH request
+   */
+  async patch<T>(path: string, body?: unknown, headers?: Record<string, string>): Promise<T> {
+    return this.request<T>({ method: 'PATCH', path, body, headers });
   }
 
   /**
