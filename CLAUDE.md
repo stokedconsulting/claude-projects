@@ -286,7 +286,8 @@ This writes a signal file that triggers automatic extension refresh.
 ### GitHub API Debugging
 - Enable verbose logging in Output panel: View → Output → Claude Projects
 - Check raw responses in `this._outputChannel.appendLine()`
-- Test queries directly with `gh api graphql` command
+- MCP Server tools are now the primary interface for GitHub API operations
+- Check MCP Server logs for detailed API request/response information
 
 ### Cache Debugging
 - Clear cache via toolbar button (trash icon) in extension panel
@@ -296,7 +297,13 @@ This writes a signal file that triggers automatic extension refresh.
 ## Requirements
 
 - **VSCode**: 1.96.0+
-- **GitHub CLI**: Authenticated (`gh auth status`)
 - **Claude Code**: Installed for `/review-*` and `/project-*` commands
+- **MCP Server**: Running for GitHub API operations
 - **Node.js**: 18+ (for API development)
 - **pnpm**: For extension development (monorepo workspace)
+
+### Deprecated Requirements (removed as of January 2026)
+- **GitHub CLI**: No longer required for direct operations
+  - GitHub CLI has been deprecated in favor of the unified MCP Server layer
+  - All GitHub operations now go through MCP tools
+  - See: docs/mcp-migration-guide.md

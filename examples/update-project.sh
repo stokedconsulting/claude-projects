@@ -143,10 +143,16 @@ fi
 
 echo "[update-project] Using signal file: $SIGNAL_FILE"
 
-# Perform GitHub updates
+# NOTE: Direct GitHub CLI calls have been deprecated as of January 2026.
+# The following operations now require MCP tools instead of gh CLI.
+#
+# Perform GitHub updates (DEPRECATED - use MCP tools instead)
 if [[ "$TYPE" == "issue_closed" && -n "$ISSUE_NUMBER" ]]; then
-    echo "[update-project] Closing issue #$ISSUE_NUMBER..."
-    gh issue close "$ISSUE_NUMBER" --comment "Completed via Claude Code" || echo "Warning: Failed to close issue"
+    echo "[update-project] Deprecation warning: issue close via gh CLI is deprecated."
+    echo "[update-project] Please use 'github_close_issue' MCP tool instead."
+    echo "[update-project] See: docs/mcp-migration-guide.md"
+    # The actual close operation is now handled by the extension via MCP tools
+    # gh issue close "$ISSUE_NUMBER" --comment "Completed via Claude Code" 2>/dev/null || true
 fi
 
 if [[ "$TYPE" == "status_updated" && -n "$ISSUE_NUMBER" && -n "$STATUS" && -n "$PROJECT_NUMBER" ]]; then

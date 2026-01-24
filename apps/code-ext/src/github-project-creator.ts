@@ -1,5 +1,3 @@
-import { exec } from 'child_process';
-import { promisify } from 'util';
 import {
     ProjectCreationConfig,
     ProjectCreationResult,
@@ -7,319 +5,77 @@ import {
     FailedTask
 } from './project-flow-types';
 
-const execAsync = promisify(exec);
-
 /**
  * Callback for progress updates
  */
 export type ProgressCallback = (step: string, current: number, total: number) => void;
 
 /**
- * Configuration for retry behavior
- */
-interface RetryConfig {
-    maxRetries: number;
-    baseDelayMs: number;
-    rateLimitDelayMs: number;
-}
-
-const DEFAULT_RETRY_CONFIG: RetryConfig = {
-    maxRetries: 3,
-    baseDelayMs: 1000,
-    rateLimitDelayMs: 500
-};
-
-/**
- * GitHub Project creator using gh CLI
+ * DEPRECATED: GitHub Project creator
+ *
+ * This class used `gh CLI` which has been deprecated as of January 2026.
+ *
+ * The gh CLI dependency has been removed from the codebase to centralize GitHub
+ * operations through the unified MCP Server layer.
+ *
+ * Migration path: Use MCP Server tools instead:
+ * - github_create_project: Creates a new GitHub project
+ * - github_create_issue: Creates a GitHub issue
+ * - github_link_issue_to_project: Links an issue to a project
+ *
+ * See: docs/mcp-migration-guide.md for detailed migration instructions.
+ *
+ * @deprecated Use MCP Server tools instead
  */
 export class GitHubProjectCreator {
-    private retryConfig: RetryConfig;
-
-    constructor(retryConfig?: Partial<RetryConfig>) {
-        this.retryConfig = { ...DEFAULT_RETRY_CONFIG, ...retryConfig };
+    constructor() {
+        console.warn(
+            '[DEPRECATION] GitHubProjectCreator has been deprecated as of January 2026.\n' +
+            'The gh CLI dependency has been removed from the codebase.\n' +
+            'Please use MCP Server tools instead. See: docs/mcp-migration-guide.md'
+        );
     }
 
     /**
-     * Validate project creation configuration
+     * @deprecated Use MCP Server tools instead
      */
     public validateConfig(config: ProjectCreationConfig): void {
-        if (!config.projectTitle?.trim()) {
-            throw new Error('Project title is required');
-        }
-        if (!config.repoOwner?.trim()) {
-            throw new Error('Repository owner is required');
-        }
-        if (!config.repoName?.trim()) {
-            throw new Error('Repository name is required');
-        }
-        if (!config.epic?.title?.trim()) {
-            throw new Error('Epic issue title is required');
-        }
-        if (!config.tasks || config.tasks.length === 0) {
-            throw new Error('At least one task is required');
-        }
-        for (let i = 0; i < config.tasks.length; i++) {
-            if (!config.tasks[i].title?.trim()) {
-                throw new Error(`Task ${i + 1} must have a title`);
-            }
-        }
+        throw this.throwDeprecatedError('validateConfig');
+    }
+
+    private throwDeprecatedError(methodName: string): Error {
+        return new Error(
+            `GitHubProjectCreator.${methodName}() has been deprecated as of January 2026.\n\n` +
+            `The gh CLI dependency has been removed from the codebase.\n` +
+            `Please use MCP Server tools instead:\n` +
+            `  - github_create_project: Creates a new GitHub project\n` +
+            `  - github_create_issue: Creates a GitHub issue\n` +
+            `  - github_link_issue_to_project: Links an issue to a project\n\n` +
+            `See: docs/mcp-migration-guide.md for migration instructions.`
+        );
     }
 
     /**
-     * Execute a function with retry logic and exponential backoff
-     */
-    private async executeWithRetry<T>(
-        fn: () => Promise<T>,
-        operationName: string
-    ): Promise<T> {
-        let lastError: Error | null = null;
-
-        for (let attempt = 1; attempt <= this.retryConfig.maxRetries; attempt++) {
-            try {
-                return await fn();
-            } catch (error: any) {
-                lastError = error;
-                console.warn(
-                    `${operationName} failed (attempt ${attempt}/${this.retryConfig.maxRetries}):`,
-                    error.message
-                );
-
-                if (attempt < this.retryConfig.maxRetries) {
-                    // Exponential backoff
-                    const delay = this.retryConfig.baseDelayMs * Math.pow(2, attempt - 1);
-                    await this.sleep(delay);
-                }
-            }
-        }
-
-        throw lastError || new Error(`${operationName} failed after ${this.retryConfig.maxRetries} attempts`);
-    }
-
-    /**
-     * Sleep for specified milliseconds
-     */
-    private sleep(ms: number): Promise<void> {
-        return new Promise(resolve => setTimeout(resolve, ms));
-    }
-
-    /**
-     * Create GitHub Project with issues
+     * @deprecated Use MCP Server tools instead
      */
     public async createProject(
         config: ProjectCreationConfig,
         onProgress?: ProgressCallback
     ): Promise<ProjectCreationResult> {
-        // Validate configuration first
-        this.validateConfig(config);
-
-        const totalSteps = 5 + config.tasks.length;
-        let currentStep = 0;
-        const failedTasks: FailedTask[] = [];
-
-        try {
-            // Step 1: Create project
-            if (onProgress) {
-                onProgress('Creating GitHub Project...', ++currentStep, totalSteps);
-            }
-
-            const createCmd = config.isPublic
-                ? `gh project create --owner ${config.repoOwner} --title "${config.projectTitle}" --public --format json`
-                : `gh project create --owner ${config.repoOwner} --title "${config.projectTitle}" --format json`;
-
-            const createResult = await this.executeWithRetry(
-                () => execAsync(createCmd),
-                'Create project'
-            );
-            const projectData = JSON.parse(createResult.stdout);
-            const projectUrl = projectData.url;
-
-            // Extract project number from URL (e.g., https://github.com/orgs/owner/projects/123)
-            const projectNumMatch = projectUrl.match(/projects\/(\d+)/);
-            if (!projectNumMatch) {
-                throw new Error('Could not extract project number from URL');
-            }
-            const projectNum = parseInt(projectNumMatch[1], 10);
-
-            // Step 2: Get project number (alternative method if above fails)
-            if (onProgress) {
-                onProgress('Getting project details...', ++currentStep, totalSteps);
-            }
-
-            // Step 3: Link project to repository
-            if (onProgress) {
-                onProgress('Linking project to repository...', ++currentStep, totalSteps);
-            }
-
-            await this.executeWithRetry(
-                () => execAsync(
-                    `gh project link ${projectNum} --owner ${config.repoOwner} --repo ${config.repoOwner}/${config.repoName}`
-                ),
-                'Link project to repository'
-            );
-
-            // Rate limit delay
-            await this.sleep(this.retryConfig.rateLimitDelayMs);
-
-            // Step 4: Create epic issue
-            if (onProgress) {
-                onProgress('Creating epic issue...', ++currentStep, totalSteps);
-            }
-
-            const epicUrl = await this.executeWithRetry(
-                () => this.createIssue(config.repoOwner, config.repoName, config.epic),
-                'Create epic issue'
-            );
-
-            await this.executeWithRetry(
-                () => this.addItemToProject(projectNum, config.repoOwner, epicUrl),
-                'Add epic to project'
-            );
-
-            // Rate limit delay
-            await this.sleep(this.retryConfig.rateLimitDelayMs);
-
-            // Step 5+: Create task issues with per-task error handling
-            const taskUrls: string[] = [];
-            for (let i = 0; i < config.tasks.length; i++) {
-                const task = config.tasks[i];
-                if (onProgress) {
-                    onProgress(
-                        `Creating task issue ${i + 1}/${config.tasks.length}...`,
-                        ++currentStep,
-                        totalSteps
-                    );
-                }
-
-                try {
-                    const taskUrl = await this.executeWithRetry(
-                        () => this.createIssue(config.repoOwner, config.repoName, task),
-                        `Create task "${task.title}"`
-                    );
-                    taskUrls.push(taskUrl);
-
-                    await this.executeWithRetry(
-                        () => this.addItemToProject(projectNum, config.repoOwner, taskUrl),
-                        `Add task to project`
-                    );
-                } catch (error: any) {
-                    // Log error but continue with remaining tasks
-                    console.error(`Failed to create task "${task.title}":`, error.message);
-                    failedTasks.push({
-                        task,
-                        error: error.message
-                    });
-                }
-
-                // Rate limit delay between tasks
-                await this.sleep(this.retryConfig.rateLimitDelayMs);
-            }
-
-            // Final step
-            if (onProgress) {
-                const successCount = config.tasks.length - failedTasks.length;
-                const message = failedTasks.length > 0
-                    ? `Project created with ${successCount}/${config.tasks.length} tasks (${failedTasks.length} failed)`
-                    : 'Project created successfully!';
-                onProgress(message, totalSteps, totalSteps);
-            }
-
-            return {
-                projectNum,
-                projectUrl,
-                epicUrl,
-                taskUrls,
-                failedTasks: failedTasks.length > 0 ? failedTasks : undefined
-            };
-        } catch (error: any) {
-            console.error('Project creation error:', error);
-
-            // Parse error message for better user feedback
-            if (error.stderr && error.stderr.includes('missing required scopes')) {
-                throw new Error(
-                    'Missing required GitHub scopes. Run: gh auth refresh -s project'
-                );
-            }
-
-            throw new Error(`Failed to create project: ${error.message}`);
-        }
+        throw this.throwDeprecatedError('createProject');
     }
 
     /**
-     * Create a single issue
-     */
-    private async createIssue(
-        owner: string,
-        repo: string,
-        issue: IssueDefinition
-    ): Promise<string> {
-        const labelsArg = issue.labels.map(l => `--label "${l}"`).join(' ');
-
-        // Escape body for command line
-        const bodyEscaped = issue.body.replace(/"/g, '\\"').replace(/\$/g, '\\$');
-
-        const command = `gh issue create \\
-            --repo ${owner}/${repo} \\
-            --title "${issue.title}" \\
-            --body "${bodyEscaped}" \\
-            ${labelsArg}`;
-
-        const result = await execAsync(command);
-        // Extract URL from output (e.g., "https://github.com/owner/repo/issues/123")
-        const urlMatch = result.stdout.match(/https:\/\/github\.com\/[^\s]+/);
-        if (!urlMatch) {
-            throw new Error('Could not extract issue URL from output');
-        }
-        return urlMatch[0].trim();
-    }
-
-    /**
-     * Add item to project
-     */
-    private async addItemToProject(
-        projectNum: number,
-        owner: string,
-        itemUrl: string
-    ): Promise<void> {
-        await execAsync(
-            `gh project item-add ${projectNum} --owner ${owner} --url ${itemUrl}`
-        );
-    }
-
-    /**
-     * Check if gh CLI is authenticated
+     * @deprecated Use MCP Server tools instead
      */
     public async checkAuth(): Promise<{ authenticated: boolean; error?: string }> {
-        try {
-            await execAsync('gh auth status');
-            return { authenticated: true };
-        } catch (error: any) {
-            return {
-                authenticated: false,
-                error: error.stderr || error.message
-            };
-        }
+        throw this.throwDeprecatedError('checkAuth');
     }
 
     /**
-     * Check if gh CLI has project scope
+     * @deprecated Use MCP Server tools instead
      */
     public async checkProjectScope(): Promise<{ hasScope: boolean; error?: string }> {
-        try {
-            // Try to list projects - this will fail if scope is missing
-            await execAsync('gh project list --limit 1');
-            return { hasScope: true };
-        } catch (error: any) {
-            const stderr = error.stderr || '';
-            if (stderr.includes('missing required scopes')) {
-                return {
-                    hasScope: false,
-                    error: 'Missing project scope. Run: gh auth refresh -s project'
-                };
-            }
-            return {
-                hasScope: false,
-                error: stderr || error.message
-            };
-        }
+        throw this.throwDeprecatedError('checkProjectScope');
     }
 }

@@ -1,5 +1,20 @@
 #!/bin/bash
 
+#
+# DEPRECATION NOTICE: Direct GitHub CLI Script
+# =============================================
+# This script uses legacy `gh` CLI commands which have been deprecated as of January 2026.
+# Please migrate to MCP Tools for better reliability and centralized operations.
+#
+# This script is preserved for historical/bootstrap purposes only.
+# For new project creation, use MCP Server tools instead:
+#   - github_create_project
+#   - github_create_issue
+#   - github_link_issue_to_project
+#
+# See: docs/mcp-migration-guide.md
+#
+
 # Configuration
 REPO_OWNER="stokedconsulting"
 REPO_NAME="claude-projects"

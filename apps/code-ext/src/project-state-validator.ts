@@ -1,8 +1,4 @@
 import * as vscode from 'vscode';
-import { exec } from 'child_process';
-import { promisify } from 'util';
-
-const execAsync = promisify(exec);
 
 export interface ProjectItem {
     id: string;
@@ -35,83 +31,30 @@ export interface ProjectState {
 
 export class ProjectStateValidator {
     /**
-     * Fetch current state from GitHub using gh CLI
+     * DEPRECATED: This method used `gh CLI` which has been deprecated as of January 2026.
+     *
+     * The gh CLI dependency has been removed from the codebase. This method is preserved
+     * for backwards compatibility but should not be used in new code.
+     *
+     * Migration path: Use the MCP Server tools instead:
+     * - get-project-phases: Fetches all phases in a project
+     * - list-issues: Lists all issues with their status
+     *
+     * See: docs/mcp-migration-guide.md
+     *
+     * @deprecated Use MCP Server tools instead
+     * @throws Error Always throws with deprecation message
      */
     async fetchProjectState(projectNumber: number): Promise<ProjectState> {
-        try {
-            // Get project items using gh CLI
-            const { stdout } = await execAsync(
-                `gh project item-list --owner $(gh repo view --json owner -q .owner.login) --number ${projectNumber} --format json`
-            );
-
-            const data = JSON.parse(stdout);
-
-            // Parse items and group by phase
-            const items: ProjectItem[] = data.items?.map((item: any) => ({
-                id: item.id,
-                number: item.content?.number?.toString() || '',
-                title: item.content?.title || 'Untitled',
-                status: item.fieldValues?.Status || 'Todo',
-                phase: this.extractPhase(item.content?.title || ''),
-                content: item.content
-            })) || [];
-
-            // Group items by phase
-            const phaseMap = new Map<string, ProjectItem[]>();
-            items.forEach(item => {
-                const phase = item.phase;
-                if (!phaseMap.has(phase)) {
-                    phaseMap.set(phase, []);
-                }
-                phaseMap.get(phase)!.push(item);
-            });
-
-            // Create phase objects
-            const phases: ProjectPhase[] = Array.from(phaseMap.entries()).map(([name, items], index) => {
-                const doneCount = items.filter(i => i.status === 'Done').length;
-                const inProgressCount = items.filter(i => i.status === 'In Progress').length;
-
-                let phaseStatus: string = 'Todo';
-                if (doneCount === items.length) {
-                    phaseStatus = 'Done';
-                } else if (inProgressCount > 0 || doneCount > 0) {
-                    phaseStatus = 'In Progress';
-                }
-
-                return {
-                    name,
-                    status: phaseStatus,
-                    items,
-                    phaseNumber: index + 1
-                };
-            });
-
-            // Calculate completion
-            const totalItems = items.length;
-            const completedItems = items.filter(i => i.status === 'Done').length;
-            const completionPercentage = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
-
-            // Find next incomplete item
-            const nextIncompleteItem = this.findNextItem({
-                projectNumber,
-                phases,
-                completionPercentage,
-                totalItems,
-                completedItems
-            });
-
-            return {
-                projectNumber,
-                phases,
-                completionPercentage,
-                nextIncompleteItem,
-                totalItems,
-                completedItems
-            };
-        } catch (error) {
-            console.error('Error fetching project state:', error);
-            throw new Error(`Failed to fetch project state: ${error instanceof Error ? error.message : String(error)}`);
-        }
+        throw new Error(
+            `ProjectStateValidator.fetchProjectState() has been deprecated as of January 2026.\n\n` +
+            `The gh CLI dependency has been removed from the codebase.\n` +
+            `Please use MCP Server tools instead:\n` +
+            `  - get-project-phases: Fetches all phases in a project\n` +
+            `  - list-issues: Lists all issues with their status\n\n` +
+            `See: docs/mcp-migration-guide.md for migration instructions.\n` +
+            `Project #${projectNumber} state should now be fetched via the State Tracking API.`
+        );
     }
 
     /**

@@ -82,13 +82,13 @@ claude /review-project 70
 │                    (Source of Truth)                        │
 └─────────────────────────────────────────────────────────────┘
                             ↕
-                      (gh CLI API)
+                    (MCP Server Tools)
                             ↕
 ┌─────────────────────────────────────────────────────────────┐
 │                  Claude Code Commands                        │
 │                                                              │
 │  /review-project → /review-phase → /review-item            │
-│  /do [project] → update-project.sh                          │
+│  /project-start → /project-create                           │
 └─────────────────────────────────────────────────────────────┘
                             ↓
                    (Signal Files)
@@ -284,19 +284,21 @@ npm run start:dev
 
 ### Extension not showing projects
 1. Check you're in a git repository
-2. Check GitHub authentication: `gh auth status`
+2. Check GitHub authentication via VSCode
 3. Check Output panel: View → Output → Claude Projects
 4. Clear cache: Right-click in panel → Clear Cache
 
 ### Review commands not working
 1. Check installation: `./examples/test-review-commands.sh`
-2. Verify GitHub CLI: `gh --version`
+2. Verify MCP Server is running
 3. Check you're in project root
 4. Enable verbose mode: `claude --verbose /review-item 5`
 
-### Signal files not triggering refresh
-1. Check files exist: `ls .claude-sessions/*.signal`
-2. Reload VSCode: Cmd+Shift+P → Reload Window
+### Projects not updating
+1. Check signal files: `ls -la .claude-sessions/*.signal`
+2. Verify MCP Server connectivity
+3. Reload VSCode: Cmd+Shift+P → Reload Window
+4. Check WebSocket connection status in Output panel
 3. Check extension logs in Developer Tools
 
 ## License

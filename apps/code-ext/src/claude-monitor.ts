@@ -482,10 +482,10 @@ Status: ${nextItem.status}
 
 1. ✅ Created the Product Feature Brief (pfb.md)
 2. ✅ Created the Product Requirements Document (prd.md) with ALL phases and work items
-3. ✅ Created the GitHub Project using \`gh project create\`
-4. ✅ Created ALL master phase issues (format: \`[Phase N] Phase Title\`)
-5. ✅ Created ALL individual work item issues from the PRD (format: \`[PN.M] Work Item Title\`)
-6. ✅ Added ALL issues to the GitHub Project
+3. ✅ Created the GitHub Project using MCP \`github_create_project\` tool
+4. ✅ Created ALL master phase issues using MCP \`github_create_issue\` tool (format: \`[Phase N] Phase Title\`)
+5. ✅ Created ALL individual work item issues from the PRD using MCP tools (format: \`[PN.M] Work Item Title\`)
+6. ✅ Added ALL issues to the GitHub Project using MCP \`github_link_issue_to_project\` tool
 
 **Next Action:** 
 Review what has been created so far and continue with any remaining items.
