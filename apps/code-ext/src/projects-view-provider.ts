@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { GitHubAPI, Project, ProjectItem } from './github-api';
+import { APIClient } from './api-client';
 import { groupItemsByPhase, calculatePhaseStatus } from './phase-logic';
 import { ClaudeMonitor } from './claude-monitor';
 import { CacheManager } from './cache-manager';
@@ -14,10 +15,29 @@ import { WebSocketNotificationClient, WebSocketEvent } from './notifications/web
 
 const execAsync = promisify(exec);
 
+/**
+ * Unified GitHub client interface
+ * Wraps either GitHubAPI (direct GraphQL) or APIClient (HTTP API)
+ */
+interface IUnifiedGitHubClient {
+    initialize(): Promise<boolean>;
+    getLinkedProjects(owner: string, repo: string): Promise<{ projects: Project[]; repositoryId?: string; error?: string; errors?: any[] }>;
+    getOrganizationProjects(owner: string): Promise<Project[]>;
+    getProjectItems(projectId: string): Promise<ProjectItem[]>;
+    getProjectFields(projectId: string): Promise<any[]>;
+    updateItemFieldValue(projectId: string, itemId: string, fieldId: string, optionId: string): Promise<boolean>;
+    deleteProjectItem(projectId: string, itemId: string): Promise<boolean>;
+    deleteProject(projectId: string): Promise<boolean>;
+    linkProjectToRepository(projectId: string, repositoryId: string): Promise<boolean>;
+    unlinkProjectFromRepository(projectId: string, repositoryId: string): Promise<boolean>;
+    getRepositoryId(owner: string, repo: string): Promise<string | null>;
+    closeIssue(owner: string, repo: string, issueNumber: number): Promise<boolean>;
+}
+
 export class ProjectsViewProvider implements vscode.WebviewViewProvider {
     public static readonly viewType = 'ghProjects.view';
     private _view?: vscode.WebviewView;
-    private _githubAPI: GitHubAPI;
+    private _githubAPI: IUnifiedGitHubClient;
     private _claudeMonitor?: ClaudeMonitor;
     private _cacheManager: CacheManager;
     private _currentOwner?: string;
@@ -38,7 +58,20 @@ export class ProjectsViewProvider implements vscode.WebviewViewProvider {
         wsClient?: WebSocketNotificationClient,
     ) {
         this._outputChannel = vscode.window.createOutputChannel('Claude Projects');
-        this._githubAPI = new GitHubAPI(this._outputChannel);
+
+        // Check configuration for API service usage
+        const config = vscode.workspace.getConfiguration('claudeProjects');
+        const useAPIService = config.get<boolean>('useAPIService', false);
+        const apiBaseUrl = config.get<string>('apiBaseUrl', 'https://claude-projects.truapi.com');
+
+        if (useAPIService) {
+            this._outputChannel.appendLine('[Init] Using HTTP API client');
+            this._githubAPI = new APIClient({ baseUrl: apiBaseUrl }, this._outputChannel);
+        } else {
+            this._outputChannel.appendLine('[Init] Using direct GraphQL client');
+            this._githubAPI = new GitHubAPI(this._outputChannel);
+        }
+
         this._cacheManager = new CacheManager(_context);
         this._projectFlowManager = new ProjectFlowManager(_context);
         this._claudeAPI = new ClaudeAPI();
@@ -119,8 +152,6 @@ export class ProjectsViewProvider implements vscode.WebviewViewProvider {
         } catch (error) {
             this._outputChannel.appendLine(`[WS] Error handling update: ${error}`);
         }
-=======
->>>>>>> Stashed changes
     }
 
     public async resolveWebviewView(

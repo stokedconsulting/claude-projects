@@ -170,10 +170,6 @@ export class CacheManager {
 
     // Private helper methods
 
-    private getCacheKey(owner: string, repo: string): string {
-        return `${CacheManager.CACHE_KEY_PREFIX}.${owner}.${repo}`;
-    }
-
     private getMetricsKey(owner: string, repo: string): string {
         return `${CacheManager.METRICS_KEY_PREFIX}.${owner}.${repo}`;
     }

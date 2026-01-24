@@ -81,6 +81,16 @@
         "configuration": {
             "title": "Claude Projects",
             "properties": {
+                "claudeProjects.useAPIService": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Use HTTP API service instead of direct GitHub GraphQL calls"
+                },
+                "claudeProjects.apiBaseUrl": {
+                    "type": "string",
+                    "default": "https://claude-projects.truapi.com",
+                    "description": "Base URL for the HTTP API service (only used when useAPIService is enabled)"
+                },
                 "ghProjects.notifications.websocketUrl": {
                     "type": "string",
                     "default": "ws://localhost:8080/notifications",
