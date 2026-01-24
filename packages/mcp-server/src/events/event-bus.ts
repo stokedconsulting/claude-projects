@@ -12,6 +12,7 @@ import { EventEmitter } from 'events';
  * Valid event types for state change notifications
  */
 export type EventType =
+  | 'project.created'
   | 'project.updated'
   | 'issue.created'
   | 'issue.updated'
