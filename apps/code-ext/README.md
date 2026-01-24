@@ -10,6 +10,7 @@ Manage GitHub Projects with real-time sync and Claude AI integration.
 - **Phase-Based Organization**: Group work items by project phases
 - **Claude Integration**: Launch Claude Code sessions with context
 - **Review Commands**: Built-in quality review system
+- **Unified Service Layer**: Integrated with State Tracking API for reliable GitHub operations
 
 ### 🔔 Real-Time Notifications
 - **WebSocket Integration** - Live updates when Claude modifies projects via MCP

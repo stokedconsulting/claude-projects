@@ -10,20 +10,58 @@ When Claude Code completes a task or closes an issue, it can call a helper scrip
 
 This eliminates the need for manual refreshing in the extension.
 
+## Migration to MCP Tools
+
+**IMPORTANT:** The integration scripts have been migrated from direct `gh` CLI calls to MCP tools for better reliability and state tracking.
+
+### What Changed
+
+- **Old:** `update-project.sh` using `gh` CLI
+- **New:** `update-project-mcp.sh` using `mcp-client.js`
+
+### Benefits
+
+- Better error handling
+- State tracking via MCP API
+- Faster performance
+- Foundation for future enhancements
+
+### Migration Guide
+
+See [SHELL_SCRIPT_MIGRATION.md](./SHELL_SCRIPT_MIGRATION.md) for complete migration instructions.
+
 ## Setup
 
-### 1. Make the script executable
+### 1. Install Dependencies
 
 ```bash
-chmod +x examples/update-project.sh
+cd examples
+npm install
 ```
 
-### 2. Set up Claude Code to use the script
+### 2. Set Environment Variables
+
+```bash
+# Required: GitHub token
+export GITHUB_TOKEN=your_github_personal_access_token
+
+# Optional but recommended: MCP API key for state tracking
+export MCP_API_KEY=your_mcp_api_key
+```
+
+### 3. Make Scripts Executable
+
+```bash
+chmod +x examples/update-project-mcp.sh
+chmod +x examples/mcp-client.js
+```
+
+### 4. Set up Claude Code to Use the Script
 
 When Claude Code completes a task, it should call:
 
 ```bash
-./examples/update-project.sh --close-issue 123 --project 70
+./examples/update-project-mcp.sh --close-issue 123 --project 70
 ```
 
 ## Usage Examples

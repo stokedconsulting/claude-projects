@@ -76,20 +76,39 @@ claude /review-project 70
 
 ## Integration Architecture
 
+**NEW in Project #77**: Unified GitHub Service Layer centralizes all GitHub API access through the State Tracking API, providing consistent authentication, rate limiting, error handling, and caching.
+
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                     GitHub Projects                         │
-│                    (Source of Truth)                        │
+│                     GitHub API                               │
+│                  (Source of Truth)                           │
 └─────────────────────────────────────────────────────────────┘
                             ↕
-                    (MCP Server Tools)
+                  (GraphQL & REST API)
                             ↕
 ┌─────────────────────────────────────────────────────────────┐
-│                  Claude Code Commands                        │
+│            Unified GitHub Service Layer                      │
+│         (State Tracking API - NestJS)                        │
 │                                                              │
-│  /review-project → /review-phase → /review-item            │
-│  /project-start → /project-create                           │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐      │
+│  │ Auth Service │→ │ Projects     │  │ Issues       │      │
+│  │ - Token Mgmt │  │ Service      │  │ Service      │      │
+│  │ - Validation │  │ - CRUD Ops   │  │ - CRUD Ops   │      │
+│  │ - Caching    │  │ - GraphQL    │  │ - GraphQL    │      │
+│  └──────────────┘  └──────────────┘  └──────────────┘      │
+│                                                              │
+│  Rate Limiting • Error Handling • Logging & Metrics         │
 └─────────────────────────────────────────────────────────────┘
+         ↕                      ↕                      ↕
+┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐
+│ VSCode Extension │  │ MCP Server       │  │ Claude Code      │
+│ - UI/UX          │  │ - Claude AI      │  │ Commands         │
+│ - HTTP Client    │  │   Integration    │  │ /review-*        │
+│ - File Watching  │  │ - Tool Protocols │  │ /project-*       │
+│ - Cache (5min)   │  │ - JSON Schemas   │  │                  │
+└──────────────────┘  └──────────────────┘  └──────────────────┘
+         ↓                                            ↓
+         └────────────────────────────────────────────┘
                             ↓
                    (Signal Files)
                             ↓
@@ -97,19 +116,17 @@ claude /review-project 70
 │              .claude-sessions/*.signal                       │
 │          (File-based IPC mechanism)                         │
 └─────────────────────────────────────────────────────────────┘
-                            ↓
-                     (File Watcher)
-                            ↓
-┌─────────────────────────────────────────────────────────────┐
-│               VSCode Extension                               │
-│         (Auto-refreshes on signal)                          │
-└─────────────────────────────────────────────────────────────┘
-                            ↕
-┌─────────────────────────────────────────────────────────────┐
-│           State Tracking API (Future)                        │
-│      (Centralized session management)                       │
-└─────────────────────────────────────────────────────────────┘
 ```
+
+### Key Benefits of Unified Service Layer
+
+- **Centralized Authentication**: Single point for GitHub token management
+- **Automatic Rate Limiting**: Prevents API quota exhaustion
+- **Consistent Error Handling**: Standardized error responses across all components
+- **Multi-layer Caching**: Reduces redundant API calls, improves performance
+- **Comprehensive Logging**: Centralized logging for debugging and monitoring
+
+See [Architecture Documentation](docs/ARCHITECTURE.md) for detailed information.
 
 ## Quick Start
 
@@ -279,6 +296,30 @@ npm run start:dev
 - Extension for UI and GitHub integration
 - API for state persistence and multi-machine coordination
 - Decoupled for independent scaling
+
+## Documentation
+
+### Comprehensive Guides
+
+- **[Architecture Guide](docs/ARCHITECTURE.md)** - System architecture and unified service layer
+- **[Developer Guide](docs/DEVELOPER_GUIDE.md)** - Getting started with development
+- **[Migration Guide](docs/MIGRATION_GUIDE.md)** - Migrating from gh CLI to unified service
+- **[Troubleshooting Guide](docs/TROUBLESHOOTING.md)** - Common issues and solutions
+- **[Deployment Guide](docs/DEPLOYMENT.md)** - Production deployment procedures
+- **[API Reference](docs/api-reference.md)** - Complete API documentation
+
+### Component Documentation
+
+- **Extension**: [apps/code-ext/README.md](apps/code-ext/README.md)
+- **State Tracking API**: Package-specific documentation
+- **MCP Server**: [packages/mcp-server/README.md](packages/mcp-server/README.md)
+
+### Integration Guides
+
+- **[Claude Code Integration](examples/INTEGRATION.md)** - Integration with Claude Code
+- **[Review Commands](examples/REVIEW_COMMANDS.md)** - Using the review system
+- **[MCP Integration](docs/mcp-integration.md)** - Model Context Protocol integration
+- **[MCP Development](docs/mcp-development.md)** - Developing MCP tools
 
 ## Troubleshooting
 
