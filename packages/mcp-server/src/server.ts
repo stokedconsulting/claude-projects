@@ -29,6 +29,7 @@ import { createGitHubCloseIssueTool } from './tools/github-close-issue.js';
 import { createGitHubLinkIssueToProjectTool } from './tools/github-link-issue-to-project.js';
 import { createGitHubGetRepoTool } from './tools/github-get-repo.js';
 import { createGitHubGetOrgTool } from './tools/github-get-org.js';
+import { createNotifyProjectCreatedTool } from './tools/notify-project-created.js';
 
 /**
  * MCP Server for Claude Projects API and Extension Communication
@@ -113,6 +114,10 @@ export class MCPServer {
     // Register create issue tool
     const createIssueTool = createCreateIssueTool(apiClient);
     this.registry.registerTool(createIssueTool);
+
+    // Register notify project created tool (event emission)
+    const notifyProjectCreatedTool = createNotifyProjectCreatedTool();
+    this.registry.registerTool(notifyProjectCreatedTool);
 
     // Register GitHub tools (direct GitHub API access)
     const githubToken = process.env.GITHUB_TOKEN;
