@@ -18,6 +18,8 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.6.1",
+    "@octokit/auth-token": "^6.0.0",
+    "@octokit/rest": "^22.0.1",
     "ajv": "^8.12.0",
     "dotenv": "^17.2.3",
     "ws": "^8.18.0"

@@ -1,0 +1,81 @@
+import { JSONSchemaType } from 'ajv';
+import { ToolDefinition, ToolResult } from './registry.js';
+import { GitHubClient } from '../github-client.js';
+
+export interface CloseIssueParams {
+  owner: string;
+  repo: string;
+  issueNumber: number;
+}
+
+const closeIssueSchema: JSONSchemaType<CloseIssueParams> = {
+  type: 'object',
+  properties: {
+    owner: {
+      type: 'string',
+      description: 'Repository owner',
+    },
+    repo: {
+      type: 'string',
+      description: 'Repository name',
+    },
+    issueNumber: {
+      type: 'number',
+      description: 'Issue number to close',
+    },
+  },
+  required: ['owner', 'repo', 'issueNumber'],
+  additionalProperties: false,
+};
+
+export function createGitHubCloseIssueTool(
+  client: GitHubClient
+): ToolDefinition<CloseIssueParams> {
+  return {
+    name: 'github_close_issue',
+    description: 'Close a GitHub issue',
+    inputSchema: closeIssueSchema,
+    handler: async (params: CloseIssueParams): Promise<ToolResult> => {
+      try {
+        const result = await client.closeIssue(params);
+
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify(
+                {
+                  success: true,
+                  issue: result,
+                  message: 'Issue closed successfully',
+                },
+                null,
+                2
+              ),
+            },
+          ],
+        };
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : 'Unknown error';
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify(
+                {
+                  error: 'Failed to close issue',
+                  message: errorMessage,
+                  retryable: errorMessage.includes('rate limit'),
+                },
+                null,
+                2
+              ),
+            },
+          ],
+          isError: true,
+        };
+      }
+    },
+  };
+}

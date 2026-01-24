@@ -18,6 +18,17 @@ import { createUpdateIssueStatusTool } from './tools/update-issue-status.js';
 import { createCreateIssueTool } from './tools/create-issue.js';
 import { WebSocketNotificationServer } from './events/websocket-server.js';
 import { eventBus } from './events/event-bus.js';
+import { createGitHubClient } from './github-client.js';
+import { createGitHubCreateProjectTool } from './tools/github-create-project.js';
+import { createGitHubUpdateProjectTool } from './tools/github-update-project.js';
+import { createGitHubListProjectsTool } from './tools/github-list-projects.js';
+import { createGitHubLinkProjectTool } from './tools/github-link-project.js';
+import { createGitHubCreateIssueTool } from './tools/github-create-issue.js';
+import { createGitHubUpdateIssueTool } from './tools/github-update-issue.js';
+import { createGitHubCloseIssueTool } from './tools/github-close-issue.js';
+import { createGitHubLinkIssueToProjectTool } from './tools/github-link-issue-to-project.js';
+import { createGitHubGetRepoTool } from './tools/github-get-repo.js';
+import { createGitHubGetOrgTool } from './tools/github-get-org.js';
 
 /**
  * MCP Server for Claude Projects API and Extension Communication
@@ -102,6 +113,36 @@ export class MCPServer {
     // Register create issue tool
     const createIssueTool = createCreateIssueTool(apiClient);
     this.registry.registerTool(createIssueTool);
+
+    // Register GitHub tools (direct GitHub API access)
+    const githubToken = process.env.GITHUB_TOKEN;
+    if (githubToken) {
+      const githubClient = createGitHubClient(githubToken);
+
+      // GitHub project tools
+      this.registry.registerTool(createGitHubCreateProjectTool(githubClient));
+      this.registry.registerTool(createGitHubUpdateProjectTool(githubClient));
+      this.registry.registerTool(createGitHubListProjectsTool(githubClient));
+      this.registry.registerTool(createGitHubLinkProjectTool(githubClient));
+
+      // GitHub issue tools
+      this.registry.registerTool(createGitHubCreateIssueTool(githubClient));
+      this.registry.registerTool(createGitHubUpdateIssueTool(githubClient));
+      this.registry.registerTool(createGitHubCloseIssueTool(githubClient));
+      this.registry.registerTool(
+        createGitHubLinkIssueToProjectTool(githubClient)
+      );
+
+      // GitHub metadata tools
+      this.registry.registerTool(createGitHubGetRepoTool(githubClient));
+      this.registry.registerTool(createGitHubGetOrgTool(githubClient));
+
+      this.logger.info('Registered 10 GitHub API tools');
+    } else {
+      this.logger.warn(
+        'GITHUB_TOKEN not set, GitHub API tools will not be available'
+      );
+    }
 
     this.logger.info(`Registered ${this.registry.getToolCount()} tool(s)`);
   }
