@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Health Check Tool",
+  "description": "Check connectivity and authentication with the state-tracking-api",
+  "type": "object",
+  "input": {
+    "type": "object",
+    "properties": {},
+    "required": [],
+    "additionalProperties": false,
+    "description": "Health check requires no parameters"
+  },
+  "output": {
+    "type": "object",
+    "properties": {
+      "apiAvailable": {
+        "type": "boolean",
+        "description": "Whether the API is reachable and responding"
+      },
+      "authenticated": {
+        "type": "boolean",
+        "description": "Whether authentication with the API succeeded"
+      },
+      "responseTimeMs": {
+        "type": "number",
+        "description": "API response time in milliseconds",
+        "minimum": 0
+      },
+      "apiVersion": {
+        "type": "string",
+        "description": "API version string if available",
+        "nullable": true
+      },
+      "error": {
+        "type": "string",
+        "description": "Error message if health check failed",
+        "nullable": true
+      }
+    },
+    "required": ["apiAvailable", "authenticated", "responseTimeMs"],
+    "additionalProperties": false
+  },
+  "errorSchema": {
+    "type": "object",
+    "properties": {
+      "error": {
+        "type": "string",
+        "description": "Error message describing why health check failed",
+        "enum": [
+          "Failed to connect to state-tracking-api",
+          "Authentication failed. Check STATE_TRACKING_API_KEY",
+          "API timeout exceeded"
+        ]
+      },
+      "details": {
+        "type": "string",
+        "description": "Additional error details",
+        "nullable": true
+      }
+    },
+    "required": ["error"]
+  },
+  "examples": {
+    "success": {
+      "input": {},
+      "output": {
+        "apiAvailable": true,
+        "authenticated": true,
+        "responseTimeMs": 145,
+        "apiVersion": "1.0.0"
+      }
+    },
+    "authenticationFailure": {
+      "input": {},
+      "output": {
+        "apiAvailable": true,
+        "authenticated": false,
+        "responseTimeMs": 89,
+        "error": "Invalid API key"
+      }
+    },
+    "connectionFailure": {
+      "input": {},
+      "output": {
+        "apiAvailable": false,
+        "authenticated": false,
+        "responseTimeMs": 0,
+        "error": "ECONNREFUSED"
+      }
+    }
+  }
+}

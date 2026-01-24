@@ -1,0 +1,199 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Get Issue Details Tool",
+  "description": "Get complete details for a specific GitHub issue including description, status, phase, work items, and labels",
+  "type": "object",
+  "input": {
+    "type": "object",
+    "properties": {
+      "projectNumber": {
+        "type": "number",
+        "description": "GitHub Project number",
+        "minimum": 1,
+        "examples": [70]
+      },
+      "issueNumber": {
+        "type": "number",
+        "description": "GitHub issue number",
+        "minimum": 1,
+        "examples": [1, 42]
+      }
+    },
+    "required": ["projectNumber", "issueNumber"],
+    "additionalProperties": false
+  },
+  "output": {
+    "type": "object",
+    "properties": {
+      "number": {
+        "type": "number",
+        "description": "GitHub issue number"
+      },
+      "title": {
+        "type": "string",
+        "description": "Issue title"
+      },
+      "body": {
+        "type": "string",
+        "description": "Issue description in markdown",
+        "nullable": true
+      },
+      "status": {
+        "type": "string",
+        "enum": ["backlog", "todo", "in_progress", "done"],
+        "description": "Current issue status"
+      },
+      "phase": {
+        "type": "string",
+        "description": "Phase assignment",
+        "nullable": true
+      },
+      "assignee": {
+        "type": "string",
+        "description": "Assigned GitHub username",
+        "nullable": true
+      },
+      "labels": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "description": "Associated labels"
+      },
+      "url": {
+        "type": "string",
+        "description": "GitHub issue URL",
+        "format": "uri"
+      },
+      "createdAt": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "updatedAt": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "closedAt": {
+        "type": "string",
+        "format": "date-time",
+        "nullable": true,
+        "description": "When issue was closed, if applicable"
+      },
+      "workItems": {
+        "type": "array",
+        "description": "Associated work items (sub-tasks)",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "title": {
+              "type": "string"
+            },
+            "status": {
+              "type": "string",
+              "enum": ["backlog", "todo", "in_progress", "done"]
+            },
+            "assignee": {
+              "type": "string",
+              "nullable": true
+            }
+          },
+          "required": ["id", "title", "status"]
+        }
+      },
+      "activity": {
+        "type": "array",
+        "description": "Recent activity log",
+        "items": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": ["commented", "status_changed", "phase_changed", "assigned", "labeled"]
+            },
+            "actor": {
+              "type": "string"
+            },
+            "timestamp": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "details": {
+              "type": "string"
+            }
+          },
+          "required": ["type", "actor", "timestamp"]
+        }
+      }
+    },
+    "required": ["number", "title", "status", "url", "createdAt", "updatedAt", "workItems", "activity"]
+  },
+  "errorSchema": {
+    "type": "object",
+    "properties": {
+      "error": {
+        "type": "string",
+        "description": "Error message"
+      }
+    },
+    "required": ["error"]
+  },
+  "examples": {
+    "success": {
+      "input": {
+        "projectNumber": 70,
+        "issueNumber": 1
+      },
+      "output": {
+        "number": 1,
+        "title": "Setup initial project structure",
+        "body": "Create the basic directory structure and configuration files for the monorepo.",
+        "status": "done",
+        "phase": "Foundation",
+        "assignee": "stoked",
+        "labels": ["infrastructure", "setup", "documentation"],
+        "url": "https://github.com/example/repo/issues/1",
+        "createdAt": "2026-01-01T00:00:00Z",
+        "updatedAt": "2026-01-15T10:00:00Z",
+        "closedAt": "2026-01-15T10:00:00Z",
+        "workItems": [
+          {
+            "id": "wi_1",
+            "title": "Create tsconfig.json",
+            "status": "done",
+            "assignee": "stoked"
+          },
+          {
+            "id": "wi_2",
+            "title": "Setup ESLint configuration",
+            "status": "done",
+            "assignee": "stoked"
+          }
+        ],
+        "activity": [
+          {
+            "type": "commented",
+            "actor": "stoked",
+            "timestamp": "2026-01-15T10:00:00Z",
+            "details": "Setup complete!"
+          },
+          {
+            "type": "status_changed",
+            "actor": "stoked",
+            "timestamp": "2026-01-15T10:00:00Z",
+            "details": "Status changed from in_progress to done"
+          }
+        ]
+      }
+    },
+    "notFound": {
+      "input": {
+        "projectNumber": 70,
+        "issueNumber": 99999
+      },
+      "error": "Issue #99999 not found in project #70"
+    }
+  }
+}

@@ -1,0 +1,192 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Create Issue Tool",
+  "description": "Create a new GitHub issue and add it to the project board with optional status, phase, assignee, and labels",
+  "type": "object",
+  "input": {
+    "type": "object",
+    "properties": {
+      "projectNumber": {
+        "type": "number",
+        "description": "GitHub Project number to add issue to",
+        "minimum": 1,
+        "examples": [70]
+      },
+      "title": {
+        "type": "string",
+        "description": "Issue title (required)",
+        "minLength": 1,
+        "maxLength": 256,
+        "examples": ["Implement API endpoint", "Fix authentication bug"]
+      },
+      "body": {
+        "type": "string",
+        "description": "Issue description in markdown (optional)",
+        "nullable": true,
+        "maxLength": 65536
+      },
+      "status": {
+        "type": "string",
+        "enum": ["backlog", "todo", "in_progress", "done"],
+        "description": "Initial status (default: backlog)",
+        "nullable": true,
+        "default": "backlog"
+      },
+      "phase": {
+        "type": "string",
+        "description": "Initial phase name (optional)",
+        "nullable": true,
+        "examples": ["Foundation", "Core Features"]
+      },
+      "assignee": {
+        "type": "string",
+        "description": "GitHub username to assign (optional)",
+        "nullable": true,
+        "examples": ["stoked"]
+      },
+      "labels": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "maxLength": 50
+        },
+        "description": "Array of label names (optional)",
+        "maxItems": 20,
+        "nullable": true,
+        "examples": [["bug", "documentation"], ["feature", "enhancement"]]
+      }
+    },
+    "required": ["projectNumber", "title"],
+    "additionalProperties": false
+  },
+  "output": {
+    "type": "object",
+    "properties": {
+      "number": {
+        "type": "number",
+        "description": "GitHub issue number"
+      },
+      "title": {
+        "type": "string",
+        "description": "Issue title"
+      },
+      "body": {
+        "type": "string",
+        "description": "Issue description",
+        "nullable": true
+      },
+      "status": {
+        "type": "string",
+        "enum": ["backlog", "todo", "in_progress", "done"]
+      },
+      "phase": {
+        "type": "string",
+        "description": "Assigned phase",
+        "nullable": true
+      },
+      "assignee": {
+        "type": "string",
+        "description": "Assigned username",
+        "nullable": true
+      },
+      "labels": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "url": {
+        "type": "string",
+        "description": "GitHub issue URL",
+        "format": "uri"
+      },
+      "createdAt": {
+        "type": "string",
+        "format": "date-time"
+      }
+    },
+    "required": ["number", "title", "status", "url", "createdAt"]
+  },
+  "errorSchema": {
+    "type": "object",
+    "properties": {
+      "error": {
+        "type": "string",
+        "description": "Error message"
+      },
+      "projectNumber": {
+        "type": "number",
+        "nullable": true
+      },
+      "phase": {
+        "type": "string",
+        "description": "Phase name if error is phase-related",
+        "nullable": true
+      }
+    },
+    "required": ["error"]
+  },
+  "examples": {
+    "minimal": {
+      "input": {
+        "projectNumber": 70,
+        "title": "Setup database schema"
+      },
+      "output": {
+        "number": 42,
+        "title": "Setup database schema",
+        "body": null,
+        "status": "backlog",
+        "phase": null,
+        "assignee": null,
+        "labels": [],
+        "url": "https://github.com/example/repo/issues/42",
+        "createdAt": "2026-01-24T14:30:00Z"
+      }
+    },
+    "comprehensive": {
+      "input": {
+        "projectNumber": 70,
+        "title": "Implement authentication",
+        "body": "# Description\n\nImplement JWT-based authentication for API\n\n## Acceptance Criteria\n- [ ] Support login endpoint\n- [ ] Support token refresh\n- [ ] Support logout",
+        "status": "todo",
+        "phase": "Core Features",
+        "assignee": "stoked",
+        "labels": ["api", "security", "high-priority"]
+      },
+      "output": {
+        "number": 43,
+        "title": "Implement authentication",
+        "body": "# Description\n\nImplement JWT-based authentication for API\n\n## Acceptance Criteria\n- [ ] Support login endpoint\n- [ ] Support token refresh\n- [ ] Support logout",
+        "status": "todo",
+        "phase": "Core Features",
+        "assignee": "stoked",
+        "labels": ["api", "security", "high-priority"],
+        "url": "https://github.com/example/repo/issues/43",
+        "createdAt": "2026-01-24T14:35:00Z"
+      }
+    },
+    "phaseNotFound": {
+      "input": {
+        "projectNumber": 70,
+        "title": "Some issue",
+        "phase": "NonexistentPhase"
+      },
+      "error": "Phase \"NonexistentPhase\" not found in Project #70"
+    },
+    "projectNotFound": {
+      "input": {
+        "projectNumber": 999999,
+        "title": "Some issue"
+      },
+      "error": "Project #999999 not found"
+    }
+  },
+  "constraints": {
+    "title": "Title is required and cannot be empty or just whitespace",
+    "phase": "If specified, phase must exist in the target project",
+    "assignee": "GitHub username must exist and have access to repository",
+    "labels": "Labels are created automatically if they don't exist",
+    "events": "Successful creation emits 'issue.created' event"
+  }
+}

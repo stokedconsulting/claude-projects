@@ -1,0 +1,143 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Update Issue Phase Tool",
+  "description": "Move an issue to a different phase in the GitHub Project with fuzzy matching support for typos",
+  "type": "object",
+  "input": {
+    "type": "object",
+    "properties": {
+      "projectNumber": {
+        "type": "number",
+        "description": "GitHub Project number",
+        "minimum": 1,
+        "examples": [70]
+      },
+      "issueNumber": {
+        "type": "number",
+        "description": "GitHub issue number",
+        "minimum": 1,
+        "examples": [42]
+      },
+      "phase": {
+        "type": "string",
+        "description": "Target phase name",
+        "minLength": 1,
+        "examples": ["Foundation", "Core Features", "Testing"]
+      }
+    },
+    "required": ["projectNumber", "issueNumber", "phase"],
+    "additionalProperties": false
+  },
+  "output": {
+    "type": "object",
+    "properties": {
+      "number": {
+        "type": "number",
+        "description": "GitHub issue number"
+      },
+      "title": {
+        "type": "string",
+        "description": "Issue title"
+      },
+      "previousPhase": {
+        "type": "string",
+        "description": "Phase before update",
+        "nullable": true
+      },
+      "phase": {
+        "type": "string",
+        "description": "New phase after update"
+      },
+      "updatedAt": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "url": {
+        "type": "string",
+        "description": "GitHub issue URL",
+        "format": "uri"
+      }
+    },
+    "required": ["number", "title", "phase", "updatedAt", "url"]
+  },
+  "errorSchema": {
+    "type": "object",
+    "properties": {
+      "error": {
+        "type": "string",
+        "description": "Error message"
+      },
+      "availablePhases": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "description": "List of available phases if phase not found",
+        "nullable": true
+      },
+      "suggestion": {
+        "type": "string",
+        "description": "Fuzzy match suggestion for typos (e.g., 'Did you mean foundaton -> Foundation?')",
+        "nullable": true
+      }
+    },
+    "required": ["error"]
+  },
+  "examples": {
+    "success": {
+      "input": {
+        "projectNumber": 70,
+        "issueNumber": 42,
+        "phase": "Core Features"
+      },
+      "output": {
+        "number": 42,
+        "title": "Implement authentication",
+        "previousPhase": "Foundation",
+        "phase": "Core Features",
+        "updatedAt": "2026-01-24T14:50:00Z",
+        "url": "https://github.com/example/repo/issues/42"
+      }
+    },
+    "moveFromUnassigned": {
+      "input": {
+        "projectNumber": 70,
+        "issueNumber": 2,
+        "phase": "Testing"
+      },
+      "output": {
+        "number": 2,
+        "title": "Write integration tests",
+        "previousPhase": null,
+        "phase": "Testing",
+        "updatedAt": "2026-01-24T14:50:00Z",
+        "url": "https://github.com/example/repo/issues/2"
+      }
+    },
+    "phaseNotFound": {
+      "input": {
+        "projectNumber": 70,
+        "issueNumber": 42,
+        "phase": "InvalidPhase"
+      },
+      "error": "Phase \"InvalidPhase\" not found in Project #70",
+      "availablePhases": ["Foundation", "Core Features", "Testing"],
+      "suggestion": "Did you mean 'Foundation'?"
+    },
+    "issueNotFound": {
+      "input": {
+        "projectNumber": 70,
+        "issueNumber": 99999,
+        "phase": "Foundation"
+      },
+      "error": "Issue #99999 not found in project #70"
+    }
+  },
+  "constraints": {
+    "phaseValidation": "Phase name must exactly match an existing phase in the project (after fuzzy matching)",
+    "fuzzyMatching": "Common typos are suggested (e.g., 'foundaton' -> 'Foundation')",
+    "idempotent": "Moving to same phase is allowed and succeeds without change",
+    "event": "Successful phase changes emit 'issue.phase_updated' event",
+    "status": "Phase changes do not affect issue status"
+  }
+}

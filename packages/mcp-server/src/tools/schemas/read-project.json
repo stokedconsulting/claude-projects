@@ -1,0 +1,226 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Read Project Tool",
+  "description": "Fetch complete project details from GitHub Projects by project number",
+  "type": "object",
+  "input": {
+    "type": "object",
+    "properties": {
+      "projectNumber": {
+        "type": "number",
+        "description": "GitHub Project number (e.g., 70 for Project #70)",
+        "minimum": 1,
+        "examples": [70, 72, 77]
+      }
+    },
+    "required": ["projectNumber"],
+    "additionalProperties": false
+  },
+  "output": {
+    "type": "object",
+    "properties": {
+      "projectNumber": {
+        "type": "number",
+        "description": "GitHub Project number"
+      },
+      "id": {
+        "type": "string",
+        "description": "GitHub Project ID"
+      },
+      "title": {
+        "type": "string",
+        "description": "Project title"
+      },
+      "description": {
+        "type": "string",
+        "description": "Project description",
+        "nullable": true
+      },
+      "url": {
+        "type": "string",
+        "description": "Project URL",
+        "format": "uri"
+      },
+      "status": {
+        "type": "string",
+        "enum": ["open", "closed"],
+        "description": "Project status"
+      },
+      "public": {
+        "type": "boolean",
+        "description": "Whether project is public"
+      },
+      "owner": {
+        "type": "string",
+        "description": "Owner login (user or organization)"
+      },
+      "fields": {
+        "type": "array",
+        "description": "Field definitions for this project",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            },
+            "dataType": {
+              "type": "string"
+            },
+            "options": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "nullable": true
+            }
+          },
+          "required": ["id", "name", "dataType"]
+        }
+      },
+      "phases": {
+        "type": "array",
+        "description": "Phases in this project",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "nullable": true
+            },
+            "order": {
+              "type": "number"
+            },
+            "status": {
+              "type": "string",
+              "enum": ["pending", "in_progress", "completed"]
+            }
+          },
+          "required": ["id", "name", "order", "status"]
+        }
+      },
+      "stats": {
+        "type": "object",
+        "properties": {
+          "totalItems": {
+            "type": "number",
+            "description": "Total number of items in project",
+            "minimum": 0
+          },
+          "openItems": {
+            "type": "number",
+            "description": "Number of open items",
+            "minimum": 0
+          },
+          "closedItems": {
+            "type": "number",
+            "description": "Number of closed items",
+            "minimum": 0
+          },
+          "totalPhases": {
+            "type": "number",
+            "description": "Number of phases",
+            "minimum": 0
+          }
+        },
+        "required": ["totalItems", "openItems", "closedItems", "totalPhases"]
+      },
+      "createdAt": {
+        "type": "string",
+        "description": "Creation timestamp",
+        "format": "date-time"
+      },
+      "updatedAt": {
+        "type": "string",
+        "description": "Last update timestamp",
+        "format": "date-time"
+      }
+    },
+    "required": ["projectNumber", "id", "title", "url", "status", "public", "owner", "fields", "phases", "stats", "createdAt", "updatedAt"]
+  },
+  "errorSchema": {
+    "type": "object",
+    "properties": {
+      "error": {
+        "type": "string",
+        "description": "Error message",
+        "enum": [
+          "Project not found",
+          "Authentication failed. Check STATE_TRACKING_API_KEY",
+          "Failed to connect to state-tracking-api",
+          "Failed to parse API response"
+        ]
+      }
+    },
+    "required": ["error"]
+  },
+  "examples": {
+    "success": {
+      "input": {
+        "projectNumber": 70
+      },
+      "output": {
+        "projectNumber": 70,
+        "id": "PVT_kwDOCDQwOs4ArjzA",
+        "title": "Claude Projects - Phase 1",
+        "description": "Initial setup and foundation",
+        "url": "https://github.com/users/stoked/projects/70",
+        "status": "open",
+        "public": false,
+        "owner": "stoked",
+        "fields": [
+          {
+            "id": "PVTF_field_1",
+            "name": "Status",
+            "dataType": "SINGLE_SELECT",
+            "options": ["backlog", "todo", "in_progress", "done"]
+          },
+          {
+            "id": "PVTF_field_2",
+            "name": "Priority",
+            "dataType": "SINGLE_SELECT",
+            "options": ["low", "medium", "high", "critical"]
+          }
+        ],
+        "phases": [
+          {
+            "id": "phase_1",
+            "name": "Foundation",
+            "description": "Setup and infrastructure",
+            "order": 1,
+            "status": "completed"
+          },
+          {
+            "id": "phase_2",
+            "name": "Core Features",
+            "description": "Main functionality",
+            "order": 2,
+            "status": "in_progress"
+          }
+        ],
+        "stats": {
+          "totalItems": 45,
+          "openItems": 23,
+          "closedItems": 22,
+          "totalPhases": 2
+        },
+        "createdAt": "2026-01-01T00:00:00Z",
+        "updatedAt": "2026-01-24T14:30:00Z"
+      }
+    },
+    "notFound": {
+      "input": {
+        "projectNumber": 999999
+      },
+      "error": "Project #999999 not found"
+    }
+  }
+}

@@ -1,0 +1,137 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Update Issue Status Tool",
+  "description": "Change the status of an issue in the GitHub Project (backlog, todo, in_progress, done)",
+  "type": "object",
+  "input": {
+    "type": "object",
+    "properties": {
+      "projectNumber": {
+        "type": "number",
+        "description": "GitHub Project number",
+        "minimum": 1,
+        "examples": [70]
+      },
+      "issueNumber": {
+        "type": "number",
+        "description": "GitHub issue number",
+        "minimum": 1,
+        "examples": [42]
+      },
+      "status": {
+        "type": "string",
+        "enum": ["backlog", "todo", "in_progress", "done"],
+        "description": "New status value",
+        "examples": ["done", "in_progress"]
+      }
+    },
+    "required": ["projectNumber", "issueNumber", "status"],
+    "additionalProperties": false
+  },
+  "output": {
+    "type": "object",
+    "properties": {
+      "number": {
+        "type": "number",
+        "description": "GitHub issue number"
+      },
+      "title": {
+        "type": "string",
+        "description": "Issue title"
+      },
+      "previousStatus": {
+        "type": "string",
+        "enum": ["backlog", "todo", "in_progress", "done"],
+        "description": "Previous status before update"
+      },
+      "status": {
+        "type": "string",
+        "enum": ["backlog", "todo", "in_progress", "done"],
+        "description": "New status after update"
+      },
+      "updatedAt": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "url": {
+        "type": "string",
+        "description": "GitHub issue URL",
+        "format": "uri"
+      }
+    },
+    "required": ["number", "title", "previousStatus", "status", "updatedAt", "url"]
+  },
+  "errorSchema": {
+    "type": "object",
+    "properties": {
+      "error": {
+        "type": "string",
+        "description": "Error message"
+      },
+      "validStatuses": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "description": "List of valid statuses if validation error",
+        "nullable": true
+      }
+    },
+    "required": ["error"]
+  },
+  "examples": {
+    "success": {
+      "input": {
+        "projectNumber": 70,
+        "issueNumber": 42,
+        "status": "done"
+      },
+      "output": {
+        "number": 42,
+        "title": "Implement authentication",
+        "previousStatus": "in_progress",
+        "status": "done",
+        "updatedAt": "2026-01-24T14:50:00Z",
+        "url": "https://github.com/example/repo/issues/42"
+      }
+    },
+    "moveToInProgress": {
+      "input": {
+        "projectNumber": 70,
+        "issueNumber": 1,
+        "status": "in_progress"
+      },
+      "output": {
+        "number": 1,
+        "title": "Setup project structure",
+        "previousStatus": "todo",
+        "status": "in_progress",
+        "updatedAt": "2026-01-24T14:50:00Z",
+        "url": "https://github.com/example/repo/issues/1"
+      }
+    },
+    "issueNotFound": {
+      "input": {
+        "projectNumber": 70,
+        "issueNumber": 99999,
+        "status": "done"
+      },
+      "error": "Issue #99999 not found in project #70"
+    },
+    "invalidStatus": {
+      "input": {
+        "projectNumber": 70,
+        "issueNumber": 42,
+        "status": "invalid_status"
+      },
+      "error": "Invalid status value"
+    }
+  },
+  "constraints": {
+    "validStatuses": ["backlog", "todo", "in_progress", "done"],
+    "statusFlow": "Any status can transition to any other status (no workflow enforcement)",
+    "idempotent": "Moving to same status is allowed and succeeds without change",
+    "event": "Successful status changes emit 'issue.status_updated' event",
+    "phase": "Status changes do not affect phase assignment"
+  }
+}

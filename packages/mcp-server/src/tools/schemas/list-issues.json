@@ -1,0 +1,163 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "List Issues Tool",
+  "description": "List all issues in a GitHub Project with optional filtering by status, phase, and assignee",
+  "type": "object",
+  "input": {
+    "type": "object",
+    "properties": {
+      "projectNumber": {
+        "type": "number",
+        "description": "GitHub Project number",
+        "minimum": 1,
+        "examples": [70]
+      },
+      "status": {
+        "type": "string",
+        "enum": ["backlog", "todo", "in_progress", "done"],
+        "description": "Filter by issue status (optional)",
+        "nullable": true
+      },
+      "phase": {
+        "type": "string",
+        "description": "Filter by phase name (optional)",
+        "nullable": true,
+        "examples": ["Foundation", "Core Features"]
+      },
+      "assignee": {
+        "type": "string",
+        "description": "Filter by GitHub username (optional)",
+        "nullable": true,
+        "examples": ["stoked"]
+      }
+    },
+    "required": ["projectNumber"],
+    "additionalProperties": false
+  },
+  "output": {
+    "type": "array",
+    "description": "Array of issue summaries",
+    "items": {
+      "type": "object",
+      "properties": {
+        "number": {
+          "type": "number",
+          "description": "GitHub issue number"
+        },
+        "title": {
+          "type": "string",
+          "description": "Issue title"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["backlog", "todo", "in_progress", "done"],
+          "description": "Current issue status"
+        },
+        "phase": {
+          "type": "string",
+          "description": "Phase assignment",
+          "nullable": true
+        },
+        "assignee": {
+          "type": "string",
+          "description": "Assigned GitHub username",
+          "nullable": true
+        },
+        "labels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Associated labels"
+        },
+        "url": {
+          "type": "string",
+          "description": "GitHub issue URL",
+          "format": "uri"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["number", "title", "status", "url", "createdAt", "updatedAt"]
+    }
+  },
+  "errorSchema": {
+    "type": "object",
+    "properties": {
+      "error": {
+        "type": "string",
+        "description": "Error message"
+      }
+    },
+    "required": ["error"]
+  },
+  "examples": {
+    "listAll": {
+      "input": {
+        "projectNumber": 70
+      },
+      "output": [
+        {
+          "number": 1,
+          "title": "Setup initial project structure",
+          "status": "done",
+          "phase": "Foundation",
+          "assignee": "stoked",
+          "labels": ["infrastructure", "setup"],
+          "url": "https://github.com/example/repo/issues/1",
+          "createdAt": "2026-01-01T00:00:00Z",
+          "updatedAt": "2026-01-15T10:00:00Z"
+        },
+        {
+          "number": 2,
+          "title": "Implement API endpoints",
+          "status": "in_progress",
+          "phase": "Core Features",
+          "assignee": "stoked",
+          "labels": ["api", "backend"],
+          "url": "https://github.com/example/repo/issues/2",
+          "createdAt": "2026-01-05T00:00:00Z",
+          "updatedAt": "2026-01-24T14:00:00Z"
+        }
+      ]
+    },
+    "filteredByStatus": {
+      "input": {
+        "projectNumber": 70,
+        "status": "in_progress"
+      },
+      "output": [
+        {
+          "number": 2,
+          "title": "Implement API endpoints",
+          "status": "in_progress",
+          "phase": "Core Features",
+          "assignee": "stoked",
+          "labels": ["api", "backend"],
+          "url": "https://github.com/example/repo/issues/2",
+          "createdAt": "2026-01-05T00:00:00Z",
+          "updatedAt": "2026-01-24T14:00:00Z"
+        }
+      ]
+    },
+    "noResults": {
+      "input": {
+        "projectNumber": 70,
+        "status": "done",
+        "phase": "NonexistentPhase"
+      },
+      "output": []
+    }
+  },
+  "constraints": {
+    "performance": "Should handle 100+ issues efficiently with <2 second response time",
+    "filtering": "All filters use AND logic - multiple filters return issues matching ALL conditions",
+    "caching": "Results are not cached; each request fetches fresh data"
+  }
+}

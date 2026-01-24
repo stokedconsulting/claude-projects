@@ -1,0 +1,127 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Get Project Phases Tool",
+  "description": "Get the list of phases defined for a GitHub Project with work item counts and status",
+  "type": "object",
+  "input": {
+    "type": "object",
+    "properties": {
+      "projectNumber": {
+        "type": "number",
+        "description": "GitHub Project number",
+        "minimum": 1,
+        "examples": [70]
+      }
+    },
+    "required": ["projectNumber"],
+    "additionalProperties": false
+  },
+  "output": {
+    "type": "array",
+    "description": "Ordered array of phases with work item statistics",
+    "items": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique phase identifier"
+        },
+        "name": {
+          "type": "string",
+          "description": "Phase display name"
+        },
+        "description": {
+          "type": "string",
+          "description": "Phase description",
+          "nullable": true
+        },
+        "order": {
+          "type": "number",
+          "description": "Sequence order of phase in project",
+          "minimum": 1
+        },
+        "status": {
+          "type": "string",
+          "enum": ["pending", "in_progress", "completed"],
+          "description": "Phase completion status"
+        },
+        "workItemCount": {
+          "type": "number",
+          "description": "Number of work items in phase",
+          "minimum": 0
+        },
+        "completedCount": {
+          "type": "number",
+          "description": "Number of completed work items",
+          "minimum": 0
+        },
+        "inProgressCount": {
+          "type": "number",
+          "description": "Number of in-progress work items",
+          "minimum": 0
+        }
+      },
+      "required": ["id", "name", "order", "status", "workItemCount", "completedCount", "inProgressCount"]
+    }
+  },
+  "errorSchema": {
+    "type": "object",
+    "properties": {
+      "error": {
+        "type": "string",
+        "description": "Error message"
+      }
+    },
+    "required": ["error"]
+  },
+  "examples": {
+    "success": {
+      "input": {
+        "projectNumber": 70
+      },
+      "output": [
+        {
+          "id": "phase_1",
+          "name": "Foundation",
+          "description": "Setup and infrastructure",
+          "order": 1,
+          "status": "completed",
+          "workItemCount": 8,
+          "completedCount": 8,
+          "inProgressCount": 0
+        },
+        {
+          "id": "phase_2",
+          "name": "Core Features",
+          "description": "Main functionality implementation",
+          "order": 2,
+          "status": "in_progress",
+          "workItemCount": 12,
+          "completedCount": 5,
+          "inProgressCount": 5
+        },
+        {
+          "id": "phase_3",
+          "name": "Testing",
+          "description": "QA and validation",
+          "order": 3,
+          "status": "pending",
+          "workItemCount": 0,
+          "completedCount": 0,
+          "inProgressCount": 0
+        }
+      ]
+    },
+    "noPhases": {
+      "input": {
+        "projectNumber": 70
+      },
+      "output": []
+    }
+  },
+  "constraints": {
+    "ordering": "Phases MUST be returned in order of sequence number",
+    "caching": "Phases are cached for 5 minutes since they change infrequently",
+    "completeness": "All phases must be included even if they have 0 work items"
+  }
+}

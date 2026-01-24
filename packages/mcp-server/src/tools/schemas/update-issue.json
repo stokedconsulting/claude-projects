@@ -1,0 +1,189 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Update Issue Tool",
+  "description": "Update issue details including title, description, assignee, and labels",
+  "type": "object",
+  "input": {
+    "type": "object",
+    "properties": {
+      "projectNumber": {
+        "type": "number",
+        "description": "GitHub Project number",
+        "minimum": 1,
+        "examples": [70]
+      },
+      "issueNumber": {
+        "type": "number",
+        "description": "GitHub issue number",
+        "minimum": 1,
+        "examples": [42]
+      },
+      "title": {
+        "type": "string",
+        "description": "New title (optional)",
+        "minLength": 1,
+        "maxLength": 256,
+        "nullable": true
+      },
+      "body": {
+        "type": "string",
+        "description": "New description in markdown (optional)",
+        "maxLength": 65536,
+        "nullable": true
+      },
+      "assignee": {
+        "type": "string",
+        "description": "GitHub username to assign (optional, use null to unassign)",
+        "nullable": true,
+        "examples": ["stoked", null]
+      },
+      "labels": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "maxLength": 50
+        },
+        "description": "Complete array of label names (replaces existing labels)",
+        "maxItems": 20,
+        "nullable": true,
+        "examples": [["bug", "documentation"], []]
+      }
+    },
+    "required": ["projectNumber", "issueNumber"],
+    "additionalProperties": false
+  },
+  "output": {
+    "type": "object",
+    "properties": {
+      "number": {
+        "type": "number",
+        "description": "GitHub issue number"
+      },
+      "title": {
+        "type": "string",
+        "description": "Updated title"
+      },
+      "body": {
+        "type": "string",
+        "description": "Updated description",
+        "nullable": true
+      },
+      "status": {
+        "type": "string",
+        "enum": ["backlog", "todo", "in_progress", "done"],
+        "description": "Current status (unchanged by this tool)"
+      },
+      "assignee": {
+        "type": "string",
+        "description": "Current assignee",
+        "nullable": true
+      },
+      "labels": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "description": "Current labels"
+      },
+      "url": {
+        "type": "string",
+        "description": "GitHub issue URL",
+        "format": "uri"
+      },
+      "updatedAt": {
+        "type": "string",
+        "format": "date-time"
+      }
+    },
+    "required": ["number", "title", "status", "url", "updatedAt"]
+  },
+  "errorSchema": {
+    "type": "object",
+    "properties": {
+      "error": {
+        "type": "string",
+        "description": "Error message"
+      },
+      "projectNumber": {
+        "type": "number",
+        "nullable": true
+      },
+      "issueNumber": {
+        "type": "number",
+        "nullable": true
+      }
+    },
+    "required": ["error"]
+  },
+  "examples": {
+    "updateTitle": {
+      "input": {
+        "projectNumber": 70,
+        "issueNumber": 42,
+        "title": "Updated: Implement authentication system"
+      },
+      "output": {
+        "number": 42,
+        "title": "Updated: Implement authentication system",
+        "body": "Original description",
+        "status": "todo",
+        "assignee": "stoked",
+        "labels": ["api"],
+        "url": "https://github.com/example/repo/issues/42",
+        "updatedAt": "2026-01-24T14:45:00Z"
+      }
+    },
+    "updateMultiple": {
+      "input": {
+        "projectNumber": 70,
+        "issueNumber": 42,
+        "title": "Authentication Implementation",
+        "body": "## Updated Description\n\nImplement JWT authentication for all API endpoints.",
+        "assignee": "stoked",
+        "labels": ["api", "security", "backend"]
+      },
+      "output": {
+        "number": 42,
+        "title": "Authentication Implementation",
+        "body": "## Updated Description\n\nImplement JWT authentication for all API endpoints.",
+        "status": "todo",
+        "assignee": "stoked",
+        "labels": ["api", "security", "backend"],
+        "url": "https://github.com/example/repo/issues/42",
+        "updatedAt": "2026-01-24T14:45:00Z"
+      }
+    },
+    "unassign": {
+      "input": {
+        "projectNumber": 70,
+        "issueNumber": 42,
+        "assignee": null
+      },
+      "output": {
+        "number": 42,
+        "title": "Implement authentication",
+        "body": "JWT authentication implementation",
+        "status": "todo",
+        "assignee": null,
+        "labels": ["api"],
+        "url": "https://github.com/example/repo/issues/42",
+        "updatedAt": "2026-01-24T14:45:00Z"
+      }
+    },
+    "notFound": {
+      "input": {
+        "projectNumber": 70,
+        "issueNumber": 99999,
+        "title": "Updated title"
+      },
+      "error": "Issue #99999 not found in project #70"
+    }
+  },
+  "constraints": {
+    "partialUpdate": "Only provided fields are updated; other fields remain unchanged",
+    "titleValidation": "If title is provided, must be non-empty after trimming whitespace",
+    "labelsReplacement": "Providing labels array completely replaces existing labels",
+    "assigneeNullable": "Passing null for assignee unassigns the issue",
+    "event": "Successful updates emit 'issue.updated' event"
+  }
+}
