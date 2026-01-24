@@ -13,6 +13,7 @@ import { LoggingModule } from './common/logging/logging.module';
 import { RequestIdInterceptor } from './common/interceptors/request-id.interceptor';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 import { CacheHeadersInterceptor } from './common/interceptors/cache-headers.interceptor';
+import { GitHubModule } from './github/github.module';
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { CacheHeadersInterceptor } from './common/interceptors/cache-headers.int
     MachinesModule,
     AuthModule,
     HealthModule,
+    GitHubModule,
   ],
   providers: [
     // Global interceptors - order matters: RequestId first, then Logging, then CacheHeaders

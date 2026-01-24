@@ -17,7 +17,7 @@ import {
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { Response } from 'express';
+import { Response, Request } from 'express';
 
 interface CacheEndpointConfig {
   pattern: RegExp;
@@ -73,8 +73,8 @@ export class CacheHeadersInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     return next.handle().pipe(
       tap((data) => {
-        const request = context.getRequest();
-        const response = context.getResponse<Response>();
+        const request = context.switchToHttp().getRequest<Request>();
+        const response = context.switchToHttp().getResponse<Response>();
         const method = request.method;
         const path = request.path;
         const statusCode = response.statusCode;
