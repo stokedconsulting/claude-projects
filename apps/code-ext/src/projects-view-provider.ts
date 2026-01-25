@@ -7,7 +7,8 @@ import { CacheManager } from './cache-manager';
 import { calculateDataDiff, hasChanges } from './diff-calculator';
 import { ProjectFlowManager } from './project-flow-manager';
 import { ClaudeAPI } from './claude-api';
-import { GitHubProjectCreator } from './github-project-creator';
+// DEPRECATED: GitHubProjectCreator removed - use MCP Server tools instead
+// See: docs/mcp-migration-guide.md
 import { detectFilePath, getTypeaheadResults, extractInput } from './input-detection';
 import { exec } from 'child_process';
 import { promisify } from 'util';
@@ -46,7 +47,7 @@ export class ProjectsViewProvider implements vscode.WebviewViewProvider {
     private _lastRepoCheck?: string; // Track last checked repo for debouncing
     private _projectFlowManager?: ProjectFlowManager;
     private _claudeAPI?: ClaudeAPI;
-    private _projectCreator?: GitHubProjectCreator;
+    // DEPRECATED: _projectCreator removed - use MCP Server tools instead
     private _outputChannel: vscode.OutputChannel;
     private _showOrgProjects: boolean = true;
     private _wsClient?: WebSocketNotificationClient;
@@ -75,7 +76,7 @@ export class ProjectsViewProvider implements vscode.WebviewViewProvider {
         this._cacheManager = new CacheManager(_context);
         this._projectFlowManager = new ProjectFlowManager(_context);
         this._claudeAPI = new ClaudeAPI();
-        this._projectCreator = new GitHubProjectCreator();
+        // DEPRECATED: _projectCreator removed - use MCP Server tools instead
         this._wsClient = wsClient;
 
         // Register WebSocket event handlers
@@ -1819,7 +1820,7 @@ export class ProjectsViewProvider implements vscode.WebviewViewProvider {
     }
 
     private async handleProjectApproved(isPublic: boolean) {
-        if (!this._view || !this._projectFlowManager || !this._projectCreator) return;
+        if (!this._view || !this._projectFlowManager) return;
 
         try {
             const session = this._projectFlowManager.getCurrentSession();
@@ -1831,79 +1832,20 @@ export class ProjectsViewProvider implements vscode.WebviewViewProvider {
             session.finalConfig.isPublic = isPublic;
             this._projectFlowManager.setPhase('creation');
 
-            // Check auth and scope
-            const authCheck = await this._projectCreator.checkAuth();
-            if (!authCheck.authenticated) {
-                throw new Error('GitHub CLI not authenticated. Run: gh auth login');
-            }
+            // TODO: Replace with MCP Server tools
+            // - Use github_create_project MCP tool
+            // - Use github_create_issue MCP tool
+            // - Use github_link_issue_to_project MCP tool
+            // See: docs/mcp-migration-guide.md
 
-            const scopeCheck = await this._projectCreator.checkProjectScope();
-            if (!scopeCheck.hasScope) {
-                throw new Error(scopeCheck.error || 'Missing project scope');
-            }
-
-            // Create project with progress updates
-            const result = await this._projectCreator.createProject(
-                session.finalConfig,
-                (step, current, total) => {
-                    this._view?.webview.postMessage({
-                        type: 'projectCreationProgress',
-                        step,
-                        current,
-                        total
-                    });
-                }
+            throw new Error(
+                'Project creation through extension UI has been deprecated.\n' +
+                'Please use Claude Code with MCP Server tools instead:\n' +
+                '  - github_create_project\n' +
+                '  - github_create_issue\n' +
+                '  - github_link_issue_to_project\n\n' +
+                'See: docs/mcp-migration-guide.md for migration instructions.'
             );
-
-            // Update last used repo
-            this._projectFlowManager.updateLastUsedRepo(
-                session.finalConfig.repoOwner,
-                session.finalConfig.repoName
-            );
-
-            // Mark complete
-            this._projectFlowManager.setPhase('complete');
-
-            // Send success message
-            this._view.webview.postMessage({
-                type: 'projectCreated',
-                result
-            });
-
-            // Refresh the projects view
-            await this.refresh();
-
-            // Clear session
-            this._projectFlowManager.clearSession();
-
-            // Show success notification
-            if (result.failedTasks && result.failedTasks.length > 0) {
-                // Partial success - show warning
-                const failedCount = result.failedTasks.length;
-                const successCount = result.taskUrls.length;
-                vscode.window.showWarningMessage(
-                    `Project created with ${successCount} tasks. ${failedCount} task(s) failed to create.`,
-                    'Open Project',
-                    'View Failed Tasks'
-                ).then(choice => {
-                    if (choice === 'Open Project') {
-                        vscode.env.openExternal(vscode.Uri.parse(result.projectUrl));
-                    } else if (choice === 'View Failed Tasks') {
-                        const failedList = result.failedTasks!.map(f => `- ${f.task.title}: ${f.error}`).join('\n');
-                        vscode.window.showErrorMessage(`Failed tasks:\n${failedList}`, { modal: true });
-                    }
-                });
-            } else {
-                // Full success
-                vscode.window.showInformationMessage(
-                    `Project created successfully!`,
-                    'Open Project'
-                ).then(choice => {
-                    if (choice === 'Open Project') {
-                        vscode.env.openExternal(vscode.Uri.parse(result.projectUrl));
-                    }
-                });
-            }
         } catch (error) {
             console.error('Error creating project:', error);
             this._view?.webview.postMessage({

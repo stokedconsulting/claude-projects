@@ -1,7 +1,8 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
-import { ProjectStateValidator, ProjectState } from './project-state-validator';
+// DEPRECATED: ProjectStateValidator removed - use MCP Server tools instead
+// See: docs/mcp-migration-guide.md
 
 /**
  * Signal state from Claude hooks
@@ -47,12 +48,12 @@ export class ClaudeMonitor {
     private readonly CHECK_INTERVAL = 5000; // Check every 5 seconds
     private readonly CONTINUATION_COOLDOWN = 120000; // 2 minutes between continuation prompts
     private readonly SESSIONS_DIR = '.claude-sessions';
-    private stateValidator: ProjectStateValidator;
+    // DEPRECATED: stateValidator removed - use MCP Server tools instead
     private projectUpdateCallback?: (signal: ClaudeSignal) => void;
 
     constructor(private workspaceRoot: string) {
         this.ensureSessionsDirectory();
-        this.stateValidator = new ProjectStateValidator();
+        // DEPRECATED: stateValidator removed - use MCP Server tools instead
     }
 
     /**
@@ -434,40 +435,13 @@ export class ClaudeMonitor {
             return this.generateCreationContinuationPrompt(session);
         }
 
-        const state = await this.stateValidator.fetchProjectState(session.projectNumber);
+        // TODO: Replace with MCP Server tool: get_project_phases
+        // See: docs/mcp-migration-guide.md
 
-        // If all items are complete
-        if (!state.nextIncompleteItem) {
-            return `All items in Project #${session.projectNumber} appear to be complete!
-
-Please:
-1. Run final validation (tests, build, lint)
-2. Ensure all changes are committed and pushed
-3. Mark the project as COMPLETE
-
-If everything passes, end with: PROJECT COMPLETE`;
-        }
-
-        // Format current state
-        const stateReport = this.formatPhaseStatus(state);
-        const nextItem = state.nextIncompleteItem;
-
+        // For now, return a simple continuation prompt without state validation
         return `Please continue with Project #${session.projectNumber}.
 
-**Current State:**
-${stateReport}
-
-**Next Action:**
-Resume work on: ${nextItem.title}
-Status: ${nextItem.status}
-
-**Instructions:**
-1. First, validate any items marked "In Progress" to confirm they're actually complete
-2. If complete, mark them "Done" and update the project board
-3. Then proceed with the next incomplete item: ${nextItem.title}
-4. Continue systematically through all remaining items
-
-**CRITICAL:** Do not skip any items. Work through them in order.`;
+Check the current state and continue with the next incomplete item.`;
     }
 
     /**
@@ -503,35 +477,8 @@ Work Items: [count]
 **DO NOT STOP** until all work items from the PRD have been created as GitHub issues!`;
     }
 
-    /**
-     * Format phase status for display
-     */
-    private formatPhaseStatus(state: ProjectState): string {
-        let output = `Progress: ${state.completedItems}/${state.totalItems} items (${state.completionPercentage}%)
-
-`;
-
-        for (const phase of state.phases) {
-            const statusIcon = phase.status === 'Done' ? '✓' : phase.status === 'In Progress' ? '⏳' : '○';
-            output += `${phase.name}: ${phase.status} ${statusIcon}
-`;
-
-            // Show first few items of each phase
-            const itemsToShow = phase.items.slice(0, 3);
-            for (const item of itemsToShow) {
-                const itemIcon = item.status === 'Done' ? '✓' : item.status === 'In Progress' ? '⏳' : '○';
-                const isNext = state.nextIncompleteItem?.id === item.id ? ' ← NEXT' : '';
-                output += `  - ${item.title}: ${item.status} ${itemIcon}${isNext}
-`;
-            }
-            if (phase.items.length > 3) {
-                output += `  ... and ${phase.items.length - 3} more items
-`;
-            }
-        }
-
-        return output;
-    }
+    // DEPRECATED: formatPhaseStatus removed - ProjectState type no longer available
+    // Method was used by generateSmartContinuationPrompt which now uses simplified prompt
 
     /**
      * Stop monitoring a session

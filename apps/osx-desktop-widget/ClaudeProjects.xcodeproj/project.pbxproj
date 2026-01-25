@@ -1,0 +1,610 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0B2E5E5D2F21A675006A8FD2 /* ClaudeProjectsWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = P7B00001 /* ClaudeProjectsWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		B7A00001 /* ClaudeProjectsApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7A00001 /* ClaudeProjectsApp.swift */; };
+		B7A00002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7A00002 /* ContentView.swift */; };
+		B7A00003 /* OrchestrationModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7A00003 /* OrchestrationModels.swift */; };
+		B7A00004 /* OrchestrationAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7A00004 /* OrchestrationAPIClient.swift */; };
+		B7A00005 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F7A00005 /* Assets.xcassets */; };
+		B7A00010 /* GitHubSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7A00010 /* GitHubSettingsView.swift */; };
+		B7A00011 /* GitHubAuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7A00011 /* GitHubAuthManager.swift */; };
+		B7A00013 /* GitHubAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7A00013 /* GitHubAPIClient.swift */; };
+		B7A00020 /* ClaudeProjectsDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7A00020 /* ClaudeProjectsDataSource.swift */; };
+		B7B00001 /* ClaudeProjectsWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7B00001 /* ClaudeProjectsWidget.swift */; };
+		B7B00002 /* ClaudeProjectsWidgetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7B00002 /* ClaudeProjectsWidgetView.swift */; };
+		B7B00003 /* OrchestrationModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7A00003 /* OrchestrationModels.swift */; };
+		B7B00004 /* OrchestrationAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7A00004 /* OrchestrationAPIClient.swift */; };
+		B7B00005 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F7C00001 /* WidgetKit.framework */; };
+		B7B00006 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F7C00002 /* SwiftUI.framework */; };
+		B7B00008 /* ConcurrencyIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7B00004 /* ConcurrencyIntents.swift */; };
+		B7B00011 /* GitHubAuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7A00011 /* GitHubAuthManager.swift */; };
+		B7B00013 /* GitHubAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7A00013 /* GitHubAPIClient.swift */; };
+		B7B00020 /* ClaudeProjectsDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7A00020 /* ClaudeProjectsDataSource.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		C7A00001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = R7A00001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = T7B00001;
+			remoteInfo = ClaudeProjectsWidgetExtension;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		E7A00001 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				0B2E5E5D2F21A675006A8FD2 /* ClaudeProjectsWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		F7A00001 /* ClaudeProjectsApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeProjectsApp.swift; sourceTree = "<group>"; };
+		F7A00002 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		F7A00003 /* OrchestrationModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrchestrationModels.swift; sourceTree = "<group>"; };
+		F7A00004 /* OrchestrationAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrchestrationAPIClient.swift; sourceTree = "<group>"; };
+		F7A00005 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		F7A00006 /* ClaudeProjects.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ClaudeProjects.entitlements; sourceTree = "<group>"; };
+		F7A00010 /* GitHubSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GitHubSettingsView.swift; sourceTree = "<group>"; };
+		F7A00011 /* GitHubAuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GitHubAuthManager.swift; sourceTree = "<group>"; };
+		F7A00013 /* GitHubAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GitHubAPIClient.swift; sourceTree = "<group>"; };
+		F7A00020 /* ClaudeProjectsDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeProjectsDataSource.swift; sourceTree = "<group>"; };
+		F7B00001 /* ClaudeProjectsWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeProjectsWidget.swift; sourceTree = "<group>"; };
+		F7B00002 /* ClaudeProjectsWidgetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeProjectsWidgetView.swift; sourceTree = "<group>"; };
+		F7B00003 /* ClaudeProjectsWidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ClaudeProjectsWidgetExtension.entitlements; sourceTree = "<group>"; };
+		F7B00004 /* ConcurrencyIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConcurrencyIntents.swift; sourceTree = "<group>"; };
+		F7B00005 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		F7C00001 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		F7C00002 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		P7A00001 /* ClaudeProjects.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ClaudeProjects.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		P7B00001 /* ClaudeProjectsWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ClaudeProjectsWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		H7A00001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		H7B00001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B7B00005 /* WidgetKit.framework in Frameworks */,
+				B7B00006 /* SwiftUI.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		G7000001 = {
+			isa = PBXGroup;
+			children = (
+				G7A00001 /* ClaudeProjects */,
+				G7S00001 /* Shared */,
+				G7B00001 /* ClaudeProjectsWidget */,
+				G7F00001 /* Frameworks */,
+				G7P00001 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		G7A00001 /* ClaudeProjects */ = {
+			isa = PBXGroup;
+			children = (
+				F7A00001 /* ClaudeProjectsApp.swift */,
+				F7A00002 /* ContentView.swift */,
+				F7A00010 /* GitHubSettingsView.swift */,
+				F7A00005 /* Assets.xcassets */,
+				F7A00006 /* ClaudeProjects.entitlements */,
+			);
+			path = ClaudeProjects;
+			sourceTree = "<group>";
+		};
+		G7B00001 /* ClaudeProjectsWidget */ = {
+			isa = PBXGroup;
+			children = (
+				F7B00001 /* ClaudeProjectsWidget.swift */,
+				F7B00002 /* ClaudeProjectsWidgetView.swift */,
+				F7B00003 /* ClaudeProjectsWidgetExtension.entitlements */,
+				F7B00004 /* ConcurrencyIntents.swift */,
+				F7B00005 /* Info.plist */,
+			);
+			path = ClaudeProjectsWidget;
+			sourceTree = "<group>";
+		};
+		G7F00001 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				F7C00001 /* WidgetKit.framework */,
+				F7C00002 /* SwiftUI.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		G7P00001 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				P7A00001 /* ClaudeProjects.app */,
+				P7B00001 /* ClaudeProjectsWidgetExtension.appex */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		G7S00001 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				F7A00003 /* OrchestrationModels.swift */,
+				F7A00004 /* OrchestrationAPIClient.swift */,
+				F7A00011 /* GitHubAuthManager.swift */,
+				F7A00013 /* GitHubAPIClient.swift */,
+				F7A00020 /* ClaudeProjectsDataSource.swift */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		T7A00001 /* ClaudeProjects */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = X7A00001 /* Build configuration list for PBXNativeTarget "ClaudeProjects" */;
+			buildPhases = (
+				S7A00001 /* Sources */,
+				H7A00001 /* Frameworks */,
+				R7A00002 /* Resources */,
+				E7A00001 /* Embed Foundation Extensions */,
+				RUN00001 /* Copy to Applications (Release only) */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				D7A00001 /* PBXTargetDependency */,
+			);
+			name = ClaudeProjects;
+			productName = ClaudeProjects;
+			productReference = P7A00001 /* ClaudeProjects.app */;
+			productType = "com.apple.product-type.application";
+		};
+		T7B00001 /* ClaudeProjectsWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = X7B00001 /* Build configuration list for PBXNativeTarget "ClaudeProjectsWidgetExtension" */;
+			buildPhases = (
+				S7B00001 /* Sources */,
+				H7B00001 /* Frameworks */,
+				R7B00001 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ClaudeProjectsWidgetExtension;
+			productName = ClaudeProjectsWidgetExtension;
+			productReference = P7B00001 /* ClaudeProjectsWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		R7A00001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1520;
+				LastUpgradeCheck = 2610;
+				TargetAttributes = {
+					T7A00001 = {
+						CreatedOnToolsVersion = 15.2;
+					};
+					T7B00001 = {
+						CreatedOnToolsVersion = 15.2;
+					};
+				};
+			};
+			buildConfigurationList = X7D00001 /* Build configuration list for PBXProject "ClaudeProjects" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = G7000001;
+			productRefGroup = G7P00001 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				T7A00001 /* ClaudeProjects */,
+				T7B00001 /* ClaudeProjectsWidgetExtension */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		R7A00002 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B7A00005 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		R7B00001 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		RUN00001 /* Copy to Applications (Release only) */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Copy to Applications (Release only)";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Only run for Release builds\nif [ \"$CONFIGURATION\" = \"Release\" ]; then\n    echo \"Copying $PRODUCT_NAME to /Applications...\"\n    rm -rf \"/Applications/$PRODUCT_NAME.app\"\n    cp -R \"$BUILT_PRODUCTS_DIR/$PRODUCT_NAME.app\" /Applications/\n    echo \"Successfully copied to /Applications/$PRODUCT_NAME.app\"\nelse\n    echo \"Skipping copy to /Applications (Debug build)\"\nfi\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		S7A00001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B7A00001 /* ClaudeProjectsApp.swift in Sources */,
+				B7A00002 /* ContentView.swift in Sources */,
+				B7A00003 /* OrchestrationModels.swift in Sources */,
+				B7A00004 /* OrchestrationAPIClient.swift in Sources */,
+				B7A00010 /* GitHubSettingsView.swift in Sources */,
+				B7A00011 /* GitHubAuthManager.swift in Sources */,
+				B7A00013 /* GitHubAPIClient.swift in Sources */,
+				B7A00020 /* ClaudeProjectsDataSource.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		S7B00001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B7B00001 /* ClaudeProjectsWidget.swift in Sources */,
+				B7B00002 /* ClaudeProjectsWidgetView.swift in Sources */,
+				B7B00003 /* OrchestrationModels.swift in Sources */,
+				B7B00004 /* OrchestrationAPIClient.swift in Sources */,
+				B7B00008 /* ConcurrencyIntents.swift in Sources */,
+				B7B00011 /* GitHubAuthManager.swift in Sources */,
+				B7B00013 /* GitHubAPIClient.swift in Sources */,
+				B7B00020 /* ClaudeProjectsDataSource.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		D7A00001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = T7B00001 /* ClaudeProjectsWidgetExtension */;
+			targetProxy = C7A00001 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		Z7A00001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
+				CODE_SIGN_ENTITLEMENTS = ClaudeProjects/ClaudeProjects.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_ASSET_PATHS = "\"ClaudeProjects/Preview Content\"";
+				ENABLE_APP_SANDBOX = NO;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_KEY_CFBundleDisplayName = "Claude Projects";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.claudeprojects.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				SUPPORTED_PLATFORMS = macosx;
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		Z7A00002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
+				CODE_SIGN_ENTITLEMENTS = ClaudeProjects/ClaudeProjects.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_ASSET_PATHS = "\"ClaudeProjects/Preview Content\"";
+				ENABLE_APP_SANDBOX = NO;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Claude Projects";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.claudeprojects.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				SUPPORTED_PLATFORMS = macosx;
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		Z7B00001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = ClaudeProjectsWidget/ClaudeProjectsWidgetExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
+				ENABLE_APP_SANDBOX = NO;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = ClaudeProjectsWidget/Info.plist;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.claudeprojects.app.widget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		Z7B00002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = ClaudeProjectsWidget/ClaudeProjectsWidgetExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
+				ENABLE_APP_SANDBOX = NO;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = ClaudeProjectsWidget/Info.plist;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.claudeprojects.app.widget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		Z7D00001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 9YLNXXAT4A;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		Z7D00002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 9YLNXXAT4A;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		X7A00001 /* Build configuration list for PBXNativeTarget "ClaudeProjects" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				Z7A00001 /* Debug */,
+				Z7A00002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		X7B00001 /* Build configuration list for PBXNativeTarget "ClaudeProjectsWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				Z7B00001 /* Debug */,
+				Z7B00002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		X7D00001 /* Build configuration list for PBXProject "ClaudeProjects" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				Z7D00001 /* Debug */,
+				Z7D00002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = R7A00001 /* Project object */;
+}
