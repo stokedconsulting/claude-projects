@@ -102,7 +102,7 @@ cp .env.example .env
 | Variable | Description | Example |
 |----------|-------------|---------|
 | `STATE_TRACKING_API_KEY` | Authentication key for the state tracking API | `sk_live_abc123...` |
-| `WS_API_KEY` | Authentication key for WebSocket clients (VSCode extension) | `ws_abc123...` |
+| `WS_API_KEY` | Authentication key for remote WebSocket clients (not required for localhost) | `ws_abc123...` |
 
 #### Optional Variables
 
@@ -584,19 +584,25 @@ The WebSocket server runs on port `8080` (configurable via `WS_PORT` environment
 
 **Connection URL**: `ws://localhost:8080/notifications`
 
-**Authentication**: Include API key as query parameter:
+**Authentication**:
+
+- **Localhost connections (127.0.0.1, ::1, ::ffff:127.0.0.1)**: No authentication required - connections from localhost are automatically trusted
+- **Remote connections**: Include API key as query parameter or header:
+
 ```
-ws://localhost:8080/notifications?apiKey=ws_your_key_here
+ws://your-server.com:8080/notifications?apiKey=ws_your_key_here
 ```
 
 Or as WebSocket header:
 ```javascript
-const ws = new WebSocket('ws://localhost:8080/notifications', {
+const ws = new WebSocket('ws://your-server.com:8080/notifications', {
   headers: {
     'x-api-key': 'ws_your_key_here'
   }
 });
 ```
+
+**Development Note**: When running the MCP server and VSCode extension on the same machine, no API key configuration is needed. The server automatically allows localhost connections without authentication.
 
 ### Message Protocol
 

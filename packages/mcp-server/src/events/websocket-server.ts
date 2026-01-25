@@ -239,13 +239,23 @@ export class WebSocketNotificationServer {
 
     this.logger.info(`New WebSocket connection attempt: ${clientId}`);
 
-    // Authenticate client
-    const apiKey = this.extractApiKey(req);
-    if (!apiKey || apiKey !== this.config.apiKey) {
-      this.logger.warn(`Authentication failed for client ${clientId}`);
-      this.sendError(ws, 'Authentication failed: invalid or missing API key');
-      ws.close(1008, 'Authentication required'); // 1008 = Policy Violation
-      return;
+    // Check if client is from localhost
+    const clientAddress = req.socket.remoteAddress || '';
+    const isLocalhost = clientAddress === '::1' ||
+                       clientAddress === '127.0.0.1' ||
+                       clientAddress === '::ffff:127.0.0.1';
+
+    // Authenticate client (skip auth for localhost)
+    if (!isLocalhost) {
+      const apiKey = this.extractApiKey(req);
+      if (!apiKey || apiKey !== this.config.apiKey) {
+        this.logger.warn(`Authentication failed for client ${clientId} from ${clientAddress}`);
+        this.sendError(ws, 'Authentication failed: invalid or missing API key');
+        ws.close(1008, 'Authentication required'); // 1008 = Policy Violation
+        return;
+      }
+    } else {
+      this.logger.info(`Allowing localhost connection from ${clientAddress} without authentication`);
     }
 
     // Create client connection

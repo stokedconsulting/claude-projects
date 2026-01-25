@@ -190,10 +190,17 @@ export function activate(context: vscode.ExtensionContext) {
         const wsUrl = vscode.workspace.getConfiguration('ghProjects.notifications').get<string>('websocketUrl', 'ws://localhost:8080/notifications');
         const apiKey = vscode.workspace.getConfiguration('ghProjects.mcp').get<string>('apiKey', '');
 
-        if (!apiKey) {
-            notificationOutputChannel.appendLine('[WebSocket] No API key configured. Set ghProjects.mcp.apiKey in settings to enable real-time notifications.');
-            vscode.window.showWarningMessage('Configure API key in settings to enable real-time notifications');
+        // Check if connecting to localhost (no API key required)
+        const isLocalhost = wsUrl.includes('localhost') || wsUrl.includes('127.0.0.1') || wsUrl.includes('[::1]');
+
+        if (!apiKey && !isLocalhost) {
+            // API key is required for remote connections
+            notificationOutputChannel.appendLine('[WebSocket] No API key configured for remote connection. Set ghProjects.mcp.apiKey in settings to enable real-time notifications.');
+            vscode.window.showWarningMessage('Configure API key in settings to enable real-time notifications from remote server');
         } else {
+            if (isLocalhost && !apiKey) {
+                notificationOutputChannel.appendLine('[WebSocket] Connecting to localhost without authentication');
+            }
             // We'll connect once we have project numbers from the provider
             // The provider will call wsClient.connect() when projects are loaded
             notificationOutputChannel.appendLine('[WebSocket] Real-time notifications enabled. Will connect once projects are loaded.');

@@ -30,6 +30,7 @@ The following settings are available in VSCode settings (File > Preferences > Se
 - **Type**: string
 - **Default**: `""`
 - **Description**: API key for MCP server authentication (used for both HTTP API and WebSocket)
+- **Note**: Not required for localhost connections (`ws://localhost` or `ws://127.0.0.1`). Only needed for remote servers.
 
 ## Event Types
 
@@ -98,11 +99,13 @@ If the WebSocket URL is invalid, the extension will:
 2. Show error message with "Open Settings" button
 3. Not retry connection until settings are updated
 
-### No API Key
-If no API key is configured:
+### No API Key (Remote Connections Only)
+If no API key is configured for a **remote** connection:
 1. Log warning to Output panel
 2. Show warning message
 3. Not attempt connection
+
+**Note**: API key is not required for localhost connections. Local development works without authentication.
 
 ### Connection Dropped
 If the connection drops:

@@ -16,7 +16,7 @@ export interface WebSocketEvent {
  */
 export interface WebSocketClientConfig {
   url: string;
-  apiKey: string;
+  apiKey?: string; // Optional for localhost connections
   projectNumbers: number[];
 }
 
@@ -75,10 +75,14 @@ export class WebSocketNotificationClient {
     try {
       this.outputChannel.appendLine(`[WebSocket] Connecting to ${config.url}...`);
 
+      // Only send Authorization header if API key is provided
+      const headers: any = {};
+      if (config.apiKey) {
+        headers['Authorization'] = `Bearer ${config.apiKey}`;
+      }
+
       this.ws = new WebSocket(config.url, {
-        headers: {
-          'Authorization': `Bearer ${config.apiKey}`,
-        },
+        headers,
       });
 
       this.ws.on('open', () => this.handleOpen());
