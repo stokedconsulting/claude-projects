@@ -1,0 +1,194 @@
+{
+  "title": "Build Multi-Agent Autonomous Project Orchestration System",
+  "slug": "build-multi-agent-autonomous-project-orchestration-system",
+  "problem_description_word_count": 420,
+  "using_summary": true,
+  "problem_description_paths": {
+    "full": "./projects/build-multi-agent-autonomous-project-orchestration-system/problem-description-full.md",
+    "summary": "./projects/build-multi-agent-autonomous-project-orchestration-system/problem-description-summary.md"
+  },
+  "created_at": "2026-01-26T18:45:00Z",
+  "stages_completed": [
+    "stage-0",
+    "stage-1",
+    "stage-2",
+    "stage-3",
+    "stage-4",
+    "stage-5"
+  ],
+  "pfb_path": "./projects/build-multi-agent-autonomous-project-orchestration-system/pfb.md",
+  "pfb_completed": true,
+  "prd_path": "./projects/build-multi-agent-autonomous-project-orchestration-system/prd.md",
+  "prd_completed": true,
+  "phases": [
+    {
+      "number": 1,
+      "title": "Foundation - Agent State Management & Configuration",
+      "master_issue": 78,
+      "work_items": [
+        {
+          "number": "1.1",
+          "title": "Workspace Agent Configuration",
+          "issue_number": 83
+        },
+        {
+          "number": "1.2",
+          "title": "Agent Session File Management",
+          "issue_number": 84
+        },
+        {
+          "number": "1.3",
+          "title": "Agent Heartbeat & Health Monitoring",
+          "issue_number": 85
+        },
+        {
+          "number": "1.4",
+          "title": "Agent Lifecycle Management",
+          "issue_number": 86
+        },
+        {
+          "number": "1.5",
+          "title": "Agent Dashboard UI (Sidebar Webview)",
+          "issue_number": 87
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "title": "Project Execution & Assignment",
+      "master_issue": 79,
+      "work_items": [
+        {
+          "number": "2.1",
+          "title": "Project Queue Management",
+          "issue_number": 88
+        },
+        {
+          "number": "2.2",
+          "title": "Agent Project Execution Workflow",
+          "issue_number": 89
+        },
+        {
+          "number": "2.3",
+          "title": "Branch Management & Conflict Detection",
+          "issue_number": 90
+        },
+        {
+          "number": "2.4",
+          "title": "Cost Tracking & Budget Enforcement",
+          "issue_number": 91
+        },
+        {
+          "number": "2.5",
+          "title": "Manual Override Controls",
+          "issue_number": 92
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "title": "Review Agent & Quality Validation",
+      "master_issue": 80,
+      "work_items": [
+        {
+          "number": "3.1",
+          "title": "Review Agent Persona & Prompt Template",
+          "issue_number": 93
+        },
+        {
+          "number": "3.2",
+          "title": "Review Queue & Assignment",
+          "issue_number": 94
+        },
+        {
+          "number": "3.3",
+          "title": "Acceptance Criteria Validation",
+          "issue_number": 95
+        },
+        {
+          "number": "3.4",
+          "title": "Code Quality Standards Validation",
+          "issue_number": 96
+        },
+        {
+          "number": "3.5",
+          "title": "Iterative Refinement Workflow",
+          "issue_number": 97
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "title": "Autonomous Ideation & Project Generation",
+      "master_issue": 81,
+      "work_items": [
+        {
+          "number": "4.1",
+          "title": "Category Prompt Template System",
+          "issue_number": 98
+        },
+        {
+          "number": "4.2",
+          "title": "Category Selection Algorithm",
+          "issue_number": 99
+        },
+        {
+          "number": "4.3",
+          "title": "Ideation Execution & Validation",
+          "issue_number": 100
+        },
+        {
+          "number": "4.4",
+          "title": "Integration with `/project-create`",
+          "issue_number": 101
+        },
+        {
+          "number": "4.5",
+          "title": "Self-Sustaining Loop Validation",
+          "issue_number": 102
+        }
+      ]
+    },
+    {
+      "number": 5,
+      "title": "Integration, Monitoring & Polish",
+      "master_issue": 82,
+      "work_items": [
+        {
+          "number": "5.1",
+          "title": "Real-Time Agent Activity Dashboard",
+          "issue_number": 103
+        },
+        {
+          "number": "5.2",
+          "title": "Health Monitoring & Alerting",
+          "issue_number": 104
+        },
+        {
+          "number": "5.3",
+          "title": "Conflict Resolution UI",
+          "issue_number": 105
+        },
+        {
+          "number": "5.4",
+          "title": "Agent Performance Metrics",
+          "issue_number": 107
+        },
+        {
+          "number": "5.5",
+          "title": "Emergency Controls & Recovery",
+          "issue_number": 106
+        }
+      ]
+    }
+  ],
+  "issues_created": true,
+  "total_issues": 30,
+  "master_issues": [78, 79, 80, 81, 82],
+  "work_item_issues": [83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107],
+  "repo_owner": "stokedconsulting",
+  "repo_name": "claude-projects",
+  "project_number": 79,
+  "project_id": "PVT_kwDOBW_6Ns4BNjDY",
+  "project_url": "https://github.com/orgs/stokedconsulting/projects/79"
+}

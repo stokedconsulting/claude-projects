@@ -48,6 +48,11 @@
                     "type": "webview",
                     "id": "ghProjects.view",
                     "name": "Projects"
+                },
+                {
+                    "type": "webview",
+                    "id": "claudeProjects.agentDashboard",
+                    "name": "Agent Dashboard"
                 }
             ]
         },
