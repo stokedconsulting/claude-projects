@@ -1,0 +1,176 @@
+{
+  "title": "Implement LLM Provider Settings and Goose Migration",
+  "slug": "implement-llm-provider-settings-and-goose-migration",
+  "problem_description_word_count": 76,
+  "using_summary": false,
+  "created_at": "2026-01-26T00:00:00Z",
+  "pfb_path": "./projects/implement-llm-provider-settings-and-goose-migration/pfb.md",
+  "pfb_completed": true,
+  "prd_path": "./projects/implement-llm-provider-settings-and-goose-migration/prd.md",
+  "prd_completed": true,
+  "phases": [
+    {
+      "number": 1,
+      "title": "Provider Abstraction Layer & Settings UI",
+      "work_items": [
+        {
+          "number": "1.1",
+          "title": "Create Provider Interface & Abstract Base Class"
+        },
+        {
+          "number": "1.2",
+          "title": "Implement Provider Registry & Factory Pattern"
+        },
+        {
+          "number": "1.3",
+          "title": "Design & Implement Settings UI Components"
+        },
+        {
+          "number": "1.4",
+          "title": "Implement Provider Preference Storage & Validation"
+        },
+        {
+          "number": "1.5",
+          "title": "Add Session Restart Enforcement"
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "title": "Claude Code Provider Implementation",
+      "work_items": [
+        {
+          "number": "2.1",
+          "title": "Implement Claude Code Provider Class"
+        },
+        {
+          "number": "2.2",
+          "title": "Register Claude Code Provider in Registry"
+        },
+        {
+          "number": "2.3",
+          "title": "Refactor Command Invocation to Use Provider Abstraction"
+        },
+        {
+          "number": "2.4",
+          "title": "Add Backward Compatibility Testing Suite"
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "title": "Goose Provider Implementation & Recipe Migration",
+      "work_items": [
+        {
+          "number": "3.1",
+          "title": "Research Goose Recipe Format & CLI Interface"
+        },
+        {
+          "number": "3.2",
+          "title": "Convert Claude Commands to Goose Recipe Format"
+        },
+        {
+          "number": "3.3",
+          "title": "Create Goose config.yaml Template with Custom Commands"
+        },
+        {
+          "number": "3.4",
+          "title": "Implement Goose Provider Class"
+        },
+        {
+          "number": "3.5",
+          "title": "Register Goose Provider & Add Installation Command"
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "title": "Integration Testing & Feature Parity Validation",
+      "work_items": [
+        {
+          "number": "4.1",
+          "title": "Create Dual-Provider Test Suite"
+        },
+        {
+          "number": "4.2",
+          "title": "Manual Testing Scenarios & Test Plan"
+        },
+        {
+          "number": "4.3",
+          "title": "Recipe Functional Validation"
+        },
+        {
+          "number": "4.4",
+          "title": "Performance & Stability Testing"
+        }
+      ]
+    },
+    {
+      "number": 5,
+      "title": "Documentation, Polish & Release",
+      "work_items": [
+        {
+          "number": "5.1",
+          "title": "Create User-Facing Documentation"
+        },
+        {
+          "number": "5.2",
+          "title": "Implement Enhanced Error Messages & Installation Wizard"
+        },
+        {
+          "number": "5.3",
+          "title": "Add Telemetry & Analytics (Optional)"
+        },
+        {
+          "number": "5.4",
+          "title": "Final Build, Packaging & Release Preparation"
+        },
+        {
+          "number": "5.5",
+          "title": "Post-Release Monitoring & Support"
+        }
+      ]
+    }
+  ],
+  "repo_owner": "stokedconsulting",
+  "repo_name": "claude-projects",
+  "project_number": 81,
+  "project_id": "PVT_kwDOBW_6Ns4BNkSp",
+  "project_url": "https://github.com/orgs/stokedconsulting/projects/81",
+  "master_issues": {
+    "phase-1": 108,
+    "phase-2": 114,
+    "phase-3": 119,
+    "phase-4": 125,
+    "phase-5": 130
+  },
+  "work_item_issues": {
+    "1.1": 109,
+    "1.2": 110,
+    "1.3": 111,
+    "1.4": 112,
+    "1.5": 113,
+    "2.1": 115,
+    "2.2": 116,
+    "2.3": 117,
+    "2.4": 118,
+    "3.1": 120,
+    "3.2": 121,
+    "3.3": 122,
+    "3.4": 123,
+    "3.5": 124,
+    "4.1": 126,
+    "4.2": 127,
+    "4.3": 128,
+    "4.4": 129,
+    "5.1": 131,
+    "5.2": 132,
+    "5.3": 133,
+    "5.4": 134,
+    "5.5": 135
+  },
+  "total_issues_created": 28,
+  "all_issues_linked_to_project": true,
+  "completion_date": "2026-01-27T00:00:00Z",
+  "stages_completed": ["stage-0", "stage-1", "stage-2", "stage-3", "stage-4", "stage-5"]
+}
