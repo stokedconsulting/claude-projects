@@ -14,6 +14,7 @@ import { ManualOverrideControls } from "./manual-override-controls";
 import { ProjectQueueManager } from "./project-queue-manager";
 import { AgentExecutor } from "./agent-executor";
 import { ActivityTracker } from "./activity-tracker";
+import { PerformanceMetrics } from "./performance-metrics";
 import { ConflictResolverProvider } from "./conflict-resolver-provider";
 import { ConflictQueueManager, initializeConflictQueueManager } from "./conflict-queue-manager";
 
@@ -147,6 +148,9 @@ export function activate(context: vscode.ExtensionContext) {
     // Initialize activity tracker
     const activityTracker = new ActivityTracker(workspaceRoot);
 
+    // Initialize performance metrics tracker
+    const performanceMetrics = new PerformanceMetrics(workspaceRoot, sessionManager);
+
     // Initialize conflict queue manager
     const conflictQueueManager = initializeConflictQueueManager(workspaceRoot);
 
@@ -166,7 +170,8 @@ export function activate(context: vscode.ExtensionContext) {
       heartbeatManager,
       lifecycleManager,
       manualOverrideControls,
-      activityTracker
+      activityTracker,
+      performanceMetrics
     );
 
     context.subscriptions.push(

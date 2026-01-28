@@ -51,6 +51,9 @@ const manual_override_controls_1 = require("./manual-override-controls");
 const project_queue_manager_1 = require("./project-queue-manager");
 const agent_executor_1 = require("./agent-executor");
 const activity_tracker_1 = require("./activity-tracker");
+const performance_metrics_1 = require("./performance-metrics");
+const conflict_resolver_provider_1 = require("./conflict-resolver-provider");
+const conflict_queue_manager_1 = require("./conflict-queue-manager");
 async function installClaudeCommands(context) {
     const homeDir = require("os").homedir();
     const claudeCommandsDir = path.join(homeDir, ".claude", "commands");
@@ -130,11 +133,19 @@ function activate(context) {
         const executor = new agent_executor_1.AgentExecutor(workspaceRoot, githubApi, projectId);
         // Initialize activity tracker
         const activityTracker = new activity_tracker_1.ActivityTracker(workspaceRoot);
+        // Initialize performance metrics tracker
+        const performanceMetrics = new performance_metrics_1.PerformanceMetrics(workspaceRoot, sessionManager);
+        // Initialize conflict queue manager
+        const conflictQueueManager = (0, conflict_queue_manager_1.initializeConflictQueueManager)(workspaceRoot);
         // Initialize manual override controls
         const manualOverrideControls = new manual_override_controls_1.ManualOverrideControls(lifecycleManager, sessionManager, queueManager, executor);
         // Register agent dashboard view provider
-        const agentDashboardProvider = new agent_dashboard_provider_1.AgentDashboardProvider(context.extensionUri, context, sessionManager, heartbeatManager, lifecycleManager, manualOverrideControls, activityTracker);
+        const agentDashboardProvider = new agent_dashboard_provider_1.AgentDashboardProvider(context.extensionUri, context, sessionManager, heartbeatManager, lifecycleManager, manualOverrideControls, activityTracker, performanceMetrics);
         context.subscriptions.push(vscode.window.registerWebviewViewProvider(agent_dashboard_provider_1.AgentDashboardProvider.viewType, agentDashboardProvider));
+        // Register conflict resolver view provider
+        const conflictResolverProvider = new conflict_resolver_provider_1.ConflictResolverProvider(context.extensionUri, context, conflictQueueManager, queueManager);
+        context.subscriptions.push(vscode.window.registerWebviewViewProvider(conflict_resolver_provider_1.ConflictResolverProvider.viewType, conflictResolverProvider));
+        console.log("[claude-projects] Conflict resolver registered");
         // Store references for cleanup
         context.subscriptions.push({
             dispose: () => {

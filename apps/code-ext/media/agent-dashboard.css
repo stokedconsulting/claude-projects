@@ -70,6 +70,82 @@ body {
     border-bottom: 1px solid var(--vscode-panel-border);
 }
 
+/* Global Metrics */
+.global-metrics {
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--vscode-panel-border);
+}
+
+.global-metrics h4 {
+    margin: 0 0 12px 0;
+    font-size: 14px;
+    color: var(--vscode-foreground);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.global-metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+}
+
+/* Performance Metrics Section */
+.metrics-section {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--vscode-panel-border);
+}
+
+.metrics-header h4 {
+    margin: 0 0 12px 0;
+    font-size: 13px;
+    color: var(--vscode-foreground);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.metric-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px;
+    background-color: var(--vscode-input-background);
+    border-radius: 3px;
+}
+
+.metric-label {
+    font-size: 11px;
+    color: var(--vscode-descriptionForeground);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.metric-value {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--vscode-foreground);
+}
+
+.metrics-footer {
+    margin-top: 8px;
+    text-align: right;
+}
+
+.metrics-timestamp {
+    font-size: 10px;
+    color: var(--vscode-descriptionForeground);
+    font-style: italic;
+}
+
 .cost-item {
     display: flex;
     flex-direction: column;

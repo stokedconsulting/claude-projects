@@ -168,13 +168,14 @@
         // Clear previous content
         contentDiv.innerHTML = '';
 
-        // Render header with cost tracker
+        // Render header with cost tracker and global metrics
         const header = document.createElement('div');
         header.className = 'dashboard-header';
         header.innerHTML = `
             <div class="cost-tracker" id="cost-tracker">
                 ${renderCostTracker(data.costData)}
             </div>
+            ${data.globalMetrics ? renderGlobalMetrics(data.globalMetrics) : ''}
             <div class="header-stats">
                 <div class="stat-item">
                     <span class="stat-label">Total Agents:</span>
@@ -320,6 +321,11 @@
             `;
         }
 
+        // Add metrics toggle button
+        controls += `
+            <button class="btn-secondary btn-sm" onclick="toggleMetrics('${agent.agentId}')" title="Show performance metrics">Metrics</button>
+        `;
+
         // Build current task info with progress
         let taskInfo = '<span class="no-task">No active task</span>';
         if (agent.currentProjectNumber) {
@@ -354,6 +360,9 @@
             `;
         }
 
+        // Build performance metrics section (initially hidden)
+        const metricsSection = agent.metrics ? renderAgentMetrics(agent.metrics) : '';
+
         card.innerHTML = `
             <div class="agent-card-header">
                 <div class="agent-id">${agent.agentId}</div>
@@ -366,6 +375,7 @@
                     <div><strong>Uptime:</strong> ${elapsedTime}</div>
                 </div>
                 ${errorInfo}
+                ${metricsSection}
             </div>
             <div class="agent-card-controls">
                 ${controls}
@@ -374,6 +384,71 @@
 
         return card;
     }
+
+    /**
+     * Render agent performance metrics
+     */
+    function renderAgentMetrics(metrics) {
+        if (!metrics) {
+            return '';
+        }
+
+        return `
+            <div class="metrics-section" id="metrics-${metrics.agentId}" style="display: none;">
+                <div class="metrics-header">
+                    <h4>Performance Metrics</h4>
+                </div>
+                <div class="metrics-grid">
+                    <div class="metric-item">
+                        <span class="metric-label">Total Tasks:</span>
+                        <span class="metric-value">${metrics.tasksCompleted.total}</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Last 24h:</span>
+                        <span class="metric-value">${metrics.tasksCompleted.last24Hours}</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Last 7d:</span>
+                        <span class="metric-value">${metrics.tasksCompleted.last7Days}</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Avg Cycle Time:</span>
+                        <span class="metric-value">${Math.round(metrics.averageCycleTime)} min</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Review Pass Rate:</span>
+                        <span class="metric-value">${metrics.reviewPassRate.toFixed(1)}%</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Error Rate:</span>
+                        <span class="metric-value">${metrics.errorRate.toFixed(2)}</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Avg Cost/Project:</span>
+                        <span class="metric-value">$${metrics.averageCostPerProject.toFixed(2)}</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Uptime:</span>
+                        <span class="metric-value">${metrics.uptimePercent.toFixed(0)}%</span>
+                    </div>
+                </div>
+                <div class="metrics-footer">
+                    <span class="metrics-timestamp">Updated: ${new Date(metrics.lastUpdated).toLocaleString()}</span>
+                </div>
+            </div>
+        `;
+    }
+
+    /**
+     * Toggle metrics visibility for an agent
+     */
+    window.toggleMetrics = function(agentId) {
+        const metricsSection = document.getElementById(`metrics-${agentId}`);
+        if (metricsSection) {
+            const isHidden = metricsSection.style.display === 'none';
+            metricsSection.style.display = isHidden ? 'block' : 'none';
+        }
+    };
 
     /**
      * Render cost tracker
@@ -399,6 +474,47 @@
                     <div class="cost-fill" style="width: ${Math.min(100, costData.monthly.percentage)}%"></div>
                 </div>
                 <span class="cost-percentage">${costData.monthly.percentage.toFixed(1)}%</span>
+            </div>
+        `;
+    }
+
+    /**
+     * Render global metrics summary
+     */
+    function renderGlobalMetrics(globalMetrics) {
+        if (!globalMetrics) {
+            return '';
+        }
+
+        return `
+            <div class="global-metrics" id="global-metrics">
+                <h4>Global Performance</h4>
+                <div class="global-metrics-grid">
+                    <div class="metric-item">
+                        <span class="metric-label">Projects Completed:</span>
+                        <span class="metric-value">${globalMetrics.totalProjectsCompleted}</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Avg Cycle Time:</span>
+                        <span class="metric-value">${Math.round(globalMetrics.averageCycleTime)} min</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Avg Pass Rate:</span>
+                        <span class="metric-value">${globalMetrics.averageReviewPassRate.toFixed(1)}%</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Total Cost:</span>
+                        <span class="metric-value">$${globalMetrics.totalCostUSD.toFixed(2)}</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Active:</span>
+                        <span class="metric-value">${globalMetrics.activeAgents}</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Idle:</span>
+                        <span class="metric-value">${globalMetrics.idleAgents}</span>
+                    </div>
+                </div>
             </div>
         `;
     }

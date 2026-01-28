@@ -53,7 +53,8 @@ class AgentDashboardProvider {
     _lifecycleManager;
     _manualOverrideControls;
     _activityTracker;
-    constructor(_extensionUri, _context, sessionManager, heartbeatManager, lifecycleManager, manualOverrideControls, activityTracker) {
+    _performanceMetrics;
+    constructor(_extensionUri, _context, sessionManager, heartbeatManager, lifecycleManager, manualOverrideControls, activityTracker, performanceMetrics) {
         this._extensionUri = _extensionUri;
         this._context = _context;
         this._sessionManager = sessionManager;
@@ -61,6 +62,7 @@ class AgentDashboardProvider {
         this._lifecycleManager = lifecycleManager;
         this._manualOverrideControls = manualOverrideControls;
         this._activityTracker = activityTracker;
+        this._performanceMetrics = performanceMetrics;
     }
     resolveWebviewView(webviewView, context, _token) {
         this._view = webviewView;
@@ -160,6 +162,10 @@ class AgentDashboardProvider {
             const recentActivity = this._activityTracker.getRecentActivity(50);
             // Get cost tracking data (mock for now - can be replaced with actual cost tracking)
             const costData = this.getCostData();
+            // Get performance metrics for all agents
+            const allMetrics = await this._performanceMetrics.getAllAgentMetrics();
+            // Get global metrics
+            const globalMetrics = await this._performanceMetrics.getGlobalMetrics();
             // Build dashboard data
             const dashboardData = {
                 totalAgents: sessions.length,
@@ -174,6 +180,8 @@ class AgentDashboardProvider {
                     const elapsedMs = Date.now() - lastHeartbeat.getTime();
                     // Calculate progress (mock - can be enhanced with actual task tracking)
                     const progress = this.calculateAgentProgress(session);
+                    // Get metrics for this agent
+                    const metrics = allMetrics.get(session.agentId);
                     return {
                         agentId: session.agentId,
                         numericAgentId,
@@ -187,12 +195,14 @@ class AgentDashboardProvider {
                         lastError: session.lastError,
                         errorCount: session.errorCount,
                         isRunning: this._lifecycleManager.isAgentRunning(numericAgentId),
-                        progress
+                        progress,
+                        metrics
                     };
                 }),
                 counts: this.calculateStatusCounts(sessions, healthStatuses),
                 recentActivity,
-                costData
+                costData,
+                globalMetrics
             };
             // Send update to webview
             this._view.webview.postMessage({

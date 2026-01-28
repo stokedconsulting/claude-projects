@@ -6,6 +6,7 @@ import { AgentLifecycleManager } from './agent-lifecycle';
 import { ManualOverrideControls } from './manual-override-controls';
 import { getAgentConfig } from './agent-config';
 import { ActivityTracker, AgentActivityEvent } from './activity-tracker';
+import { PerformanceMetrics } from './performance-metrics';
 
 /**
  * Agent Dashboard Provider
@@ -23,6 +24,7 @@ export class AgentDashboardProvider implements vscode.WebviewViewProvider {
     private _lifecycleManager: AgentLifecycleManager;
     private _manualOverrideControls: ManualOverrideControls;
     private _activityTracker: ActivityTracker;
+    private _performanceMetrics: PerformanceMetrics;
 
     constructor(
         private readonly _extensionUri: vscode.Uri,
@@ -31,13 +33,15 @@ export class AgentDashboardProvider implements vscode.WebviewViewProvider {
         heartbeatManager: AgentHeartbeatManager,
         lifecycleManager: AgentLifecycleManager,
         manualOverrideControls: ManualOverrideControls,
-        activityTracker: ActivityTracker
+        activityTracker: ActivityTracker,
+        performanceMetrics: PerformanceMetrics
     ) {
         this._sessionManager = sessionManager;
         this._heartbeatManager = heartbeatManager;
         this._lifecycleManager = lifecycleManager;
         this._manualOverrideControls = manualOverrideControls;
         this._activityTracker = activityTracker;
+        this._performanceMetrics = performanceMetrics;
     }
 
     public resolveWebviewView(
@@ -166,6 +170,12 @@ export class AgentDashboardProvider implements vscode.WebviewViewProvider {
             // Get cost tracking data (mock for now - can be replaced with actual cost tracking)
             const costData = this.getCostData();
 
+            // Get performance metrics for all agents
+            const allMetrics = await this._performanceMetrics.getAllAgentMetrics();
+
+            // Get global metrics
+            const globalMetrics = await this._performanceMetrics.getGlobalMetrics();
+
             // Build dashboard data
             const dashboardData = {
                 totalAgents: sessions.length,
@@ -184,6 +194,9 @@ export class AgentDashboardProvider implements vscode.WebviewViewProvider {
                     // Calculate progress (mock - can be enhanced with actual task tracking)
                     const progress = this.calculateAgentProgress(session);
 
+                    // Get metrics for this agent
+                    const metrics = allMetrics.get(session.agentId);
+
                     return {
                         agentId: session.agentId,
                         numericAgentId,
@@ -197,12 +210,14 @@ export class AgentDashboardProvider implements vscode.WebviewViewProvider {
                         lastError: session.lastError,
                         errorCount: session.errorCount,
                         isRunning: this._lifecycleManager.isAgentRunning(numericAgentId),
-                        progress
+                        progress,
+                        metrics
                     };
                 }),
                 counts: this.calculateStatusCounts(sessions, healthStatuses),
                 recentActivity,
-                costData
+                costData,
+                globalMetrics
             };
 
             // Send update to webview
