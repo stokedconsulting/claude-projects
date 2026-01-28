@@ -53,6 +53,11 @@
                     "type": "webview",
                     "id": "claudeProjects.agentDashboard",
                     "name": "Agent Dashboard"
+                },
+                {
+                    "type": "webview",
+                    "id": "conflictResolver.view",
+                    "name": "Conflict Resolver"
                 }
             ]
         },

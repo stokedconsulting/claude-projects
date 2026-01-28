@@ -14,6 +14,8 @@ import { ManualOverrideControls } from "./manual-override-controls";
 import { ProjectQueueManager } from "./project-queue-manager";
 import { AgentExecutor } from "./agent-executor";
 import { ActivityTracker } from "./activity-tracker";
+import { ConflictResolverProvider } from "./conflict-resolver-provider";
+import { ConflictQueueManager, initializeConflictQueueManager } from "./conflict-queue-manager";
 
 async function installClaudeCommands(context: vscode.ExtensionContext) {
   const homeDir = require("os").homedir();
@@ -145,6 +147,9 @@ export function activate(context: vscode.ExtensionContext) {
     // Initialize activity tracker
     const activityTracker = new ActivityTracker(workspaceRoot);
 
+    // Initialize conflict queue manager
+    const conflictQueueManager = initializeConflictQueueManager(workspaceRoot);
+
     // Initialize manual override controls
     const manualOverrideControls = new ManualOverrideControls(
       lifecycleManager,
@@ -170,6 +175,23 @@ export function activate(context: vscode.ExtensionContext) {
         agentDashboardProvider,
       ),
     );
+
+    // Register conflict resolver view provider
+    const conflictResolverProvider = new ConflictResolverProvider(
+      context.extensionUri,
+      context,
+      conflictQueueManager,
+      queueManager
+    );
+
+    context.subscriptions.push(
+      vscode.window.registerWebviewViewProvider(
+        ConflictResolverProvider.viewType,
+        conflictResolverProvider,
+      ),
+    );
+
+    console.log("[claude-projects] Conflict resolver registered");
 
     // Store references for cleanup
     context.subscriptions.push({
