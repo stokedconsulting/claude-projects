@@ -22,6 +22,7 @@ export class AgentDashboardProvider implements vscode.WebviewViewProvider {
     private _updateInterval?: NodeJS.Timeout;
     private _llmActivityTracker?: LlmActivityTracker;
     private _llmActivityInterval?: NodeJS.Timeout;
+    private _concurrencyDebounce?: NodeJS.Timeout;
     private _sessionManager: AgentSessionManager;
     private _heartbeatManager: AgentHeartbeatManager;
     private _lifecycleManager: AgentLifecycleManager;
@@ -103,6 +104,28 @@ export class AgentDashboardProvider implements vscode.WebviewViewProvider {
                 case 'clearActivity':
                     await this.handleClearActivity();
                     break;
+
+                case 'adjustConcurrency': {
+                    const config = getAgentConfig();
+                    const newValue = Math.max(1, Math.min(10, config.maxConcurrent + data.delta));
+                    // Debounce: use a class-level timer
+                    if (this._concurrencyDebounce) {
+                        clearTimeout(this._concurrencyDebounce);
+                    }
+                    this._concurrencyDebounce = setTimeout(async () => {
+                        await vscode.workspace.getConfiguration('claudeProjects.agents')
+                            .update('maxConcurrent', newValue, vscode.ConfigurationTarget.Workspace);
+                        this.sendLlmActivityUpdate();
+                    }, 300);
+                    // Send immediate visual update (optimistic)
+                    this._view?.webview.postMessage({
+                        type: 'llmActivityUpdate',
+                        active: this._llmActivityTracker?.getActiveSessionCount() || 0,
+                        allocated: newValue,
+                        sessions: this._llmActivityTracker?.getActiveSessions() || []
+                    });
+                    break;
+                }
 
                 case 'ready':
                     // Webview is ready, send immediate LLM activity update

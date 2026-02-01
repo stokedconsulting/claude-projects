@@ -705,6 +705,80 @@ ul {
   animation: llm-pulse 2s ease-in-out infinite;
 }
 
+/* Hover controls for concurrency adjustment */
+.llm-allocated-control {
+  position: relative;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.llm-concurrency-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border: none;
+  background: var(--vscode-button-secondaryBackground, #3a3d41);
+  color: var(--vscode-button-secondaryForeground, #cccccc);
+  border-radius: 2px;
+  cursor: pointer;
+  font-size: 12px;
+  line-height: 1;
+  padding: 0;
+}
+
+.llm-concurrency-btn:hover {
+  background: var(--vscode-button-secondaryHoverBackground, #505357);
+}
+
+/* LLM Hover Popup */
+.llm-hover-popup {
+  position: fixed;
+  bottom: 28px;
+  left: 12px;
+  background: var(--vscode-editorWidget-background, #252526);
+  border: 1px solid var(--vscode-editorWidget-border, #454545);
+  border-radius: 4px;
+  padding: 8px 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1002;
+  font-size: 12px;
+  color: var(--vscode-editorWidget-foreground, #cccccc);
+  display: none;
+  min-width: 200px;
+}
+
+.llm-hover-popup.visible {
+  display: block;
+}
+
+.llm-hover-popup::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 20px;
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 6px solid var(--vscode-editorWidget-background, #252526);
+}
+
+.llm-popup-group {
+  padding: 2px 0;
+  line-height: 1.4;
+}
+
+.llm-popup-empty {
+  color: var(--vscode-descriptionForeground, #969696);
+  font-style: italic;
+}
+
 .error-link {
   color: var(--vscode-textLink-foreground);
   text-decoration: underline;

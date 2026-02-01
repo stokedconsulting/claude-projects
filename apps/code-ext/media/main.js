@@ -2119,6 +2119,11 @@
         }
     }
 
+    // Module-level hover timers for LLM status bar
+    let llmHoverShowTimer = null;
+    let llmHoverHideTimer = null;
+    let llmStatusBarInitialized = false;
+
     /**
      * Update or create the LLM status bar
      */
@@ -2141,19 +2146,44 @@
             </svg>`;
             statusBar.appendChild(iconSpan);
 
-            // Count display
+            // Count display with structured elements for hover controls
             const countSpan = document.createElement('span');
             countSpan.className = 'llm-count';
+            countSpan.innerHTML = `<span class="llm-active-count">${active}</span>/<span class="llm-allocated-control"><span class="llm-allocated-value">${allocated}</span></span>`;
             statusBar.appendChild(countSpan);
 
             document.body.appendChild(statusBar);
+
+            // Attach hover event listeners ONCE (only on first creation)
+            if (!llmStatusBarInitialized) {
+                statusBar.addEventListener('mouseenter', () => {
+                    if (llmHoverHideTimer) {
+                        clearTimeout(llmHoverHideTimer);
+                        llmHoverHideTimer = null;
+                    }
+                    llmHoverShowTimer = setTimeout(() => showLlmPopup(), 1000);
+                });
+
+                statusBar.addEventListener('mouseleave', () => {
+                    if (llmHoverShowTimer) {
+                        clearTimeout(llmHoverShowTimer);
+                        llmHoverShowTimer = null;
+                    }
+                    llmHoverHideTimer = setTimeout(() => hideLlmPopup(), 200);
+                });
+
+                llmStatusBarInitialized = true;
+            }
+
+            // Attach hover controls to allocated control
+            setupAllocatedControls();
         }
 
         // Update count text
-        const countEl = statusBar.querySelector('.llm-count');
-        if (countEl) {
-            countEl.textContent = `${active}/${allocated}`;
-        }
+        const activeEl = statusBar.querySelector('.llm-active-count');
+        const allocatedEl = statusBar.querySelector('.llm-allocated-value');
+        if (activeEl) activeEl.textContent = active;
+        if (allocatedEl) allocatedEl.textContent = allocated;
 
         // Toggle pulse animation
         const iconEl = statusBar.querySelector('.llm-icon');
@@ -2171,6 +2201,144 @@
             ...currentState,
             llmActivity: { active, allocated }
         });
+    }
+
+    /**
+     * Setup hover controls for allocated concurrency
+     */
+    function setupAllocatedControls() {
+        const allocatedControl = document.querySelector('.llm-allocated-control');
+        if (!allocatedControl) return;
+
+        let controlsHideTimer = null;
+
+        allocatedControl.addEventListener('mouseenter', () => {
+            if (controlsHideTimer) {
+                clearTimeout(controlsHideTimer);
+                controlsHideTimer = null;
+            }
+
+            // Add buttons if not already present
+            if (!allocatedControl.querySelector('.llm-concurrency-btn')) {
+                // Create minus button
+                const minusBtn = document.createElement('button');
+                minusBtn.className = 'llm-concurrency-btn llm-minus-btn';
+                minusBtn.textContent = '-';
+                minusBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    vscode.postMessage({ type: 'adjustConcurrency', delta: -1 });
+                };
+
+                // Create plus button
+                const plusBtn = document.createElement('button');
+                plusBtn.className = 'llm-concurrency-btn llm-plus-btn';
+                plusBtn.textContent = '+';
+                plusBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    vscode.postMessage({ type: 'adjustConcurrency', delta: 1 });
+                };
+
+                // Insert buttons
+                const valueSpan = allocatedControl.querySelector('.llm-allocated-value');
+                allocatedControl.insertBefore(minusBtn, valueSpan);
+                allocatedControl.appendChild(plusBtn);
+            }
+        });
+
+        allocatedControl.addEventListener('mouseleave', () => {
+            controlsHideTimer = setTimeout(() => {
+                const minusBtn = allocatedControl.querySelector('.llm-minus-btn');
+                const plusBtn = allocatedControl.querySelector('.llm-plus-btn');
+                if (minusBtn) minusBtn.remove();
+                if (plusBtn) plusBtn.remove();
+            }, 300);
+        });
+    }
+
+    /**
+     * Create and return the LLM hover popup element
+     */
+    function createLlmHoverPopup() {
+        let popup = document.querySelector('.llm-hover-popup');
+        if (!popup) {
+            popup = document.createElement('div');
+            popup.className = 'llm-hover-popup';
+            document.body.appendChild(popup);
+
+            // Attach hover events to popup itself
+            popup.addEventListener('mouseenter', () => {
+                if (llmHoverHideTimer) {
+                    clearTimeout(llmHoverHideTimer);
+                    llmHoverHideTimer = null;
+                }
+            });
+
+            popup.addEventListener('mouseleave', () => {
+                llmHoverHideTimer = setTimeout(() => hideLlmPopup(), 200);
+            });
+        }
+        return popup;
+    }
+
+    /**
+     * Show the LLM session breakdown popup
+     */
+    function showLlmPopup() {
+        const popup = createLlmHoverPopup();
+
+        if (llmSessions.length === 0) {
+            popup.innerHTML = '<div class="llm-popup-empty">No active LLM sessions</div>';
+        } else {
+            // Group by provider
+            const byProvider = {};
+            llmSessions.forEach(s => {
+                if (!byProvider[s.provider]) byProvider[s.provider] = [];
+                byProvider[s.provider].push(s);
+            });
+
+            let html = '';
+            for (const [provider, sessions] of Object.entries(byProvider)) {
+                const label = formatProviderLabel(provider);
+                const count = sessions.length;
+                const descs = sessions.map(s => s.taskDescription);
+                let descText;
+                if (descs.length > 3) {
+                    descText = descs.slice(0, 3).join(', ') + ` +${descs.length - 3} more`;
+                } else {
+                    descText = descs.join(', ');
+                }
+                html += `<div class="llm-popup-group"><strong>${count} ${label}</strong>: ${descText}</div>`;
+            }
+            popup.innerHTML = html;
+        }
+
+        popup.classList.add('visible');
+    }
+
+    /**
+     * Hide the LLM session breakdown popup
+     */
+    function hideLlmPopup() {
+        const popup = document.querySelector('.llm-hover-popup');
+        if (popup) {
+            popup.classList.remove('visible');
+        }
+    }
+
+    /**
+     * Format provider name to human-readable label
+     */
+    function formatProviderLabel(provider) {
+        const labels = {
+            'claude-code': 'Claude Code',
+            'qwen-coder': 'Qwen Coder',
+            'openai-code': 'OpenAI',
+            'anthropic-code': 'Anthropic',
+            'mistral-code': 'Mistral'
+        };
+        if (labels[provider]) return labels[provider];
+        // Title case for unknown providers
+        return provider.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
     }
 
     /**

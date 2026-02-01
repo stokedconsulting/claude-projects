@@ -88,6 +88,7 @@ export class ProjectsViewProvider implements vscode.WebviewViewProvider {
   private _workspaceCountInterval?: NodeJS.Timeout;
   private _llmActivityTracker?: LlmActivityTracker;
   private _llmActivityInterval?: NodeJS.Timeout;
+  private _concurrencyDebounce?: NodeJS.Timeout;
   private _cacheManager: CacheManager;
   private _currentOwner?: string;
   private _currentRepo?: string;
@@ -834,6 +835,27 @@ export class ProjectsViewProvider implements vscode.WebviewViewProvider {
               `[Settings] LLM Provider changed to: ${data.settings.llmProvider}`
             );
           }
+          break;
+        }
+        case "adjustConcurrency": {
+          const config = getAgentConfig();
+          const newValue = Math.max(1, Math.min(10, config.maxConcurrent + data.delta));
+          // Debounce: use a class-level timer
+          if (this._concurrencyDebounce) {
+            clearTimeout(this._concurrencyDebounce);
+          }
+          this._concurrencyDebounce = setTimeout(async () => {
+            await vscode.workspace.getConfiguration('claudeProjects.agents')
+              .update('maxConcurrent', newValue, vscode.ConfigurationTarget.Workspace);
+            this.sendLlmActivityUpdate();
+          }, 300);
+          // Send immediate visual update (optimistic)
+          this._view?.webview.postMessage({
+            type: 'llmActivityUpdate',
+            active: this._llmActivityTracker?.getActiveSessionCount() || 0,
+            allocated: newValue,
+            sessions: this._llmActivityTracker?.getActiveSessions() || []
+          });
           break;
         }
         case "ready": {
