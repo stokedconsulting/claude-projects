@@ -19,6 +19,7 @@ import { promisify } from "util";
 // DEPRECATED: WebSocketNotificationClient replaced by OrchestrationWebSocketClient
 // import { WebSocketNotificationClient, WebSocketEvent } from "./notifications/websocket-client";
 import { OrchestrationWebSocketClient } from "./orchestration-websocket-client";
+import { TaskHistoryViewProvider } from "./task-history-view-provider";
 
 const execAsync = promisify(exec);
 
@@ -96,6 +97,7 @@ export class ProjectsViewProvider implements vscode.WebviewViewProvider {
   private _showOrgProjects: boolean = false; // Default to repo mode (matches webview default)
   // DEPRECATED: _wsClient removed — real-time events flow through _orchestrationWsClient
   private _orchestrationWsClient?: OrchestrationWebSocketClient; // WebSocket for orchestration sync
+  private _taskHistoryProvider?: TaskHistoryViewProvider; // Task history provider to wire WebSocket events
   private _activeProjectNumbers: number[] = [];
   private _orchestrationData: {
     workspace: {
@@ -158,6 +160,23 @@ export class ProjectsViewProvider implements vscode.WebviewViewProvider {
         desired: 0,
       },
     };
+  }
+
+  /**
+   * Wire the TaskHistoryViewProvider to receive WebSocket events.
+   * This method is called from extension.ts after both providers are created.
+   * If the WebSocket client already exists, it wires immediately.
+   */
+  public setTaskHistoryProvider(provider: TaskHistoryViewProvider): void {
+    this._taskHistoryProvider = provider;
+
+    // If WS client already exists, wire immediately
+    if (this._orchestrationWsClient) {
+      this._outputChannel.appendLine("[TaskHistory] Wiring task history provider to existing WebSocket client");
+      provider.setWebSocketClient(this._orchestrationWsClient);
+    } else {
+      this._outputChannel.appendLine("[TaskHistory] Task history provider stored, will wire when WebSocket connects");
+    }
   }
 
   // DEPRECATED: setupWebSocketHandlers and handleWebSocketUpdate removed.
@@ -564,6 +583,12 @@ export class ProjectsViewProvider implements vscode.WebviewViewProvider {
       });
 
       this._outputChannel.appendLine('[OrchestrationSync] WebSocket connected and handlers registered');
+
+      // Wire task history provider if it has been set
+      if (this._taskHistoryProvider) {
+        this._outputChannel.appendLine('[TaskHistory] Wiring task history provider to WebSocket client');
+        this._taskHistoryProvider.setWebSocketClient(this._orchestrationWsClient);
+      }
     } catch (error) {
       this._outputChannel.appendLine(
         `[OrchestrationSync] Error initializing WebSocket: ${error}`

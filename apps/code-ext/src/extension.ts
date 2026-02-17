@@ -231,6 +231,9 @@ export function activate(context: vscode.ExtensionContext) {
     ),
   );
 
+  // Wire task history provider to receive live WebSocket events from ProjectsViewProvider
+  provider.setTaskHistoryProvider(taskHistoryProvider);
+
   // Register agent dashboard (only if workspace is available)
   const workspaceFolders = vscode.workspace.workspaceFolders;
   if (workspaceFolders && workspaceFolders.length > 0) {
@@ -452,6 +455,7 @@ export function activate(context: vscode.ExtensionContext) {
   // Cleanup on deactivation
   context.subscriptions.push({
     dispose: () => {
+      taskHistoryProvider.unregisterHandlers();
       provider.dispose();
     },
   });
