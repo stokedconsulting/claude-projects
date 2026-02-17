@@ -111,6 +111,8 @@ export interface APIClientConfig {
   apiKey?: string;
   timeout?: number;
   maxRetries?: number;
+  workspaceId?: string;
+  worktreePath?: string;
 }
 
 /**
@@ -131,6 +133,8 @@ export class APIClient {
   private readonly apiKey: string;
   private readonly timeout: number;
   private readonly maxRetries: number;
+  private readonly workspaceId: string | undefined;
+  private readonly worktreePath: string | undefined;
 
   constructor(config: APIClientConfig = {}) {
     // Read configuration from environment or config
@@ -138,6 +142,8 @@ export class APIClient {
     this.apiKey = config.apiKey || process.env.STATE_TRACKING_API_KEY || '';
     this.timeout = config.timeout || 10000; // 10 seconds default
     this.maxRetries = config.maxRetries || 3;
+    this.workspaceId = config.workspaceId || process.env.WORKSPACE_ID || undefined;
+    this.worktreePath = config.worktreePath || process.env.WORKTREE_PATH || undefined;
 
     // Validate API key is present
     if (!this.apiKey) {
@@ -159,6 +165,14 @@ export class APIClient {
       'Content-Type': 'application/json',
       ...headers,
     };
+
+    // Add workspace context headers if available
+    if (this.workspaceId) {
+      authHeaders['X-Workspace-Id'] = this.workspaceId;
+    }
+    if (this.worktreePath) {
+      authHeaders['X-Worktree-Path'] = this.worktreePath;
+    }
 
     let lastError: Error | null = null;
     let attempt = 0;
@@ -301,9 +315,18 @@ export class APIClient {
     data: Record<string, unknown>;
   }): Promise<void> {
     try {
+      const data = { ...event.data };
+      // Include workspace context in event data if available and not already set
+      if (this.workspaceId && !data.workspaceId) {
+        data.workspaceId = this.workspaceId;
+      }
+      if (this.worktreePath && !data.worktreePath) {
+        data.worktreePath = this.worktreePath;
+      }
+
       await this.post('/api/events/project', {
         type: event.type,
-        data: event.data,
+        data,
         timestamp: new Date().toISOString(),
       });
     } catch (error) {
@@ -349,6 +372,8 @@ export class APIClient {
       timeout: this.timeout,
       maxRetries: this.maxRetries,
       hasApiKey: !!this.apiKey,
+      workspaceId: this.workspaceId,
+      worktreePath: this.worktreePath,
     };
   }
 }
