@@ -45,6 +45,15 @@ export type WorkspaceUpdateHandler = (workspace: {
   desired: number;
 }) => void;
 export type ProjectEventHandler = (event: ProjectEvent) => void;
+export type TaskHistoryEventHandler = (event: ProjectEvent) => void;
+
+/**
+ * Task history event types that should be routed to dedicated handlers
+ */
+const TASK_HISTORY_EVENT_TYPES = new Set([
+  'task.started', 'task.completed', 'task.failed',
+  'phase.started', 'phase.completed', 'orchestration.progress',
+]);
 
 /**
  * WebSocket client for receiving real-time orchestration updates
@@ -61,6 +70,7 @@ export class OrchestrationWebSocketClient {
   private globalHandlers: GlobalUpdateHandler[] = [];
   private workspaceHandlers: WorkspaceUpdateHandler[] = [];
   private projectEventHandlers: ProjectEventHandler[] = [];
+  private taskHistoryHandlers: TaskHistoryEventHandler[] = [];
   private outputChannel: vscode.OutputChannel;
   private isClosing = false;
 
@@ -214,11 +224,23 @@ export class OrchestrationWebSocketClient {
       `[OrchestrationWS] Project event: type=${event.type}, data=${JSON.stringify(event.data)}`
     );
 
+    // Route to all project event handlers (existing behavior)
     for (const handler of this.projectEventHandlers) {
       try {
         handler(event);
       } catch (error) {
         this.outputChannel.appendLine(`[OrchestrationWS] Error in project event handler: ${error}`);
+      }
+    }
+
+    // Additionally route task lifecycle events to task history handlers
+    if (TASK_HISTORY_EVENT_TYPES.has(event.type)) {
+      for (const handler of this.taskHistoryHandlers) {
+        try {
+          handler(event);
+        } catch (error) {
+          this.outputChannel.appendLine(`[OrchestrationWS] Error in task history handler: ${error}`);
+        }
       }
     }
   }
@@ -317,6 +339,23 @@ export class OrchestrationWebSocketClient {
   }
 
   /**
+   * Register a handler for task history events
+   */
+  public onTaskHistoryEvent(handler: TaskHistoryEventHandler): void {
+    this.taskHistoryHandlers.push(handler);
+  }
+
+  /**
+   * Unregister a task history event handler
+   */
+  public offTaskHistoryEvent(handler: TaskHistoryEventHandler): void {
+    const index = this.taskHistoryHandlers.indexOf(handler);
+    if (index >= 0) {
+      this.taskHistoryHandlers.splice(index, 1);
+    }
+  }
+
+  /**
    * Subscribe to additional projects (after initial connection)
    */
   public subscribeProjects(projectNumbers: number[]): void {
@@ -347,6 +386,7 @@ export class OrchestrationWebSocketClient {
     this.globalHandlers = [];
     this.workspaceHandlers = [];
     this.projectEventHandlers = [];
+    this.taskHistoryHandlers = [];
 
     this.outputChannel.appendLine('[OrchestrationWS] Disconnected');
   }
