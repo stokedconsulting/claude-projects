@@ -99,6 +99,17 @@ export class TaskHistoryViewProvider implements vscode.WebviewViewProvider {
     }
 
     public handleLiveEvent(event: ProjectEvent): void {
+        // Handle orchestration progress separately
+        if (event.type === 'orchestration.progress' && event.data) {
+            if (this._view) {
+                this._view.webview.postMessage({
+                    type: 'orchestrationProgress',
+                    completed: event.data.completed || 0,
+                    total: event.data.total || 0
+                });
+            }
+        }
+
         const entry = {
             id: `live-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
             type: event.type,
@@ -179,7 +190,7 @@ export class TaskHistoryViewProvider implements vscode.WebviewViewProvider {
         .stats {
             display: flex;
             gap: 15px;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             padding: 10px;
             background: var(--vscode-editor-background);
             border-radius: 4px;
@@ -200,6 +211,116 @@ export class TaskHistoryViewProvider implements vscode.WebviewViewProvider {
             font-size: 11px;
             color: var(--vscode-descriptionForeground);
             text-transform: uppercase;
+        }
+
+        .progress-container {
+            margin-bottom: 15px;
+            padding: 12px;
+            background: var(--vscode-editor-background);
+            border-radius: 4px;
+        }
+
+        .progress-label {
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 6px;
+            color: var(--vscode-descriptionForeground);
+        }
+
+        .progress-bar-wrapper {
+            width: 100%;
+            height: 20px;
+            background: var(--vscode-input-background);
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #2196f3, #1976d2);
+            transition: width 0.3s ease;
+            border-radius: 10px;
+        }
+
+        .progress-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 11px;
+            font-weight: bold;
+            color: var(--vscode-foreground);
+            text-shadow: 0 0 3px rgba(0,0,0,0.5);
+        }
+
+        .filters {
+            margin-bottom: 15px;
+            padding: 12px;
+            background: var(--vscode-editor-background);
+            border-radius: 4px;
+        }
+
+        .filter-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .filter-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+        }
+
+        select {
+            padding: 4px 8px;
+            background: var(--vscode-input-background);
+            color: var(--vscode-input-foreground);
+            border: 1px solid var(--vscode-input-border);
+            border-radius: 3px;
+            font-size: 12px;
+        }
+
+        label {
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+        }
+
+        input[type="checkbox"] {
+            cursor: pointer;
+        }
+
+        .time-filters {
+            display: flex;
+            gap: 5px;
+        }
+
+        .time-btn {
+            padding: 4px 10px;
+            background: var(--vscode-button-secondaryBackground);
+            color: var(--vscode-button-secondaryForeground);
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 11px;
+        }
+
+        .time-btn.active {
+            background: var(--vscode-button-background);
+            color: var(--vscode-button-foreground);
+        }
+
+        .time-btn:hover {
+            background: var(--vscode-button-hoverBackground);
         }
 
         .actions {
@@ -231,9 +352,64 @@ export class TaskHistoryViewProvider implements vscode.WebviewViewProvider {
             background: var(--vscode-button-secondaryHoverBackground);
         }
 
-        .task-entry {
+        .project-section {
+            margin-bottom: 20px;
+        }
+
+        .project-header {
+            padding: 10px;
+            background: var(--vscode-editor-background);
+            border-left: 3px solid #2196f3;
+            border-radius: 4px;
+            cursor: pointer;
+            user-select: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .project-header:hover {
+            background: var(--vscode-list-hoverBackground);
+        }
+
+        .project-title {
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .expand-icon {
+            font-size: 12px;
+            transition: transform 0.2s;
+        }
+
+        .project-section.collapsed .expand-icon {
+            transform: rotate(-90deg);
+        }
+
+        .project-section.collapsed .project-content {
+            display: none;
+        }
+
+        .phase-section {
+            margin-left: 15px;
             margin-bottom: 15px;
-            padding: 12px;
+        }
+
+        .phase-header {
+            padding: 8px;
+            background: var(--vscode-input-background);
+            border-left: 2px solid #9c27b0;
+            border-radius: 3px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .task-entry {
+            margin-left: 15px;
+            margin-bottom: 10px;
+            padding: 10px;
             background: var(--vscode-editor-background);
             border-left: 3px solid var(--vscode-textLink-foreground);
             border-radius: 4px;
@@ -251,16 +427,57 @@ export class TaskHistoryViewProvider implements vscode.WebviewViewProvider {
             border-left-color: #ff9800;
         }
 
+        .task-entry.in-progress {
+            border-left-color: #2196f3;
+        }
+
         .task-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
         }
 
         .task-command {
             font-weight: bold;
-            font-size: 14px;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 16px;
+            height: 16px;
+            font-size: 10px;
+        }
+
+        .status-icon.pulsing-dot {
+            width: 8px;
+            height: 8px;
+            background: #2196f3;
+            border-radius: 50%;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.3); }
+        }
+
+        .status-icon.checkmark {
+            color: #4caf50;
+        }
+
+        .status-icon.x-mark {
+            color: #f44336;
+        }
+
+        .status-icon.progress-icon {
+            color: #9c27b0;
         }
 
         .task-time {
@@ -271,7 +488,13 @@ export class TaskHistoryViewProvider implements vscode.WebviewViewProvider {
         .task-meta {
             font-size: 12px;
             color: var(--vscode-descriptionForeground);
-            margin-bottom: 8px;
+            margin-bottom: 6px;
+        }
+
+        .duration {
+            font-size: 11px;
+            color: var(--vscode-descriptionForeground);
+            margin-left: 8px;
         }
 
         .task-prompt {
@@ -338,6 +561,16 @@ export class TaskHistoryViewProvider implements vscode.WebviewViewProvider {
             color: white;
         }
 
+        .status-badge.in-progress {
+            background: #2196f3;
+            color: white;
+        }
+
+        .status-badge.progress {
+            background: #9c27b0;
+            color: white;
+        }
+
         .copy-btn {
             padding: 4px 8px;
             font-size: 11px;
@@ -380,14 +613,8 @@ export class TaskHistoryViewProvider implements vscode.WebviewViewProvider {
             to { background-color: var(--vscode-editor-background); }
         }
 
-        .status-badge.in-progress {
-            background: #2196f3;
-            color: white;
-        }
-
-        .status-badge.progress {
-            background: #9c27b0;
-            color: white;
+        .hidden {
+            display: none !important;
         }
     </style>
 </head>
@@ -411,6 +638,46 @@ export class TaskHistoryViewProvider implements vscode.WebviewViewProvider {
         </div>
     </div>
 
+    <div class="progress-container" id="progress-container" style="display: none;">
+        <div class="progress-label">Orchestration Progress</div>
+        <div class="progress-bar-wrapper">
+            <div class="progress-bar-fill" id="progress-fill" style="width: 0%"></div>
+            <div class="progress-text" id="progress-text">0 / 0 items (0%)</div>
+        </div>
+    </div>
+
+    <div class="filters">
+        <div class="filter-row">
+            <div class="filter-group">
+                <label>Project:</label>
+                <select id="filter-project" onchange="applyFilters()">
+                    <option value="">All Projects</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Phase:</label>
+                <select id="filter-phase" onchange="applyFilters()">
+                    <option value="">All Phases</option>
+                </select>
+            </div>
+        </div>
+        <div class="filter-row">
+            <div class="filter-group">
+                <label><input type="checkbox" id="filter-started" checked onchange="applyFilters()"> Started</label>
+                <label><input type="checkbox" id="filter-completed" checked onchange="applyFilters()"> Completed</label>
+                <label><input type="checkbox" id="filter-failed" checked onchange="applyFilters()"> Failed</label>
+                <label><input type="checkbox" id="filter-progress" checked onchange="applyFilters()"> Progress</label>
+            </div>
+        </div>
+        <div class="filter-row">
+            <div class="time-filters">
+                <button class="time-btn active" onclick="setTimeFilter('all')">All</button>
+                <button class="time-btn" onclick="setTimeFilter('1h')">Last 1 Hour</button>
+                <button class="time-btn" onclick="setTimeFilter('24h')">Last 24 Hours</button>
+            </div>
+        </div>
+    </div>
+
     <div class="actions">
         <button onclick="exportHistory()">Export History</button>
         <button class="secondary" onclick="clearHistory()">Clear All</button>
@@ -420,6 +687,11 @@ export class TaskHistoryViewProvider implements vscode.WebviewViewProvider {
 
     <script>
         const vscode = acquireVsCodeApi();
+
+        let allEntries = [];
+        let startTimes = new Map();
+        let currentTimeFilter = 'all';
+        let orchestrationData = { completed: 0, total: 0 };
 
         // Request data when loaded
         vscode.postMessage({ type: 'ready' });
@@ -436,8 +708,49 @@ export class TaskHistoryViewProvider implements vscode.WebviewViewProvider {
                 case 'liveEntries':
                     message.entries.forEach(entry => addLiveEntry(entry));
                     break;
+                case 'orchestrationProgress':
+                    updateOrchestrationProgress(message.completed, message.total);
+                    break;
             }
         });
+
+        function updateOrchestrationProgress(completed, total) {
+            orchestrationData = { completed, total };
+            const progressContainer = document.getElementById('progress-container');
+            const progressFill = document.getElementById('progress-fill');
+            const progressText = document.getElementById('progress-text');
+
+            if (total > 0) {
+                progressContainer.style.display = 'block';
+                const percentage = Math.round((completed / total) * 100);
+                progressFill.style.width = percentage + '%';
+                progressText.textContent = completed + ' / ' + total + ' items (' + percentage + '%)';
+            } else {
+                progressContainer.style.display = 'none';
+            }
+        }
+
+        function getStatusIcon(type, status) {
+            if (type === 'task.started' || type === 'phase.started') {
+                return '<span class="status-icon pulsing-dot"></span>';
+            } else if (type === 'task.completed' || type === 'phase.completed') {
+                return '<span class="status-icon checkmark">✓</span>';
+            } else if (type === 'task.failed') {
+                return '<span class="status-icon x-mark">✕</span>';
+            } else if (type === 'orchestration.progress') {
+                return '<span class="status-icon progress-icon">⟳</span>';
+            }
+            return '';
+        }
+
+        function formatDuration(ms) {
+            if (!ms) return '';
+            const seconds = Math.floor(ms / 1000);
+            if (seconds < 60) return seconds + 's';
+            const minutes = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return minutes + 'm ' + secs + 's';
+        }
 
         function renderHistory(history, stats) {
             // Update stats
@@ -446,10 +759,24 @@ export class TaskHistoryViewProvider implements vscode.WebviewViewProvider {
             document.getElementById('stat-pending').textContent = stats.pending;
             document.getElementById('stat-failed').textContent = stats.failed;
 
-            // Render history
+            // Store history entries
+            allEntries = history.map(task => ({
+                ...task,
+                isLive: false
+            }));
+
+            // Render grouped entries
+            renderGroupedEntries();
+            populateFilterDropdowns();
+        }
+
+        function renderGroupedEntries() {
             const container = document.getElementById('history');
 
-            if (history.length === 0) {
+            // Filter entries
+            const filtered = allEntries.filter(entry => passesFilters(entry));
+
+            if (filtered.length === 0) {
                 container.innerHTML = \`
                     <div class="empty-state">
                         <div class="empty-state-icon">📋</div>
@@ -462,50 +789,187 @@ export class TaskHistoryViewProvider implements vscode.WebviewViewProvider {
                 return;
             }
 
-            container.innerHTML = history.map(task => {
-                const time = new Date(task.timestamp).toLocaleString();
-                const projectInfo = task.projectNumber
-                    ? \`Project #\${task.projectNumber}\${task.phaseNumber ? \` Phase \${task.phaseNumber}\` : ''}\${task.itemNumber ? \` Item \${task.itemNumber}\` : ''}\`
-                    : '';
+            // Group by project then phase
+            const grouped = {};
+            filtered.forEach(entry => {
+                const projectNum = entry.projectNumber || 'unknown';
+                const phaseNum = entry.phaseNumber || 'none';
 
-                const subagents = task.subagentResponses && task.subagentResponses.length > 0
-                    ? \`
-                        <div class="subagent-responses">
-                            <strong>Subagent Responses (\${task.subagentResponses.length}):</strong>
-                            \${task.subagentResponses.map(sub => \`
-                                <div class="subagent">
-                                    <div class="subagent-id">\${sub.agentId}</div>
-                                    <div>\${sub.response.substring(0, 200)}\${sub.response.length > 200 ? '...' : ''}</div>
-                                </div>
-                            \`).join('')}
-                        </div>
-                    \`
-                    : '';
+                if (!grouped[projectNum]) grouped[projectNum] = {};
+                if (!grouped[projectNum][phaseNum]) grouped[projectNum][phaseNum] = [];
 
-                return \`
-                    <div class="task-entry \${task.status}">
-                        <div class="task-header">
-                            <span class="task-command">\${task.command}</span>
-                            <span class="task-time">\${time}</span>
-                        </div>
-                        \${projectInfo ? \`<div class="task-meta">\${projectInfo}</div>\` : ''}
-                        <div class="task-meta">
-                            <span class="status-badge \${task.status}">\${task.status}</span>
-                        </div>
-                        <div class="task-prompt">\${task.prompt}</div>
-                        \${task.response ? \`
-                            <div class="task-response">
-                                \${task.response.substring(0, 500)}\${task.response.length > 500 ? '...' : ''}
-                                <button class="copy-btn" onclick='copyResponse(\${JSON.stringify(task.response)})'>
-                                    Copy Full Response
-                                </button>
-                            </div>
-                        \` : ''}
-                        \${task.error ? \`<div style="color: #f44336; margin-top: 8px;">Error: \${task.error}</div>\` : ''}
-                        \${subagents}
+                grouped[projectNum][phaseNum].push(entry);
+            });
+
+            // Sort entries within each group by timestamp (newest first)
+            Object.values(grouped).forEach(project => {
+                Object.values(project).forEach(phase => {
+                    phase.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                });
+            });
+
+            // Render
+            let html = '';
+            Object.keys(grouped).sort().forEach(projectNum => {
+                const projectData = grouped[projectNum];
+                html += \`<div class="project-section" data-project="\${projectNum}">
+                    <div class="project-header" onclick="toggleProject(this)">
+                        <span class="project-title">Project #\${projectNum}</span>
+                        <span class="expand-icon">▼</span>
                     </div>
-                \`;
-            }).join('');
+                    <div class="project-content">\`;
+
+                Object.keys(projectData).sort().forEach(phaseNum => {
+                    const entries = projectData[phaseNum];
+                    html += \`<div class="phase-section">
+                        <div class="phase-header">Phase \${phaseNum}</div>\`;
+
+                    entries.forEach(entry => {
+                        html += renderEntry(entry);
+                    });
+
+                    html += \`</div>\`;
+                });
+
+                html += \`</div></div>\`;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function renderEntry(entry) {
+            const time = new Date(entry.timestamp).toLocaleString();
+            const timeShort = new Date(entry.timestamp).toLocaleTimeString();
+            const icon = getStatusIcon(entry.type || entry.command, entry.status);
+
+            let duration = '';
+            if (entry.isLive && entry.workItemId) {
+                const startTime = startTimes.get(entry.workItemId);
+                if (startTime && (entry.status === 'completed' || entry.status === 'failed')) {
+                    const ms = new Date(entry.timestamp) - startTime;
+                    duration = '<span class="duration">(' + formatDuration(ms) + ')</span>';
+                }
+            }
+
+            const title = entry.workItemTitle || entry.command || entry.type;
+            const phaseText = entry.phaseNumber ? 'Phase ' + entry.phaseNumber + (entry.itemNumber ? '.' + entry.itemNumber : '') : '';
+
+            const subagents = entry.subagentResponses && entry.subagentResponses.length > 0
+                ? \`<div class="subagent-responses">
+                    <strong>Subagent Responses (\${entry.subagentResponses.length}):</strong>
+                    \${entry.subagentResponses.map(sub => \`
+                        <div class="subagent">
+                            <div class="subagent-id">\${sub.agentId}</div>
+                            <div>\${sub.response.substring(0, 200)}\${sub.response.length > 200 ? '...' : ''}</div>
+                        </div>
+                    \`).join('')}
+                </div>\`
+                : '';
+
+            const workItemAttr = entry.workItemId ? 'data-work-item-id="' + entry.workItemId + '"' : '';
+            const entryClass = entry.isLive ? 'task-entry live-entry ' + entry.status : 'task-entry ' + entry.status;
+
+            return \`<div class="\${entryClass}" \${workItemAttr}>
+                <div class="task-header">
+                    <span class="task-command">
+                        \${icon}
+                        \${title}
+                        \${phaseText ? '<span class="task-meta" style="margin-left: 8px;">[\${phaseText}]</span>' : ''}
+                        \${duration}
+                    </span>
+                    <span class="task-time">\${entry.isLive ? timeShort : time}</span>
+                </div>
+                <div class="task-meta">
+                    <span class="status-badge \${entry.status}">\${entry.type || entry.command || entry.status}</span>
+                </div>
+                \${entry.prompt ? '<div class="task-prompt">' + entry.prompt + '</div>' : ''}
+                \${entry.response ? \`
+                    <div class="task-response">
+                        \${entry.response.substring(0, 500)}\${entry.response.length > 500 ? '...' : ''}
+                        <button class="copy-btn" onclick='copyResponse(\${JSON.stringify(entry.response)})'>
+                            Copy Full Response
+                        </button>
+                    </div>
+                \` : ''}
+                \${entry.error ? '<div style="color: #f44336; margin-top: 8px;">Error: ' + entry.error + '</div>' : ''}
+                \${subagents}
+            </div>\`;
+        }
+
+        function passesFilters(entry) {
+            // Time filter
+            if (currentTimeFilter !== 'all') {
+                const now = Date.now();
+                const entryTime = new Date(entry.timestamp).getTime();
+                const cutoff = currentTimeFilter === '1h' ? 60 * 60 * 1000 : 24 * 60 * 60 * 1000;
+                if (now - entryTime > cutoff) return false;
+            }
+
+            // Project filter
+            const projectFilter = document.getElementById('filter-project').value;
+            if (projectFilter && entry.projectNumber != projectFilter) return false;
+
+            // Phase filter
+            const phaseFilter = document.getElementById('filter-phase').value;
+            if (phaseFilter && entry.phaseNumber != phaseFilter) return false;
+
+            // Status filters
+            const type = entry.type || entry.command || '';
+            const started = document.getElementById('filter-started').checked;
+            const completed = document.getElementById('filter-completed').checked;
+            const failed = document.getElementById('filter-failed').checked;
+            const progress = document.getElementById('filter-progress').checked;
+
+            if ((type.includes('started') && !started) ||
+                (type.includes('completed') && !completed) ||
+                (type.includes('failed') && !failed) ||
+                (type.includes('progress') && !progress)) {
+                return false;
+            }
+
+            return true;
+        }
+
+        function populateFilterDropdowns() {
+            const projectSelect = document.getElementById('filter-project');
+            const phaseSelect = document.getElementById('filter-phase');
+
+            // Get unique projects
+            const projects = [...new Set(allEntries.map(e => e.projectNumber).filter(Boolean))].sort();
+            const currentProject = projectSelect.value;
+
+            projectSelect.innerHTML = '<option value="">All Projects</option>' +
+                projects.map(p => '<option value="' + p + '"' + (p == currentProject ? ' selected' : '') + '>Project #' + p + '</option>').join('');
+
+            // Get phases for selected project
+            const selectedProject = projectSelect.value;
+            let phases = [];
+            if (selectedProject) {
+                phases = [...new Set(allEntries.filter(e => e.projectNumber == selectedProject).map(e => e.phaseNumber).filter(Boolean))].sort();
+            } else {
+                phases = [...new Set(allEntries.map(e => e.phaseNumber).filter(Boolean))].sort();
+            }
+
+            const currentPhase = phaseSelect.value;
+            phaseSelect.innerHTML = '<option value="">All Phases</option>' +
+                phases.map(p => '<option value="' + p + '"' + (p == currentPhase ? ' selected' : '') + '>Phase ' + p + '</option>').join('');
+        }
+
+        function applyFilters() {
+            populateFilterDropdowns();
+            renderGroupedEntries();
+        }
+
+        function setTimeFilter(filter) {
+            currentTimeFilter = filter;
+            document.querySelectorAll('.time-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            applyFilters();
+        }
+
+        function toggleProject(header) {
+            const section = header.parentElement;
+            section.classList.toggle('collapsed');
         }
 
         function clearHistory() {
@@ -523,54 +987,62 @@ export class TaskHistoryViewProvider implements vscode.WebviewViewProvider {
         }
 
         function addLiveEntry(entry) {
-            const container = document.getElementById('history');
+            // Track start times for duration calculation
+            if (entry.type === 'task.started' && entry.workItemId) {
+                startTimes.set(entry.workItemId, new Date(entry.timestamp));
+            }
 
-            // Remove empty state if present
-            const emptyState = container.querySelector('.empty-state');
-            if (emptyState) emptyState.remove();
-
-            // Check if entry for this workItemId already exists (update in place)
-            if (entry.workItemId) {
-                const existing = container.querySelector('[data-work-item-id="' + entry.workItemId + '"]');
-                if (existing) {
-                    // Update status
-                    existing.className = 'task-entry live-entry ' + entry.status;
-                    const badge = existing.querySelector('.status-badge');
-                    if (badge) {
-                        badge.className = 'status-badge ' + entry.status;
-                        badge.textContent = entry.type;
-                    }
-                    // Add highlight
-                    existing.classList.add('highlight');
-                    setTimeout(() => existing.classList.remove('highlight'), 2000);
-                    return;
+            // Handle orchestration progress
+            if (entry.type === 'orchestration.progress' && entry.data) {
+                if (entry.data.completed !== undefined && entry.data.total !== undefined) {
+                    updateOrchestrationProgress(entry.data.completed, entry.data.total);
                 }
             }
 
-            // Create new entry element
-            const el = document.createElement('div');
-            el.className = 'task-entry live-entry ' + entry.status;
-            if (entry.workItemId) {
-                el.setAttribute('data-work-item-id', entry.workItemId);
+            // Check if entry for this workItemId already exists (update in place)
+            const existingIndex = allEntries.findIndex(e => e.workItemId && e.workItemId === entry.workItemId);
+
+            if (existingIndex >= 0) {
+                // Update existing entry
+                const existing = allEntries[existingIndex];
+                const startTime = startTimes.get(entry.workItemId);
+
+                allEntries[existingIndex] = {
+                    ...existing,
+                    ...entry,
+                    isLive: true,
+                    status: entry.status
+                };
+
+                renderGroupedEntries();
+
+                // Highlight updated entry
+                const entryEl = document.querySelector('[data-work-item-id="' + entry.workItemId + '"]');
+                if (entryEl) {
+                    entryEl.classList.add('highlight');
+                    setTimeout(() => entryEl.classList.remove('highlight'), 2000);
+                }
+            } else {
+                // Add new entry
+                allEntries.unshift({
+                    ...entry,
+                    isLive: true,
+                    timestamp: entry.timestamp || new Date().toISOString()
+                });
+
+                renderGroupedEntries();
+                populateFilterDropdowns();
+
+                // Highlight new entry
+                const entryEl = entry.workItemId
+                    ? document.querySelector('[data-work-item-id="' + entry.workItemId + '"]')
+                    : document.querySelector('.task-entry');
+
+                if (entryEl) {
+                    entryEl.classList.add('highlight');
+                    setTimeout(() => entryEl.classList.remove('highlight'), 2000);
+                }
             }
-
-            const time = new Date(entry.timestamp).toLocaleTimeString();
-            const projectInfo = entry.projectNumber
-                ? 'Project #' + entry.projectNumber + (entry.phaseNumber ? ' Phase ' + entry.phaseNumber : '')
-                : '';
-
-            el.innerHTML = '<div class="task-header">' +
-                '<span class="task-command">' + (entry.workItemTitle || entry.type) + '</span>' +
-                '<span class="task-time">' + time + '</span>' +
-                '</div>' +
-                (projectInfo ? '<div class="task-meta">' + projectInfo + '</div>' : '') +
-                '<div class="task-meta">' +
-                '<span class="status-badge ' + entry.status + '">' + entry.type + '</span>' +
-                '</div>';
-
-            el.classList.add('highlight');
-            container.prepend(el);
-            setTimeout(() => el.classList.remove('highlight'), 2000);
         }
     </script>
 </body>
