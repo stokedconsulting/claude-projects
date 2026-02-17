@@ -4,6 +4,7 @@ import { ProjectEventsController } from './project-events.controller';
 import { OrchestrationModule } from '../orchestration/orchestration.module';
 import { LoggingModule } from '../../common/logging/logging.module';
 import { AuthModule } from '../auth/auth.module';
+import { AuditHistoryModule } from '../audit-history/audit-history.module';
 import {
   ProjectCache,
   ProjectCacheSchema,
@@ -14,6 +15,7 @@ import {
     OrchestrationModule,
     LoggingModule,
     AuthModule,
+    AuditHistoryModule,
     MongooseModule.forFeature([
       { name: ProjectCache.name, schema: ProjectCacheSchema },
     ]),

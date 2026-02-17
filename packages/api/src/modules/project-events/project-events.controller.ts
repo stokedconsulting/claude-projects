@@ -1,9 +1,11 @@
-import { Controller, Post, Put, Get, Param, Body, HttpCode, ParseIntPipe } from '@nestjs/common';
+import { Controller, Post, Put, Get, Param, Body, HttpCode, ParseIntPipe, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { AppLoggerService } from '../../common/logging/app-logger.service';
 import { OrchestrationGateway } from '../orchestration/orchestration.gateway';
-import { ProjectEvent } from './project-event.types';
+import { ProjectEvent, PROJECT_EVENT_TYPES } from './project-event.types';
+import { AuditHistoryService } from '../audit-history/audit-history.service';
+import { HttpMethod } from '../../schemas/audit-history.schema';
 import {
   ProjectCache,
   ProjectCacheDocument,
@@ -17,6 +19,7 @@ export class ProjectEventsController {
   constructor(
     private readonly logger: AppLoggerService,
     private readonly gateway: OrchestrationGateway,
+    private readonly auditHistoryService: AuditHistoryService,
     @InjectModel(ProjectCache.name)
     private readonly projectCacheModel: Model<ProjectCacheDocument>,
   ) {
@@ -31,6 +34,12 @@ export class ProjectEventsController {
     if (!event.type || !event.data || !projectNumber) {
       this.logger.warn('Invalid project event received', { event });
       return { accepted: false, error: 'Missing type, data, or projectNumber' };
+    }
+
+    // Validate event type
+    if (!PROJECT_EVENT_TYPES.includes(event.type)) {
+      this.logger.warn('Unknown project event type', { type: event.type, projectNumber });
+      throw new BadRequestException(`Unknown event type: ${event.type}`);
     }
 
     // Add timestamp if not present
@@ -49,6 +58,26 @@ export class ProjectEventsController {
 
     // Broadcast via Socket.io gateway
     this.gateway.broadcastProjectEvent(projectNumber, event);
+
+    // Write audit record for the event
+    try {
+      const eventData = event.data as any;
+      this.auditHistoryService.writeAuditRecord({
+        api_endpoint: '/api/events/project',
+        http_method: HttpMethod.POST,
+        operation_type: event.type,
+        project_number: projectNumber,
+        workspace_id: eventData.workspaceId || undefined,
+        worktree_path: eventData.worktreePath || undefined,
+        response_status: 202,
+        duration_ms: 0,
+        request_summary: { type: event.type, projectNumber },
+      });
+    } catch (error) {
+      this.logger.warn('Failed to write audit record for project event', {
+        error: error instanceof Error ? error.message : error,
+      });
+    }
 
     return {
       accepted: true,
