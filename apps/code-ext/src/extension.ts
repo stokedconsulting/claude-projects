@@ -238,9 +238,12 @@ export function activate(context: vscode.ExtensionContext) {
   const workspaceFolders = vscode.workspace.workspaceFolders;
   if (workspaceFolders && workspaceFolders.length > 0) {
     const workspaceFolder = workspaceFolders[0];
-    const workspaceId = workspaceFolder.name; // Use folder name as workspace ID
+    const workspaceId = workspaceFolder.uri.fsPath; // Use full path as workspace ID
     const worktreePath = workspaceFolder.uri.fsPath;
-    provider.setWorkspaceContext(workspaceId, worktreePath);
+    provider.setWorkspaceContext(workspaceFolder.name, worktreePath);
+
+    // Set workspace ID on task history provider for filtering
+    taskHistoryProvider.setWorkspaceId(workspaceId);
   }
 
   // Register agent dashboard (only if workspace is available)

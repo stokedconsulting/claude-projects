@@ -9,11 +9,28 @@ export class TaskHistoryViewProvider implements vscode.WebviewViewProvider {
     private readonly MAX_LIVE_ENTRIES = 500;
     private wsClient?: OrchestrationWebSocketClient;
     private taskHistoryHandler?: (event: ProjectEvent) => void;
+    private workspaceId?: string;
+    private showAllWorkspaces: boolean = false;
 
     constructor(
         private readonly _extensionUri: vscode.Uri,
         private readonly historyManager: TaskHistoryManager
     ) {}
+
+    public setWorkspaceId(workspaceId: string): void {
+        this.workspaceId = workspaceId;
+    }
+
+    public setShowAllWorkspaces(show: boolean): void {
+        this.showAllWorkspaces = show;
+        // Trigger re-render if webview is active
+        if (this._view) {
+            this._view.webview.postMessage({
+                type: 'filterChanged',
+                showAllWorkspaces: this.showAllWorkspaces
+            });
+        }
+    }
 
     public resolveWebviewView(
         webviewView: vscode.WebviewView,
@@ -44,6 +61,12 @@ export class TaskHistoryViewProvider implements vscode.WebviewViewProvider {
             switch (data.type) {
                 case 'ready':
                     this.refresh();
+                    // Send initial workspace filter state
+                    this._view?.webview.postMessage({
+                        type: 'workspaceFilterState',
+                        showAllWorkspaces: this.showAllWorkspaces,
+                        workspaceId: this.workspaceId
+                    });
                     break;
                 case 'fetchHistory':
                     // Send both local history and live entries
@@ -66,6 +89,9 @@ export class TaskHistoryViewProvider implements vscode.WebviewViewProvider {
                 case 'copyResponse':
                     await vscode.env.clipboard.writeText(data.response);
                     vscode.window.showInformationMessage('Response copied to clipboard');
+                    break;
+                case 'toggleShowAllWorkspaces':
+                    this.setShowAllWorkspaces(data.show);
                     break;
             }
         });
@@ -99,6 +125,11 @@ export class TaskHistoryViewProvider implements vscode.WebviewViewProvider {
     }
 
     public handleLiveEvent(event: ProjectEvent): void {
+        // Apply workspace filtering
+        if (!this.shouldShowEvent(event)) {
+            return; // Skip events from other workspaces
+        }
+
         // Handle orchestration progress separately
         if (event.type === 'orchestration.progress' && event.data) {
             if (this._view) {
@@ -132,6 +163,43 @@ export class TaskHistoryViewProvider implements vscode.WebviewViewProvider {
         if (this._view) {
             this._view.webview.postMessage({ type: 'liveEntry', entry });
         }
+    }
+
+    private shouldShowEvent(event: ProjectEvent): boolean {
+        // If "show all workspaces" is enabled, show everything
+        if (this.showAllWorkspaces) {
+            return true;
+        }
+
+        // If no workspace is set, show all events (with notice in UI)
+        if (!this.workspaceId) {
+            return true;
+        }
+
+        // If event has no workspaceId, show it (backward compatible)
+        if (!event.data?.workspaceId) {
+            return true;
+        }
+
+        // Check if workspaceId matches
+        if (event.data.workspaceId === this.workspaceId) {
+            return true;
+        }
+
+        // Check if worktreePath matches current workspace
+        if (event.data.worktreePath) {
+            const workspaceFolders = vscode.workspace.workspaceFolders;
+            if (workspaceFolders && workspaceFolders.length > 0) {
+                const currentWorkspacePath = workspaceFolders[0].uri.fsPath;
+                // Check if worktreePath is within the current workspace
+                if (event.data.worktreePath.startsWith(currentWorkspacePath)) {
+                    return true;
+                }
+            }
+        }
+
+        // Event is from a different workspace, filter it out
+        return false;
     }
 
     private mapEventTypeToStatus(type: string): string {
@@ -616,6 +684,15 @@ export class TaskHistoryViewProvider implements vscode.WebviewViewProvider {
         .hidden {
             display: none !important;
         }
+
+        .workspace-notice {
+            font-size: 11px;
+            color: var(--vscode-descriptionForeground);
+            font-style: italic;
+            padding: 4px 8px;
+            background: var(--vscode-input-background);
+            border-radius: 3px;
+        }
     </style>
 </head>
 <body>
@@ -676,6 +753,14 @@ export class TaskHistoryViewProvider implements vscode.WebviewViewProvider {
                 <button class="time-btn" onclick="setTimeFilter('24h')">Last 24 Hours</button>
             </div>
         </div>
+        <div class="filter-row">
+            <div class="filter-group">
+                <label><input type="checkbox" id="showAllWorkspaces" onchange="toggleShowAllWorkspaces()"> Show all workspaces</label>
+            </div>
+            <div id="workspace-notice" class="workspace-notice" style="display: none;">
+                Open a folder to enable workspace filtering
+            </div>
+        </div>
     </div>
 
     <div class="actions">
@@ -692,6 +777,7 @@ export class TaskHistoryViewProvider implements vscode.WebviewViewProvider {
         let startTimes = new Map();
         let currentTimeFilter = 'all';
         let orchestrationData = { completed: 0, total: 0 };
+        let currentWorkspaceId = null;
 
         // Request data when loaded
         vscode.postMessage({ type: 'ready' });
@@ -710,6 +796,24 @@ export class TaskHistoryViewProvider implements vscode.WebviewViewProvider {
                     break;
                 case 'orchestrationProgress':
                     updateOrchestrationProgress(message.completed, message.total);
+                    break;
+                case 'workspaceFilterState':
+                    currentWorkspaceId = message.workspaceId;
+                    const checkbox = document.getElementById('showAllWorkspaces');
+                    if (checkbox) {
+                        checkbox.checked = message.showAllWorkspaces;
+                    }
+                    // Show notice if no workspace
+                    const notice = document.getElementById('workspace-notice');
+                    if (notice) {
+                        notice.style.display = currentWorkspaceId ? 'none' : 'block';
+                    }
+                    break;
+                case 'filterChanged':
+                    const showAllCheckbox = document.getElementById('showAllWorkspaces');
+                    if (showAllCheckbox) {
+                        showAllCheckbox.checked = message.showAllWorkspaces;
+                    }
                     break;
             }
         });
@@ -984,6 +1088,14 @@ export class TaskHistoryViewProvider implements vscode.WebviewViewProvider {
 
         function copyResponse(response) {
             vscode.postMessage({ type: 'copyResponse', response });
+        }
+
+        function toggleShowAllWorkspaces() {
+            const checkbox = document.getElementById('showAllWorkspaces');
+            vscode.postMessage({
+                type: 'toggleShowAllWorkspaces',
+                show: checkbox.checked
+            });
         }
 
         function addLiveEntry(entry) {
