@@ -14,6 +14,7 @@ import { MetricsModule } from './common/metrics/metrics.module';
 import { RequestIdInterceptor } from './common/interceptors/request-id.interceptor';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 import { CacheHeadersInterceptor } from './common/interceptors/cache-headers.interceptor';
+import { AuditInterceptor } from './common/interceptors/audit.interceptor';
 import { PrometheusMiddleware } from './common/middleware/prometheus.middleware';
 import { GitHubModule } from './github/github.module';
 import { GitHubLoggingModule } from './github/logging/github-logging.module';
@@ -23,6 +24,7 @@ import { OrchestrationModule } from './modules/orchestration/orchestration.modul
 import { UsersModule } from './modules/users/users.module';
 import { CacheModule } from './modules/cache/cache.module';
 import { ProjectEventsModule } from './modules/project-events/project-events.module';
+import { AuditHistoryModule } from './modules/audit-history/audit-history.module';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 
 @Module({
@@ -70,6 +72,7 @@ import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
     OrchestrationModule,
     CacheModule,
     ProjectEventsModule,
+    AuditHistoryModule,
   ],
   providers: [
     // Global exception filter
@@ -78,7 +81,7 @@ import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
       useClass: AllExceptionsFilter,
     },
 
-    // Global interceptors - order matters: RequestId first, then Logging, then CacheHeaders
+    // Global interceptors - order matters: RequestId first, then Logging, then Audit, then CacheHeaders
     {
       provide: APP_INTERCEPTOR,
       useClass: RequestIdInterceptor,
@@ -86,6 +89,10 @@ import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
     {
       provide: APP_INTERCEPTOR,
       useClass: LoggingInterceptor,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: AuditInterceptor,
     },
     {
       provide: APP_INTERCEPTOR,
