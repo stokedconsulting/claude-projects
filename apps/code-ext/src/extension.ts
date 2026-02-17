@@ -234,8 +234,16 @@ export function activate(context: vscode.ExtensionContext) {
   // Wire task history provider to receive live WebSocket events from ProjectsViewProvider
   provider.setTaskHistoryProvider(taskHistoryProvider);
 
-  // Register agent dashboard (only if workspace is available)
+  // Set workspace context on API clients
   const workspaceFolders = vscode.workspace.workspaceFolders;
+  if (workspaceFolders && workspaceFolders.length > 0) {
+    const workspaceFolder = workspaceFolders[0];
+    const workspaceId = workspaceFolder.name; // Use folder name as workspace ID
+    const worktreePath = workspaceFolder.uri.fsPath;
+    provider.setWorkspaceContext(workspaceId, worktreePath);
+  }
+
+  // Register agent dashboard (only if workspace is available)
   if (workspaceFolders && workspaceFolders.length > 0) {
     const workspaceRoot = workspaceFolders[0].uri.fsPath;
 

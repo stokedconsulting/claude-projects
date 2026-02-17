@@ -49,11 +49,21 @@ export class APIClient {
   private timeout: number;
   private session: vscode.AuthenticationSession | undefined;
   private _outputChannel?: vscode.OutputChannel;
+  private workspaceId?: string;
+  private worktreePath?: string;
 
   constructor(config: APIClientConfig = {}, outputChannel?: vscode.OutputChannel) {
     this.baseUrl = config.baseUrl || 'https://claude-projects.truapi.com';
     this.timeout = config.timeout || 10000;
     this._outputChannel = outputChannel;
+  }
+
+  /**
+   * Set workspace context for request headers
+   */
+  public setWorkspaceContext(workspaceId: string, worktreePath?: string): void {
+    this.workspaceId = workspaceId;
+    this.worktreePath = worktreePath;
   }
 
   async initialize(): Promise<boolean> {
@@ -102,6 +112,14 @@ export class APIClient {
       const headers: Record<string, string> = {
         'Content-Type': 'application/json',
       };
+
+      // Add workspace context headers (sent for all requests including localhost)
+      if (this.workspaceId) {
+        headers['X-Workspace-Id'] = this.workspaceId;
+      }
+      if (this.worktreePath) {
+        headers['X-Worktree-Path'] = this.worktreePath;
+      }
 
       // Only add authentication headers for non-localhost URLs
       // Localhost API runs in development mode and allows unauthenticated access

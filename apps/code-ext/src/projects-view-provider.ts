@@ -179,6 +179,21 @@ export class ProjectsViewProvider implements vscode.WebviewViewProvider {
     }
   }
 
+  /**
+   * Set workspace context headers on API clients
+   */
+  public setWorkspaceContext(workspaceId: string, worktreePath?: string): void {
+    if (this._orchestrationClient instanceof APIClient) {
+      this._orchestrationClient.setWorkspaceContext(workspaceId, worktreePath);
+      this._outputChannel.appendLine(`[Workspace] Set orchestration client context: ${workspaceId}`);
+    }
+
+    if (this._githubAPI instanceof APIClient) {
+      this._githubAPI.setWorkspaceContext(workspaceId, worktreePath);
+      this._outputChannel.appendLine(`[Workspace] Set GitHub API client context: ${workspaceId}`);
+    }
+  }
+
   // DEPRECATED: setupWebSocketHandlers and handleWebSocketUpdate removed.
   // Real-time project events now flow through handleGranularProjectEvent
   // via the OrchestrationWebSocketClient's project.event Socket.io listener.
