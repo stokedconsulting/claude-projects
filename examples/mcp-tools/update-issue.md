@@ -37,7 +37,7 @@ Provide:
 
 ```bash
 # Update task status to in_progress
-curl -X PATCH https://claude-projects.truapi.com/api/tasks/660f9511-f41d-52e5-b826-557766551111 \
+curl -X PATCH http://localhost:8167/api/tasks/660f9511-f41d-52e5-b826-557766551111 \
   -H "X-API-Key: ${MCP_API_KEY}" \
   -H "Content-Type: application/json" \
   -d '{
@@ -60,7 +60,7 @@ curl -X PATCH https://claude-projects.truapi.com/api/tasks/660f9511-f41d-52e5-b8
 ### Mark Task as Completed
 
 ```bash
-curl -X PATCH https://claude-projects.truapi.com/api/tasks/660f9511-f41d-52e5-b826-557766551111 \
+curl -X PATCH http://localhost:8167/api/tasks/660f9511-f41d-52e5-b826-557766551111 \
   -H "X-API-Key: ${MCP_API_KEY}" \
   -H "Content-Type: application/json" \
   -d '{
@@ -85,7 +85,7 @@ curl -X PATCH https://claude-projects.truapi.com/api/tasks/660f9511-f41d-52e5-b8
 ### Mark Task as Failed with Error
 
 ```bash
-curl -X PATCH https://claude-projects.truapi.com/api/tasks/660f9511-f41d-52e5-b826-557766551111 \
+curl -X PATCH http://localhost:8167/api/tasks/660f9511-f41d-52e5-b826-557766551111 \
   -H "X-API-Key: ${MCP_API_KEY}" \
   -H "Content-Type: application/json" \
   -d '{
@@ -114,7 +114,7 @@ curl -X PATCH https://claude-projects.truapi.com/api/tasks/660f9511-f41d-52e5-b8
 ### Mark Task as Blocked
 
 ```bash
-curl -X PATCH https://claude-projects.truapi.com/api/tasks/660f9511-f41d-52e5-b826-557766551111 \
+curl -X PATCH http://localhost:8167/api/tasks/660f9511-f41d-52e5-b826-557766551111 \
   -H "X-API-Key: ${MCP_API_KEY}" \
   -H "Content-Type: application/json" \
   -d '{
@@ -155,7 +155,7 @@ curl -X PATCH https://claude-projects.truapi.com/api/tasks/660f9511-f41d-52e5-b8
 
 set -e
 
-API_BASE="${MCP_API_BASE:-https://claude-projects.truapi.com}"
+API_BASE="${MCP_API_BASE:-http://localhost:8167}"
 API_KEY="${MCP_API_KEY}"
 SESSION_ID=""
 declare -A ISSUE_UPDATES
@@ -287,7 +287,7 @@ import requests
 import sys
 from datetime import datetime
 
-API_BASE = os.getenv('MCP_API_BASE', 'https://claude-projects.truapi.com')
+API_BASE = os.getenv('MCP_API_BASE', 'http://localhost:8167')
 API_KEY = os.getenv('MCP_API_KEY')
 
 if not API_KEY:
@@ -446,7 +446,7 @@ if __name__ == '__main__':
 
 const https = require('https');
 
-const API_BASE = process.env.MCP_API_BASE || 'https://claude-projects.truapi.com';
+const API_BASE = process.env.MCP_API_BASE || 'http://localhost:8167';
 const API_KEY = process.env.MCP_API_KEY;
 
 if (!API_KEY) {
@@ -606,7 +606,7 @@ module.exports = { updateIssues, apiCall };
 
 ### Update Task to In Progress
 ```bash
-curl -X PATCH https://claude-projects.truapi.com/api/tasks/TASK_ID \
+curl -X PATCH http://localhost:8167/api/tasks/TASK_ID \
   -H "X-API-Key: ${MCP_API_KEY}" \
   -H "Content-Type: application/json" \
   -d '{"status": "in_progress"}'
@@ -614,7 +614,7 @@ curl -X PATCH https://claude-projects.truapi.com/api/tasks/TASK_ID \
 
 ### Mark Task Completed
 ```bash
-curl -X PATCH https://claude-projects.truapi.com/api/tasks/TASK_ID \
+curl -X PATCH http://localhost:8167/api/tasks/TASK_ID \
   -H "X-API-Key: ${MCP_API_KEY}" \
   -H "Content-Type: application/json" \
   -d '{"status": "completed"}'
@@ -622,7 +622,7 @@ curl -X PATCH https://claude-projects.truapi.com/api/tasks/TASK_ID \
 
 ### Mark Task Failed
 ```bash
-curl -X PATCH https://claude-projects.truapi.com/api/tasks/TASK_ID \
+curl -X PATCH http://localhost:8167/api/tasks/TASK_ID \
   -H "X-API-Key: ${MCP_API_KEY}" \
   -H "Content-Type: application/json" \
   -d '{
@@ -633,7 +633,7 @@ curl -X PATCH https://claude-projects.truapi.com/api/tasks/TASK_ID \
 
 ### Get All Tasks for Session
 ```bash
-curl -X GET "https://claude-projects.truapi.com/api/tasks?session_id=SESSION_ID" \
+curl -X GET "http://localhost:8167/api/tasks?session_id=SESSION_ID" \
   -H "X-API-Key: ${MCP_API_KEY}"
 ```
 

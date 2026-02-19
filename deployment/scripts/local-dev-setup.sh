@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ==============================================================================
-# Claude Projects MCP Server - Local Development Setup
+# Stoked Projects MCP Server - Local Development Setup
 # ==============================================================================
 # Sets up the MCP server for local development with Claude Desktop
 # ==============================================================================
@@ -152,7 +152,7 @@ main() {
       cat > "$CLAUDE_CONFIG_PATH" << EOF
 {
   "mcpServers": {
-    "claude-projects": {
+    "stoked-projects": {
       "command": "node",
       "args": ["dist/index.js"],
       "cwd": "$MCP_SERVER_ABSOLUTE_PATH",

@@ -1,5 +1,5 @@
 /**
- * Load Test Suite for Claude Projects State Tracking API
+ * Load Test Suite for Stoked Projects State Tracking API
  *
  * This script uses k6 (https://k6.io/) to perform load testing on the API.
  *

@@ -38,7 +38,7 @@ struct ClaudeProjectsWidget: Widget {
                     Color.clear // Transparent background between cards
                 }
         }
-        .configurationDisplayName("Claude Projects")
+        .configurationDisplayName("Stoked Projects")
         .description("Monitor your Claude LLM orchestration sessions.")
         .supportedFamilies([.systemLarge, .systemExtraLarge])
         .contentMarginsDisabled()

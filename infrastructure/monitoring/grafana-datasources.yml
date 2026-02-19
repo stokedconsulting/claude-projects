@@ -10,4 +10,4 @@ datasources:
       timeInterval: 15s
       exemplarTraceIdDestinations:
         - name: Trace ID
-          url: http://jaeger:16686/search?service=claude-projects-api&tags=%7B"trace_id"%3A"$${__value.raw}"%7D
+          url: http://jaeger:16686/search?service=stoked-projects-api&tags=%7B"trace_id"%3A"$${__value.raw}"%7D

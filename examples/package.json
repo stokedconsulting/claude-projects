@@ -1,7 +1,7 @@
 {
-  "name": "@claude-projects/examples",
+  "name": "@stoked-projects/examples",
   "version": "1.0.0",
-  "description": "Example scripts for Claude Projects using MCP tools",
+  "description": "Example scripts for Stoked Projects using MCP tools",
   "private": true,
   "scripts": {
     "test": "bash test-update-mcp.sh",

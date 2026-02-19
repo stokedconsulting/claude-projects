@@ -1,6 +1,6 @@
 # Load Testing
 
-This directory contains load tests for the Claude Projects State Tracking API.
+This directory contains load tests for the Stoked Projects State Tracking API.
 
 ## Overview
 
@@ -49,7 +49,7 @@ Override test parameters via environment variables:
 
 ```bash
 # Test against staging environment
-API_BASE_URL=https://staging.claude-projects.truapi.com \
+API_BASE_URL=http://localhost:8167 \
 API_KEY=your-staging-api-key \
 k6 run tests/load/load-test.js
 
@@ -59,7 +59,7 @@ LOAD_TEST_DURATION=10m \
 k6 run tests/load/load-test.js
 
 # Production validation (50 VUs, 1 hour)
-API_BASE_URL=https://claude-projects.truapi.com \
+API_BASE_URL=http://localhost:8167 \
 API_KEY=your-production-api-key \
 LOAD_TEST_VUS=50 \
 LOAD_TEST_DURATION=60m \

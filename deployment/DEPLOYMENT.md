@@ -1,6 +1,6 @@
 # MCP Server Deployment Guide
 
-This guide covers deploying the Claude Projects MCP Server in development, staging, and production environments.
+This guide covers deploying the Stoked Projects MCP Server in development, staging, and production environments.
 
 ## Table of Contents
 
@@ -97,7 +97,7 @@ Add or update:
 ```json
 {
   "mcpServers": {
-    "claude-projects": {
+    "stoked-projects": {
       "command": "node",
       "args": ["dist/index.js"],
       "cwd": "/absolute/path/to/packages/mcp-server",
@@ -153,7 +153,7 @@ pnpm lint
 mkdir -p deployment/config
 cat > deployment/config/.env.staging << EOF
 NODE_ENV=staging
-STATE_TRACKING_API_URL=https://staging-api.claude-projects.example.com
+STATE_TRACKING_API_URL=https://staging-api.stoked-projects.example.com
 STATE_TRACKING_API_KEY=staging-key-here
 WS_API_KEY=staging-ws-key-here
 GITHUB_TOKEN=staging-github-token
@@ -236,7 +236,7 @@ docker-compose logs -f mcp-server
 mkdir -p deployment/config
 cat > deployment/config/.env.production << EOF
 NODE_ENV=production
-STATE_TRACKING_API_URL=https://api.claude-projects.example.com
+STATE_TRACKING_API_URL=https://api.stoked-projects.example.com
 STATE_TRACKING_API_KEY=${PRODUCTION_API_KEY}
 WS_API_KEY=${PRODUCTION_WS_KEY}
 GITHUB_TOKEN=${PRODUCTION_GITHUB_TOKEN}
@@ -313,7 +313,7 @@ docker-compose logs -f mcp-server nginx
 
 ```bash
 cd deployment
-docker build -t claude-projects-mcp-server:latest -f Dockerfile ..
+docker build -t stoked-projects-mcp-server:latest -f Dockerfile ..
 ```
 
 #### With Docker Compose
@@ -328,7 +328,7 @@ docker-compose build
 ```bash
 docker build \
   --no-cache \
-  -t claude-projects-mcp-server:1.0.0 \
+  -t stoked-projects-mcp-server:1.0.0 \
   -f deployment/Dockerfile \
   .
 ```
@@ -345,7 +345,7 @@ docker run \
   -e WS_API_KEY=dev-ws-key \
   -e GITHUB_TOKEN=ghp_... \
   -p 8080:8080 \
-  claude-projects-mcp-server:latest
+  stoked-projects-mcp-server:latest
 ```
 
 #### Production
@@ -366,7 +366,7 @@ docker run \
   --health-timeout=10s \
   --health-retries=3 \
   --health-start-period=40s \
-  claude-projects-mcp-server:latest
+  stoked-projects-mcp-server:latest
 ```
 
 ### Docker Compose Commands
@@ -405,8 +405,8 @@ docker-compose exec mcp-server node dist/tools/health-check.js
 - `STATE_TRACKING_API_KEY` (required): API authentication key
 - `STATE_TRACKING_API_URL` (optional): API base URL
   - Dev: `http://localhost:3000`
-  - Staging: `https://staging-api.claude-projects.example.com`
-  - Production: `https://api.claude-projects.example.com`
+  - Staging: `https://staging-api.stoked-projects.example.com`
+  - Production: `https://api.stoked-projects.example.com`
 
 #### WebSocket Configuration
 
@@ -496,7 +496,7 @@ The server includes health checks that verify:
 ### Docker Health Check
 
 ```bash
-docker inspect claude-projects-mcp-server --format='{{.State.Health.Status}}'
+docker inspect stoked-projects-mcp-server --format='{{.State.Health.Status}}'
 ```
 
 ### Monitoring Integration
@@ -548,7 +548,7 @@ docker-compose restart mcp-server
 **Check network:**
 
 ```bash
-docker exec mcp-server curl -v https://api.claude-projects.example.com
+docker exec mcp-server curl -v https://api.stoked-projects.example.com
 ```
 
 ### High Memory Usage
@@ -605,7 +605,7 @@ docker-compose exec mcp-server env | grep API_KEY
 **Test API connectivity:**
 
 ```bash
-docker-compose exec mcp-server curl -H "Authorization: Bearer $STATE_TRACKING_API_KEY" https://api.claude-projects.example.com/health
+docker-compose exec mcp-server curl -H "Authorization: Bearer $STATE_TRACKING_API_KEY" https://api.stoked-projects.example.com/health
 ```
 
 ### View Detailed Logs

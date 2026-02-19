@@ -228,7 +228,7 @@ Fetch complete project details including metadata, fields, phases, and statistic
 {
   "projectNumber": 70,
   "id": "PVT_kwDOABCDEF",
-  "title": "Claude Projects State Tracking API",
+  "title": "Stoked Projects State Tracking API",
   "description": "Build state tracking API for GitHub Projects integration",
   "url": "https://github.com/orgs/stokedconsulting/projects/70",
   "status": "open",

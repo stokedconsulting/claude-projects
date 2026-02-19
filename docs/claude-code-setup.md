@@ -1,6 +1,6 @@
 # Claude Code Setup Guide
 
-Complete guide for setting up Claude Code integration with the Claude Projects MCP server for seamless project management capabilities.
+Complete guide for setting up Claude Code integration with the Stoked Projects MCP server for seamless project management capabilities.
 
 ---
 
@@ -111,7 +111,7 @@ git --version         # Should show 2.x or higher
 
 ### Repository Access
 
-- Clone or access the claude-projects repository
+- Clone or access the stoked-projects repository
 - Must have `packages/mcp-server` directory available
 - Must have read/write access for configuration
 
@@ -123,7 +123,7 @@ For experienced users, here's the fastest path to integration:
 
 ```bash
 # 1. Build the MCP server
-cd /path/to/claude-projects-project-72/packages/mcp-server
+cd /path/to/stoked-projects-project-72/packages/mcp-server
 pnpm install && pnpm build
 
 # 2. Get your configuration file location
@@ -139,9 +139,9 @@ open ~/Library/Application\ Support/Claude/
 # 3. Add to claude_desktop_config.json
 {
   "mcpServers": {
-    "claude-projects": {
+    "stoked-projects": {
       "command": "node",
-      "args": ["/absolute/path/to/claude-projects-project-72/packages/mcp-server/dist/index.js"],
+      "args": ["/absolute/path/to/stoked-projects-project-72/packages/mcp-server/dist/index.js"],
       "env": {
         "STATE_TRACKING_API_KEY": "sk_your_key_here",
         "WS_API_KEY": "ws_your_key_here"
@@ -164,14 +164,14 @@ The MCP Server must be built before Claude can use it.
 #### 1.1 Navigate to the Server Directory
 
 ```bash
-cd /path/to/claude-projects-project-72/packages/mcp-server
+cd /path/to/stoked-projects-project-72/packages/mcp-server
 ```
 
 Replace `/path/to/` with your actual repository location. You can find it by running:
 
 ```bash
 # Find the repository location
-find ~ -type d -name "claude-projects-project-72" 2>/dev/null | head -1
+find ~ -type d -name "stoked-projects-project-72" 2>/dev/null | head -1
 ```
 
 #### 1.2 Install Dependencies
@@ -207,7 +207,7 @@ STATE_TRACKING_API_KEY=sk_your_api_key_here
 WS_API_KEY=ws_your_websocket_key_here
 
 # Optional: API URL (change for staging/self-hosted)
-STATE_TRACKING_API_URL=https://claude-projects.truapi.com
+STATE_TRACKING_API_URL=http://localhost:8167
 
 # Optional: Logging level (debug, info, warn, error)
 LOG_LEVEL=info
@@ -297,10 +297,10 @@ If the file is empty or just has `{}`, replace it with:
 ```json
 {
   "mcpServers": {
-    "claude-projects": {
+    "stoked-projects": {
       "command": "node",
       "args": [
-        "/absolute/path/to/claude-projects-project-72/packages/mcp-server/dist/index.js"
+        "/absolute/path/to/stoked-projects-project-72/packages/mcp-server/dist/index.js"
       ],
       "env": {
         "STATE_TRACKING_API_KEY": "sk_your_api_key_here",
@@ -319,8 +319,8 @@ If the file is empty or just has `{}`, replace it with:
 # Find the repository
 pwd  # while in the repository directory
 
-# Example output: /Users/yourname/work/claude-projects-project-72
-# Full path to dist: /Users/yourname/work/claude-projects-project-72/packages/mcp-server/dist/index.js
+# Example output: /Users/yourname/work/stoked-projects-project-72
+# Full path to dist: /Users/yourname/work/stoked-projects-project-72/packages/mcp-server/dist/index.js
 ```
 
 #### 2.3 Verify Configuration Syntax
@@ -491,7 +491,7 @@ Benefits:
 
 ```bash
 STATE_TRACKING_API_KEY=sk_staging_your_key_here
-STATE_TRACKING_API_URL=https://staging.claude-projects.example.com
+STATE_TRACKING_API_URL=https://staging.stoked-projects.example.com
 WS_API_KEY=ws_staging_your_key_here
 WS_PORT=8081
 LOG_LEVEL=info
@@ -514,7 +514,7 @@ Complete reference for all configuration options.
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `WS_API_KEY` | (none) | WebSocket API key for VSCode extension notifications |
-| `STATE_TRACKING_API_URL` | `https://claude-projects.truapi.com` | Base URL for state tracking API |
+| `STATE_TRACKING_API_URL` | `http://localhost:8167` | Base URL for state tracking API |
 | `LOG_LEVEL` | `info` | Logging verbosity: `debug`, `info`, `warn`, `error` |
 | `REQUEST_TIMEOUT_MS` | `10000` | Request timeout in milliseconds (10 seconds) |
 | `RETRY_ATTEMPTS` | `3` | Number of times to retry failed requests |
@@ -644,7 +644,7 @@ Use the health_check tool to verify the MCP server is responding correctly.
 
 **Claude Prompt:**
 ```
-Check the health of the state tracking API to ensure we can access Claude Projects.
+Check the health of the state tracking API to ensure we can access Stoked Projects.
 ```
 
 **What Claude Does:**
@@ -661,7 +661,7 @@ The API is healthy and responding correctly:
 - Response Time: 145ms
 - API Version: 1.0.0
 
-Everything looks good! You're ready to use Claude Projects management tools.
+Everything looks good! You're ready to use Stoked Projects management tools.
 ```
 
 #### Example 2: Read Project Details
@@ -678,7 +678,7 @@ Read project 70 and tell me:
 **Claude Response:**
 ```
 Here's the project status:
-1. Title: Claude Projects State Tracking
+1. Title: Stoked Projects State Tracking
 2. Total Issues: 45
 3. Completed: 22 (48%)
 4. Current Phase: Phase 2: Development (with 18 active issues)
@@ -858,7 +858,7 @@ ls -l ~/Library/Application\ Support/Claude/claude_desktop_config.json
 4. **Check the path to dist/index.js:**
 ```bash
 # Verify the file actually exists
-test -f /path/to/claude-projects-project-72/packages/mcp-server/dist/index.js && echo "Found" || echo "NOT FOUND"
+test -f /path/to/stoked-projects-project-72/packages/mcp-server/dist/index.js && echo "Found" || echo "NOT FOUND"
 ```
 
 **Solutions:**
@@ -868,7 +868,7 @@ test -f /path/to/claude-projects-project-72/packages/mcp-server/dist/index.js &&
 cat > ~/Library/Application\ Support/Claude/claude_desktop_config.json << 'EOF'
 {
   "mcpServers": {
-    "claude-projects": {
+    "stoked-projects": {
       "command": "node",
       "args": ["/absolute/path/to/dist/index.js"],
       "env": {
@@ -918,7 +918,7 @@ echo $STATE_TRACKING_API_KEY
 2. **Test API key directly:**
 ```bash
 curl -H "Authorization: Bearer sk_your_key_here" \
-     https://claude-projects.truapi.com/api/projects
+     http://localhost:8167/api/projects
 ```
 
 If you get `Unauthorized`, the key is invalid.
@@ -946,7 +946,7 @@ STATE_TRACKING_API_KEY=sk_your_key_here
 ```json
 {
   "mcpServers": {
-    "claude-projects": {
+    "stoked-projects": {
       "env": {
         "REQUEST_TIMEOUT_MS": "30000"
       }
@@ -960,10 +960,10 @@ Restart Claude after changing this.
 2. **Check network connectivity:**
 ```bash
 # Test latency to API
-ping claude-projects.truapi.com
+ping localhost:8167
 
 # Check DNS resolution
-nslookup claude-projects.truapi.com
+nslookup localhost:8167
 ```
 
 If ping times are >500ms, you have network issues.
@@ -1013,7 +1013,7 @@ Should match the key in VSCode settings.
 
 4. **Check VSCode extension settings:**
 - Open VSCode Settings (Cmd+,)
-- Search "Claude Projects"
+- Search "Stoked Projects"
 - Verify `ghProjects.notifications.websocketUrl` is `ws://localhost:8080/notifications`
 
 5. **Check browser console for errors:**
@@ -1032,7 +1032,7 @@ Run different servers for development and production:
 ```json
 {
   "mcpServers": {
-    "claude-projects-dev": {
+    "stoked-projects-dev": {
       "command": "node",
       "args": ["/path/to/dev/packages/mcp-server/dist/index.js"],
       "env": {
@@ -1041,7 +1041,7 @@ Run different servers for development and production:
         "WS_PORT": "8080"
       }
     },
-    "claude-projects-prod": {
+    "stoked-projects-prod": {
       "command": "node",
       "args": ["/path/to/prod/packages/mcp-server/dist/index.js"],
       "env": {
@@ -1059,9 +1059,9 @@ Run different servers for development and production:
 ```json
 {
   "mcpServers": {
-    "claude-projects": {
+    "stoked-projects": {
       "command": "node",
-      "args": ["/path/to/claude-projects/packages/mcp-server/dist/index.js"],
+      "args": ["/path/to/stoked-projects/packages/mcp-server/dist/index.js"],
       "env": {
         "STATE_TRACKING_API_KEY": "sk_..."
       }
@@ -1090,7 +1090,7 @@ For debugging connection issues:
 ```json
 {
   "mcpServers": {
-    "claude-projects": {
+    "stoked-projects": {
       "env": {
         "LOG_LEVEL": "debug"
       }
@@ -1122,7 +1122,7 @@ Then configure Claude to connect to a different port or via script:
 ```json
 {
   "mcpServers": {
-    "claude-projects": {
+    "stoked-projects": {
       "command": "bash",
       "args": ["/path/to/start-mcp-server.sh"]
     }

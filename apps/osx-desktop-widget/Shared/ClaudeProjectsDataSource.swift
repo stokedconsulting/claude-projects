@@ -1,6 +1,6 @@
 import Foundation
 
-/// Data source that reads from ~/.claude-projects/ JSON files
+/// Data source that reads from ~/.stoked-projects/ JSON files
 class ClaudeProjectsDataSource {
     static let shared = ClaudeProjectsDataSource()
     
@@ -10,7 +10,7 @@ class ClaudeProjectsDataSource {
     
     init() {
         let home = FileManager.default.homeDirectoryForCurrentUser
-        baseDir = home.appendingPathComponent(".claude-projects")
+        baseDir = home.appendingPathComponent(".stoked-projects")
         orchestrationFile = baseDir.appendingPathComponent("orchestration.json")
         tasksFile = baseDir.appendingPathComponent("llmTasks.json")
         

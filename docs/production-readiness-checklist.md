@@ -1,6 +1,6 @@
 # Production Readiness Checklist
 
-**Project:** Claude Projects State Tracking API
+**Project:** Stoked Projects State Tracking API
 **Version:** 0.1.0
 **Last Updated:** 2026-01-20
 **Status:** Pre-Production Validation
@@ -215,7 +215,7 @@
 - [ ] **Configuration Management:** Environment variables managed via secret manager
 
 ### 6.2 Infrastructure
-- [ ] **Domain Configuration:** API accessible at `claude-projects.truapi.com`
+- [ ] **Domain Configuration:** API accessible at `localhost:8167`
 - [ ] **SSL Certificate:** Valid SSL certificate configured
 - [ ] **DNS Configuration:** DNS records properly configured
 - [ ] **CDN/API Gateway:** API Gateway configured for Lambda (if applicable)
@@ -360,4 +360,4 @@ _Action items required for production readiness_
 - [MCP Integration Guide](./mcp-integration.md)
 - [Security Audit](./security-audit.md)
 - [Load Test Results](../tests/load/results/)
-- [PRD](../projects/build-claude-projects-api/prd.md)
+- [PRD](../projects/build-stoked-projects-api/prd.md)

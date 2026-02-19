@@ -1,4 +1,4 @@
-# Widget Update Guide: OrchestrationHUD → Claude Projects
+# Widget Update Guide: OrchestrationHUD → Stoked Projects
 
 ## What Happened?
 
@@ -10,7 +10,7 @@ The widget project was renamed from "OrchestrationHUD" to "ClaudeProjects", but 
 This is why you see:
 
 - ❌ Old "OrchestrationHUD" widgets in the widget gallery
-- ❌ No "Claude Projects" widgets visible
+- ❌ No "Stoked Projects" widgets visible
 - ❌ Empty app bundle at `/Applications/ClaudeProjects.app` (missing `Contents/PlugIns/`)
 - ✅ Successful build at `apps/osx-desktop-widget/build/Build/Products/Release/ClaudeProjects.app` (with widget extension)
 
@@ -71,18 +71,18 @@ The Release build automatically copies to `/Applications/ClaudeProjects.app`.
 
 1. Open **System Settings** → **Desktop & Dock** → **Widgets**
 2. Or use widget picker: Click Desktop → **Edit Widgets**
-3. Look for **"Claude Projects"** (not OrchestrationHUD)
+3. Look for **"Stoked Projects"** (not OrchestrationHUD)
 4. Add the widget to your desktop
 
 ## Widget Configuration
 
 The new widget is configured as:
 
-- **App Name**: Claude Projects
+- **App Name**: Stoked Projects
 - **Bundle ID**: `com.claudeprojects.app`
 - **Widget Bundle ID**: `com.claudeprojects.app.widget`
 - **Widget Kind**: `ClaudeProjectsWidget`
-- **Display Name**: "Claude Projects"
+- **Display Name**: "Stoked Projects"
 - **Description**: "Monitor your Claude LLM orchestration sessions."
 
 ## Troubleshooting

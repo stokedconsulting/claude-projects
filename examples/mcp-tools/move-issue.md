@@ -10,7 +10,7 @@ This document provides Claude prompts and code examples for moving GitHub issues
 I need to move multiple GitHub issues between project phases as we complete work.
 
 Current project structure:
-- Project #72: Claude Projects State Tracking API
+- Project #72: Stoked Projects State Tracking API
 - Phases: Planning → In Progress → Review → Done
 
 Issues to move:
@@ -68,7 +68,7 @@ ISSUE_NUMBER="15"
 echo "Moving issue #${ISSUE_NUMBER} from Planning → In Progress..."
 
 # Update task status
-curl -X PATCH https://claude-projects.truapi.com/api/tasks/${TASK_ID} \
+curl -X PATCH http://localhost:8167/api/tasks/${TASK_ID} \
   -H "X-API-Key: ${MCP_API_KEY}" \
   -H "Content-Type: application/json" \
   -d '{
@@ -96,7 +96,7 @@ ISSUE_NUMBER="5"
 
 echo "Moving issue #${ISSUE_NUMBER} from In Progress → Review..."
 
-curl -X PATCH https://claude-projects.truapi.com/api/tasks/${TASK_ID} \
+curl -X PATCH http://localhost:8167/api/tasks/${TASK_ID} \
   -H "X-API-Key: ${MCP_API_KEY}" \
   -H "Content-Type: application/json" \
   -d '{
@@ -126,7 +126,7 @@ ISSUE_NUMBER="5"
 
 echo "Moving issue #${ISSUE_NUMBER} from Review → Done..."
 
-curl -X PATCH https://claude-projects.truapi.com/api/tasks/${TASK_ID} \
+curl -X PATCH http://localhost:8167/api/tasks/${TASK_ID} \
   -H "X-API-Key: ${MCP_API_KEY}" \
   -H "Content-Type: application/json" \
   -d '{
@@ -162,7 +162,7 @@ echo "✓ Issue #${ISSUE_NUMBER} moved to Done"
 
 set -e
 
-API_BASE="${MCP_API_BASE:-https://claude-projects.truapi.com}"
+API_BASE="${MCP_API_BASE:-http://localhost:8167}"
 API_KEY="${MCP_API_KEY}"
 SESSION_ID=""
 declare -A ISSUE_PHASES
@@ -337,7 +337,7 @@ import sys
 from datetime import datetime
 from enum import Enum
 
-API_BASE = os.getenv('MCP_API_BASE', 'https://claude-projects.truapi.com')
+API_BASE = os.getenv('MCP_API_BASE', 'http://localhost:8167')
 API_KEY = os.getenv('MCP_API_KEY')
 
 if not API_KEY:
@@ -530,7 +530,7 @@ if __name__ == '__main__':
 
 const https = require('https');
 
-const API_BASE = process.env.MCP_API_BASE || 'https://claude-projects.truapi.com';
+const API_BASE = process.env.MCP_API_BASE || 'http://localhost:8167';
 const API_KEY = process.env.MCP_API_KEY;
 
 if (!API_KEY) {
@@ -701,7 +701,7 @@ module.exports = { moveIssues, apiCall };
 
 ### Move Issue to In Progress
 ```bash
-curl -X PATCH https://claude-projects.truapi.com/api/tasks/TASK_ID \
+curl -X PATCH http://localhost:8167/api/tasks/TASK_ID \
   -H "X-API-Key: ${MCP_API_KEY}" \
   -H "Content-Type: application/json" \
   -d '{
@@ -712,7 +712,7 @@ curl -X PATCH https://claude-projects.truapi.com/api/tasks/TASK_ID \
 
 ### Move Issue to Review
 ```bash
-curl -X PATCH https://claude-projects.truapi.com/api/tasks/TASK_ID \
+curl -X PATCH http://localhost:8167/api/tasks/TASK_ID \
   -H "X-API-Key: ${MCP_API_KEY}" \
   -H "Content-Type: application/json" \
   -d '{
@@ -723,7 +723,7 @@ curl -X PATCH https://claude-projects.truapi.com/api/tasks/TASK_ID \
 
 ### Move Issue to Done
 ```bash
-curl -X PATCH https://claude-projects.truapi.com/api/tasks/TASK_ID \
+curl -X PATCH http://localhost:8167/api/tasks/TASK_ID \
   -H "X-API-Key: ${MCP_API_KEY}" \
   -H "Content-Type: application/json" \
   -d '{
@@ -735,7 +735,7 @@ curl -X PATCH https://claude-projects.truapi.com/api/tasks/TASK_ID \
 ### Get Issues in Specific Phase
 ```bash
 # Get all tasks (filter by metadata.phase in application layer)
-curl -X GET "https://claude-projects.truapi.com/api/tasks?session_id=SESSION_ID" \
+curl -X GET "http://localhost:8167/api/tasks?session_id=SESSION_ID" \
   -H "X-API-Key: ${MCP_API_KEY}"
 ```
 

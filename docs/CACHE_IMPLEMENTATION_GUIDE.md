@@ -2,7 +2,7 @@
 
 ## Overview
 
-This guide provides implementation details for aligning caching across the Claude Projects system. It covers:
+This guide provides implementation details for aligning caching across the Stoked Projects system. It covers:
 - **Extension** (VSCode workspace cache)
 - **API** (HTTP response caching with ETags)
 - **MCP Server** (Client-side request caching)

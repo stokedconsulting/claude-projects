@@ -1,6 +1,6 @@
 # Deployment Guide
 
-Comprehensive deployment guide for all components of the Claude Projects system.
+Comprehensive deployment guide for all components of the Stoked Projects system.
 
 ## Table of Contents
 
@@ -18,7 +18,7 @@ Comprehensive deployment guide for all components of the Claude Projects system.
 
 ## Overview
 
-The Claude Projects system consists of three independently deployable components:
+The Stoked Projects system consists of three independently deployable components:
 
 1. **VSCode Extension** - Distributed via VSIX package or marketplace
 2. **State Tracking API** - Deployed as serverless (AWS Lambda) or containerized (Docker)
@@ -109,7 +109,7 @@ NODE_ENV=production
 GITHUB_TOKEN=ghp_your_production_token
 
 # MongoDB
-MONGODB_URI=mongodb+srv://user:pass@cluster.mongodb.net/claude-projects
+MONGODB_URI=mongodb+srv://user:pass@cluster.mongodb.net/stoked-projects
 
 # API Authentication
 API_KEY=your_secure_api_key_here
@@ -118,7 +118,7 @@ API_KEY=your_secure_api_key_here
 LOG_LEVEL=info
 
 # State Tracking API
-STATE_TRACKING_API_URL=https://api.claude-projects.example.com
+STATE_TRACKING_API_URL=https://api.stoked-projects.example.com
 STATE_TRACKING_API_KEY=your_api_key
 
 # WebSocket (MCP Server)
@@ -141,23 +141,23 @@ GITHUB_GRAPHQL_RATE_LIMIT=5000
 NODE_ENV=development
 LOG_LEVEL=debug
 STATE_TRACKING_API_URL=http://localhost:3000
-MONGODB_URI=mongodb://localhost:27017/claude-projects-dev
+MONGODB_URI=mongodb://localhost:27017/stoked-projects-dev
 ```
 
 **Staging:**
 ```bash
 NODE_ENV=staging
 LOG_LEVEL=debug
-STATE_TRACKING_API_URL=https://staging-api.claude-projects.example.com
-MONGODB_URI=mongodb+srv://user:pass@staging-cluster.mongodb.net/claude-projects-staging
+STATE_TRACKING_API_URL=https://staging-api.stoked-projects.example.com
+MONGODB_URI=mongodb+srv://user:pass@staging-cluster.mongodb.net/stoked-projects-staging
 ```
 
 **Production:**
 ```bash
 NODE_ENV=production
 LOG_LEVEL=info
-STATE_TRACKING_API_URL=https://api.claude-projects.example.com
-MONGODB_URI=mongodb+srv://user:pass@prod-cluster.mongodb.net/claude-projects
+STATE_TRACKING_API_URL=https://api.stoked-projects.example.com
+MONGODB_URI=mongodb+srv://user:pass@prod-cluster.mongodb.net/stoked-projects
 ```
 
 ## VSCode Extension Deployment
@@ -183,17 +183,17 @@ pnpm run build
 # Create VSIX package
 pnpm run package
 
-# Output: claude-projects-1.0.0.vsix
+# Output: stoked-projects-1.0.0.vsix
 ```
 
 ### Local Installation
 
 ```bash
 # Install from VSIX
-code --install-extension claude-projects-1.0.0.vsix
+code --install-extension stoked-projects-1.0.0.vsix
 
 # Or from Extension Marketplace (if published)
-code --install-extension publisher.claude-projects
+code --install-extension publisher.stoked-projects
 ```
 
 ### Publishing to VSCode Marketplace
@@ -221,7 +221,7 @@ vsce publish
 ```
 
 4. **Verify publication:**
-   - Check marketplace: https://marketplace.visualstudio.com/items?itemName=publisher.claude-projects
+   - Check marketplace: https://marketplace.visualstudio.com/items?itemName=publisher.stoked-projects
 
 ### Private Distribution
 
@@ -232,10 +232,10 @@ For internal/private distribution:
 pnpm run package
 
 # Host VSIX on internal server
-cp claude-projects-1.0.0.vsix /var/www/extensions/
+cp stoked-projects-1.0.0.vsix /var/www/extensions/
 
 # Users install via URL
-code --install-extension https://internal.company.com/extensions/claude-projects-1.0.0.vsix
+code --install-extension https://internal.company.com/extensions/stoked-projects-1.0.0.vsix
 ```
 
 ### Configuration for Deployed API
@@ -250,7 +250,7 @@ Update extension to use production API:
       "properties": {
         "claudeProjects.apiUrl": {
           "type": "string",
-          "default": "https://api.claude-projects.example.com",
+          "default": "https://api.stoked-projects.example.com",
           "description": "State Tracking API URL"
         }
       }
@@ -280,7 +280,7 @@ npm install -g serverless
 
 ```yaml
 # packages/api/serverless.yml
-service: claude-projects-api
+service: stoked-projects-api
 
 provider:
   name: aws
@@ -336,11 +336,11 @@ serverless deploy --stage production
 
 ```bash
 # Health check
-curl https://api.claude-projects.example.com/health
+curl https://api.stoked-projects.example.com/health
 
 # Test endpoint
 curl -H "X-API-Key: your_api_key" \
-  "https://api.claude-projects.example.com/api/github/health"
+  "https://api.stoked-projects.example.com/api/github/health"
 ```
 
 ### Docker Deployment (Alternative)
@@ -351,20 +351,20 @@ curl -H "X-API-Key: your_api_key" \
 cd packages/api
 
 # Build
-docker build -t claude-projects-api:latest .
+docker build -t stoked-projects-api:latest .
 
 # Or with specific tag
-docker build -t claude-projects-api:1.0.0 .
+docker build -t stoked-projects-api:1.0.0 .
 ```
 
 **2. Test locally:**
 
 ```bash
 docker run -p 3000:3000 \
-  -e MONGODB_URI="mongodb://host.docker.internal:27017/claude-projects" \
+  -e MONGODB_URI="mongodb://host.docker.internal:27017/stoked-projects" \
   -e GITHUB_TOKEN="ghp_token" \
   -e API_KEY="api_key" \
-  claude-projects-api:latest
+  stoked-projects-api:latest
 
 # Test
 curl http://localhost:3000/health
@@ -374,17 +374,17 @@ curl http://localhost:3000/health
 
 ```bash
 # Docker Hub
-docker tag claude-projects-api:latest username/claude-projects-api:latest
-docker push username/claude-projects-api:latest
+docker tag stoked-projects-api:latest username/stoked-projects-api:latest
+docker push username/stoked-projects-api:latest
 
 # AWS ECR
 aws ecr get-login-password --region us-east-1 | \
   docker login --username AWS --password-stdin 123456789.dkr.ecr.us-east-1.amazonaws.com
 
-docker tag claude-projects-api:latest \
-  123456789.dkr.ecr.us-east-1.amazonaws.com/claude-projects-api:latest
+docker tag stoked-projects-api:latest \
+  123456789.dkr.ecr.us-east-1.amazonaws.com/stoked-projects-api:latest
 
-docker push 123456789.dkr.ecr.us-east-1.amazonaws.com/claude-projects-api:latest
+docker push 123456789.dkr.ecr.us-east-1.amazonaws.com/stoked-projects-api:latest
 ```
 
 **4. Deploy to ECS/Fargate:**
@@ -393,7 +393,7 @@ Create ECS task definition:
 
 ```json
 {
-  "family": "claude-projects-api",
+  "family": "stoked-projects-api",
   "networkMode": "awsvpc",
   "requiresCompatibilities": ["FARGATE"],
   "cpu": "512",
@@ -401,7 +401,7 @@ Create ECS task definition:
   "containerDefinitions": [
     {
       "name": "api",
-      "image": "123456789.dkr.ecr.us-east-1.amazonaws.com/claude-projects-api:latest",
+      "image": "123456789.dkr.ecr.us-east-1.amazonaws.com/stoked-projects-api:latest",
       "portMappings": [
         {
           "containerPort": 3000,
@@ -420,7 +420,7 @@ Create ECS task definition:
       "logConfiguration": {
         "logDriver": "awslogs",
         "options": {
-          "awslogs-group": "/ecs/claude-projects-api",
+          "awslogs-group": "/ecs/stoked-projects-api",
           "awslogs-region": "us-east-1",
           "awslogs-stream-prefix": "ecs"
         }
@@ -434,16 +434,16 @@ Create and run service:
 
 ```bash
 # Create cluster
-aws ecs create-cluster --cluster-name claude-projects
+aws ecs create-cluster --cluster-name stoked-projects
 
 # Register task definition
 aws ecs register-task-definition --cli-input-json file://task-definition.json
 
 # Create service
 aws ecs create-service \
-  --cluster claude-projects \
+  --cluster stoked-projects \
   --service-name api \
-  --task-definition claude-projects-api:1 \
+  --task-definition stoked-projects-api:1 \
   --desired-count 2 \
   --launch-type FARGATE \
   --network-configuration "awsvpcConfiguration={subnets=[subnet-abc123],securityGroups=[sg-abc123],assignPublicIp=ENABLED}"
@@ -474,11 +474,11 @@ docker run -d \
 # Create application database and user
 mongosh mongodb://admin:password@localhost:27017/admin
 
-use claude-projects
+use stoked-projects
 db.createUser({
   user: "api-user",
   pwd: "secure-password",
-  roles: [{ role: "readWrite", db: "claude-projects" }]
+  roles: [{ role: "readWrite", db: "stoked-projects" }]
 })
 ```
 
@@ -498,12 +498,12 @@ pnpm build
 # Edit: ~/Library/Application Support/Claude/claude_desktop_config.json
 {
   "mcpServers": {
-    "claude-projects": {
+    "stoked-projects": {
       "command": "node",
       "args": ["dist/index.js"],
       "cwd": "/absolute/path/to/packages/mcp-server",
       "env": {
-        "STATE_TRACKING_API_URL": "https://api.claude-projects.example.com",
+        "STATE_TRACKING_API_URL": "https://api.stoked-projects.example.com",
         "STATE_TRACKING_API_KEY": "your_api_key"
       }
     }
@@ -521,10 +521,10 @@ pnpm build
 
 ```bash
 # Basic health check
-curl https://api.claude-projects.example.com/health
+curl https://api.stoked-projects.example.com/health
 
 # Detailed health check
-curl https://api.claude-projects.example.com/health/detailed
+curl https://api.stoked-projects.example.com/health/detailed
 
 # Response:
 {
@@ -547,11 +547,11 @@ curl https://api.claude-projects.example.com/health/detailed
 
 ```bash
 # Metrics (Prometheus format)
-curl https://api.claude-projects.example.com/metrics
+curl https://api.stoked-projects.example.com/metrics
 
 # Rate limit status
 curl -H "X-API-Key: key" \
-  https://api.claude-projects.example.com/api/github/rate-limit
+  https://api.stoked-projects.example.com/api/github/rate-limit
 ```
 
 ### Logging
@@ -560,11 +560,11 @@ curl -H "X-API-Key: key" \
 
 ```bash
 # View logs
-aws logs tail /aws/lambda/claude-projects-api --follow
+aws logs tail /aws/lambda/stoked-projects-api --follow
 
 # Query logs
 aws logs filter-log-events \
-  --log-group-name /aws/lambda/claude-projects-api \
+  --log-group-name /aws/lambda/stoked-projects-api \
   --filter-pattern "ERROR"
 ```
 
@@ -640,7 +640,7 @@ export class MyService {
 ```bash
 # Update service desired count
 aws ecs update-service \
-  --cluster claude-projects \
+  --cluster stoked-projects \
   --service api \
   --desired-count 5
 ```
@@ -696,12 +696,12 @@ functions:
 ```bash
 # Store secret
 aws secretsmanager create-secret \
-  --name claude-projects/github-token \
+  --name stoked-projects/github-token \
   --secret-string "ghp_token_here"
 
 # Retrieve in Lambda
 const secret = await secretsManager.getSecretValue({
-  SecretId: 'claude-projects/github-token'
+  SecretId: 'stoked-projects/github-token'
 }).promise();
 ```
 
@@ -715,8 +715,8 @@ provider:
     LOG_LEVEL: info
 
     # Reference to Secrets Manager
-    GITHUB_TOKEN: ${ssm:/claude-projects/github-token~true}
-    API_KEY: ${ssm:/claude-projects/api-key~true}
+    GITHUB_TOKEN: ${ssm:/stoked-projects/github-token~true}
+    API_KEY: ${ssm:/stoked-projects/api-key~true}
 ```
 
 ### API Security
@@ -729,7 +729,7 @@ openssl rand -base64 32
 
 # Update in Secrets Manager
 aws secretsmanager update-secret \
-  --secret-id claude-projects/api-key \
+  --secret-id stoked-projects/api-key \
   --secret-string "new_key_here"
 
 # Update clients with new key
@@ -778,10 +778,10 @@ functions:
 
 ```bash
 # Uninstall current version
-code --uninstall-extension publisher.claude-projects
+code --uninstall-extension publisher.stoked-projects
 
 # Install previous version
-code --install-extension claude-projects-1.0.0.vsix
+code --install-extension stoked-projects-1.0.0.vsix
 ```
 
 ### API Rollback (Lambda)
@@ -794,19 +794,19 @@ serverless deploy list --stage production
 serverless rollback --timestamp <timestamp> --stage production
 
 # Or rollback via AWS Console:
-# Lambda → Functions → claude-projects-api → Versions → Promote to $LATEST
+# Lambda → Functions → stoked-projects-api → Versions → Promote to $LATEST
 ```
 
 ### API Rollback (Docker)
 
 ```bash
 # Tag previous version as latest
-docker tag claude-projects-api:1.0.0 claude-projects-api:latest
-docker push username/claude-projects-api:latest
+docker tag stoked-projects-api:1.0.0 stoked-projects-api:latest
+docker push username/stoked-projects-api:latest
 
 # Update ECS service
 aws ecs update-service \
-  --cluster claude-projects \
+  --cluster stoked-projects \
   --service api \
   --force-new-deployment
 

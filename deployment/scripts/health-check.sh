@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ==============================================================================
-# Claude Projects MCP Server - Health Check Script
+# Stoked Projects MCP Server - Health Check Script
 # ==============================================================================
 # Monitors the health of the MCP server and reports status
 # Usage: ./health-check.sh [container-name] [options]
@@ -21,7 +21,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Default values
-CONTAINER_NAME="${1:-claude-projects-mcp-server}"
+CONTAINER_NAME="${1:-stoked-projects-mcp-server}"
 CHECK_INTERVAL=30
 MAX_ATTEMPTS=10
 VERBOSE=false
@@ -48,7 +48,7 @@ show_usage() {
 Usage: $0 [container-name] [options]
 
 Arguments:
-  container-name  Docker container name (default: claude-projects-mcp-server)
+  container-name  Docker container name (default: stoked-projects-mcp-server)
 
 Options:
   --interval      Check interval in seconds (default: 30)

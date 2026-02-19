@@ -1,5 +1,5 @@
 {
-  "name": "@claude-projects/slack-app",
+  "name": "@stoked-projects/slack-app",
   "version": "0.1.0",
   "private": true,
   "scripts": {

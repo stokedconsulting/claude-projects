@@ -150,7 +150,7 @@ No configuration needed. The extension automatically:
 **Environment Variables**:
 ```bash
 # MongoDB connection
-MONGODB_URI=mongodb://localhost:27017/claude-projects
+MONGODB_URI=mongodb://localhost:27017/stoked-projects
 
 # API key for authentication
 API_KEYS=your-api-key-here
@@ -170,7 +170,7 @@ PORT=3000
    ```
 
 2. **Open Extension**:
-   - Open VSCode with claude-projects workspace
+   - Open VSCode with stoked-projects workspace
    - Reload window to load new extension build
 
 3. **Test Workspace Updates**:

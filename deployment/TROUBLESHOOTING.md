@@ -1,6 +1,6 @@
 # MCP Server Troubleshooting Guide
 
-Common issues and solutions for the Claude Projects MCP Server.
+Common issues and solutions for the Stoked Projects MCP Server.
 
 ## Table of Contents
 
@@ -228,10 +228,10 @@ cat /proc/<PID>/environ | tr '\0' '\n' | grep STATE_TRACKING
 **Diagnosis**:
 ```bash
 # Test connectivity to API
-curl -v https://api.claude-projects.example.com
+curl -v https://api.stoked-projects.example.com
 
 # Check DNS resolution
-nslookup api.claude-projects.example.com
+nslookup api.stoked-projects.example.com
 ```
 
 **Solution**:
@@ -241,11 +241,11 @@ nslookup api.claude-projects.example.com
    ```
 2. Check if API is running:
    ```bash
-   curl https://api.claude-projects.example.com/health
+   curl https://api.stoked-projects.example.com/health
    ```
 3. Check network connectivity:
    ```bash
-   ping api.claude-projects.example.com
+   ping api.stoked-projects.example.com
    ```
 4. Check firewall:
    ```bash
@@ -260,7 +260,7 @@ nslookup api.claude-projects.example.com
 **Diagnosis**:
 ```bash
 # Measure response time
-curl -w "@curl-format.txt" -o /dev/null -s https://api.claude-projects.example.com/health
+curl -w "@curl-format.txt" -o /dev/null -s https://api.stoked-projects.example.com/health
 
 # Check server load
 top -n 1 | head -15
@@ -273,12 +273,12 @@ top -n 1 | head -15
    ```
 2. Check API server health:
    ```bash
-   curl https://api.claude-projects.example.com/health
+   curl https://api.stoked-projects.example.com/health
    ```
 3. Monitor server resources
 4. Check network latency:
    ```bash
-   ping -c 5 api.claude-projects.example.com
+   ping -c 5 api.stoked-projects.example.com
    ```
 
 ### Authentication Failed
@@ -307,7 +307,7 @@ echo $STATE_TRACKING_API_KEY | wc -c
 4. Test API key:
    ```bash
    curl -H "Authorization: Bearer $STATE_TRACKING_API_KEY" \
-     https://api.claude-projects.example.com/health
+     https://api.stoked-projects.example.com/health
    ```
 
 #### Error: "403 Forbidden"
@@ -333,7 +333,7 @@ ssh api-server
 tail -f /var/log/api-server.log
 
 # Test API directly
-curl -v https://api.claude-projects.example.com/projects
+curl -v https://api.stoked-projects.example.com/projects
 ```
 
 **Solution**:
@@ -351,7 +351,7 @@ curl -v https://api.claude-projects.example.com/projects
 
 ### MCP Server Not Listed
 
-#### Problem: "claude-projects" server not showing in MCP tab
+#### Problem: "stoked-projects" server not showing in MCP tab
 
 **Diagnosis**:
 ```bash
@@ -611,7 +611,7 @@ LOG_LEVEL=debug docker-compose up mcp-server
 docker-compose exec mcp-server node dist/tools/health-check.js
 
 # Check container health details
-docker inspect claude-projects-mcp-server --format='{{json .State.Health}}'
+docker inspect stoked-projects-mcp-server --format='{{json .State.Health}}'
 ```
 
 **Solution**:

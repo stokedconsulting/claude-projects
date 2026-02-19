@@ -14,7 +14,7 @@ This document describes the migration of shell scripts from direct `gh` CLI call
 # Old approach - direct gh CLI
 gh issue close 123 --comment "Completed via Claude Code"
 gh issue view 123
-gh project list --owner stoked --repo claude-projects
+gh project list --owner stoked --repo stoked-projects
 ```
 
 **Limitations:**
@@ -102,7 +102,7 @@ gh project list --owner stoked --repo claude-projects
 
 ```bash
 # Test basic functionality
-cd /path/to/claude-projects
+cd /path/to/stoked-projects
 
 # Get issue details
 ./examples/mcp-client.js get-issue --number 1
@@ -160,7 +160,7 @@ If you have custom scripts using `gh` CLI:
 Close a GitHub issue.
 
 ```bash
-./mcp-client.js close-issue --owner stoked --repo claude-projects --number 123
+./mcp-client.js close-issue --owner stoked --repo stoked-projects --number 123
 ```
 
 #### `create-issue`
@@ -169,7 +169,7 @@ Create a new GitHub issue.
 ```bash
 ./mcp-client.js create-issue \
   --owner stoked \
-  --repo claude-projects \
+  --repo stoked-projects \
   --title "New issue" \
   --body "Issue description" \
   --labels "bug,enhancement"
@@ -181,7 +181,7 @@ Update an existing GitHub issue.
 ```bash
 ./mcp-client.js update-issue \
   --owner stoked \
-  --repo claude-projects \
+  --repo stoked-projects \
   --number 123 \
   --title "Updated title" \
   --state closed
@@ -191,7 +191,7 @@ Update an existing GitHub issue.
 Get details of a GitHub issue.
 
 ```bash
-./mcp-client.js get-issue --owner stoked --repo claude-projects --number 123
+./mcp-client.js get-issue --owner stoked --repo stoked-projects --number 123
 ```
 
 #### `list-issues`
@@ -200,7 +200,7 @@ List repository issues.
 ```bash
 ./mcp-client.js list-issues \
   --owner stoked \
-  --repo claude-projects \
+  --repo stoked-projects \
   --state open \
   --limit 30
 ```
@@ -209,7 +209,7 @@ List repository issues.
 List repository projects (ProjectsV2).
 
 ```bash
-./mcp-client.js list-projects --owner stoked --repo claude-projects
+./mcp-client.js list-projects --owner stoked --repo stoked-projects
 ```
 
 ### Options
@@ -239,7 +239,7 @@ The MCP client can integrate with the State Tracking API for automatic session m
 
 3. Configure API base URL (optional):
    ```bash
-   export MCP_API_BASE=https://claude-projects.truapi.com
+   export MCP_API_BASE=http://localhost:8167
    ```
 
 ### Benefits
@@ -300,7 +300,7 @@ If owner/repo cannot be auto-detected from git:
 **Solution:**
 ```bash
 # Specify explicitly
-./mcp-client.js get-issue --owner stoked --repo claude-projects --number 123
+./mcp-client.js get-issue --owner stoked --repo stoked-projects --number 123
 ```
 
 ### Error: API rate limit exceeded

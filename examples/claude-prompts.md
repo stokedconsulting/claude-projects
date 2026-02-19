@@ -1,6 +1,6 @@
 # Claude Code Prompts for Project Management
 
-Complete collection of sample prompts demonstrating how to use Claude Code for managing Claude Projects. Each prompt shows the intended Claude action and expected response.
+Complete collection of sample prompts demonstrating how to use Claude Code for managing Stoked Projects. Each prompt shows the intended Claude action and expected response.
 
 ---
 
@@ -60,7 +60,7 @@ What project management tools do you have available? List all tools and briefly 
 
 **Expected Response:**
 ```
-I have access to the following Claude Projects management tools:
+I have access to the following Stoked Projects management tools:
 
 1. health_check - Verify API connectivity and authentication
 2. read_project - Get complete project metadata, phases, and statistics
@@ -100,7 +100,7 @@ Read project 70 and give me a summary. Include:
 ```
 Project 70 Summary:
 
-Title: Claude Projects State Tracking
+Title: Stoked Projects State Tracking
 Description: Comprehensive state management system for GitHub Projects with real-time synchronization
 
 Issue Statistics:

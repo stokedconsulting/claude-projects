@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document defines a unified caching strategy across all layers of the Claude Projects system:
+This document defines a unified caching strategy across all layers of the Stoked Projects system:
 - **VSCode Extension** (`apps/code-ext`)
 - **State Tracking API** (`packages/api`)
 - **MCP Server** (`packages/mcp-server`)
@@ -175,7 +175,7 @@ Vary: Authorization, Accept-Encoding
 ### Extension Cache Keys
 ```
 ghProjects.cache.{owner}.{repo}
-  Example: ghProjects.cache.anthropic.claude-projects
+  Example: ghProjects.cache.anthropic.stoked-projects
 
 ghProjects.cache.meta.{owner}
   Example: ghProjects.cache.meta.anthropic (for org metadata)
@@ -196,7 +196,7 @@ project:{projectId}
 ### MCP Client Cache Keys
 ```
 projects:{owner}:{repo}
-  Example: projects:anthropic:claude-projects
+  Example: projects:anthropic:stoked-projects
 
 issues:{projectId}
   Example: issues:GH_PROJECT_ID_123
@@ -354,13 +354,13 @@ async getTask(
 
 ```typescript
 // Cache hit
-[CacheManager] Cache hit: ghProjects.cache.anthropic.claude-projects (age: 45s)
+[CacheManager] Cache hit: ghProjects.cache.anthropic.stoked-projects (age: 45s)
 
 // Cache miss
-[CacheManager] Cache miss: ghProjects.cache.anthropic.claude-projects
+[CacheManager] Cache miss: ghProjects.cache.anthropic.stoked-projects
 
 // Cache invalidation
-[CacheManager] Cache invalidated: ghProjects.cache.anthropic.claude-projects (reason: mutation)
+[CacheManager] Cache invalidated: ghProjects.cache.anthropic.stoked-projects (reason: mutation)
 
 // ETag validation
 [APIClient] Validation hit: tasks/abc123 (304 Not Modified)

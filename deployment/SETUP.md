@@ -1,6 +1,6 @@
 # MCP Server Local Development Setup
 
-This guide walks through setting up the Claude Projects MCP Server for local development with Claude Desktop.
+This guide walks through setting up the Stoked Projects MCP Server for local development with Claude Desktop.
 
 ## Table of Contents
 
@@ -43,11 +43,11 @@ Before starting, ensure you have:
      - `read:org` - Read organization data
      - `read:project` - Read GitHub Projects
      - `project` - Project administration
-   - Example token name: "Claude Projects Dev"
+   - Example token name: "Stoked Projects Dev"
    - Keep this secure!
 
 2. **State Tracking API Key**
-   - Provided by Claude Projects team
+   - Provided by Stoked Projects team
    - Format: Usually a long string or UUID
    - Will be specified in your environment configuration
 
@@ -65,7 +65,7 @@ Before starting, ensure you have:
 
 ```bash
 # If not already in the project directory
-cd /path/to/claude-projects-project-77
+cd /path/to/stoked-projects-project-77
 ```
 
 ### Step 2: Run Automated Setup
@@ -114,7 +114,7 @@ ls -la dist/index.js
 
 ```bash
 pwd
-# Output: /Users/username/path/to/claude-projects-project-77/packages/mcp-server
+# Output: /Users/username/path/to/stoked-projects-project-77/packages/mcp-server
 # You'll need this in the next section
 ```
 
@@ -160,7 +160,7 @@ GITHUB_TOKEN=ghp_your_actual_token_here
 # ==============================================================================
 # REQUIRED: API Keys
 # ==============================================================================
-STATE_TRACKING_API_KEY=your-api-key-from-claude-projects-team
+STATE_TRACKING_API_KEY=your-api-key-from-stoked-projects-team
 WS_API_KEY=generate-a-secure-random-string-32-characters-or-more
 
 # ==============================================================================
@@ -171,7 +171,7 @@ LOG_LEVEL=debug
 STATE_TRACKING_API_URL=http://localhost:3000
 
 # If connecting to staging:
-# STATE_TRACKING_API_URL=https://staging-api.claude-projects.example.com
+# STATE_TRACKING_API_URL=https://staging-api.stoked-projects.example.com
 ```
 
 ### Step 3: Generate WS_API_KEY
@@ -255,7 +255,7 @@ Edit `claude_desktop_config.json` (create if it doesn't exist):
 ```json
 {
   "mcpServers": {
-    "claude-projects": {
+    "stoked-projects": {
       "command": "node",
       "args": [
         "dist/index.js"
@@ -276,9 +276,9 @@ Edit `claude_desktop_config.json` (create if it doesn't exist):
 **IMPORTANT: Use the absolute path from Step 3c of Installation!**
 
 Example paths:
-- macOS: `/Users/username/work/claude-projects-project-77/packages/mcp-server`
-- Linux: `/home/username/claude-projects/packages/mcp-server`
-- Windows: `C:\Users\username\claude-projects\packages\mcp-server`
+- macOS: `/Users/username/work/stoked-projects-project-77/packages/mcp-server`
+- Linux: `/home/username/stoked-projects/packages/mcp-server`
+- Windows: `C:\Users\username\stoked-projects\packages\mcp-server`
 
 ### Step 4: Restart Claude Desktop
 
@@ -303,7 +303,7 @@ In Claude Desktop:
 
 2. Go to the "MCP" tab
 
-3. You should see "claude-projects" server listed
+3. You should see "stoked-projects" server listed
 
 4. Status should show "Connected" (green dot)
 
@@ -332,7 +332,7 @@ Monitor the server logs:
 
 ```bash
 # Watch logs in real-time
-tail -f /var/log/claude-projects-mcp-server.log
+tail -f /var/log/stoked-projects-mcp-server.log
 
 # Or check Claude Desktop logs:
 # macOS: ~/Library/Logs/Claude/

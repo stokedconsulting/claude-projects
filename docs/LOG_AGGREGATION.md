@@ -1,6 +1,6 @@
 # Log Aggregation Setup
 
-This document describes how to aggregate logs from the Claude Projects API for centralized analysis and alerting.
+This document describes how to aggregate logs from the Stoked Projects API for centralized analysis and alerting.
 
 ## Overview
 
@@ -17,7 +17,7 @@ All logs are in JSON format with consistent schema:
 {
   "timestamp": "2025-01-24T10:30:45.123Z",
   "level": "info",
-  "service": "claude-projects-api",
+  "service": "stoked-projects-api",
   "context": "SessionsService",
   "message": "Session created",
   "requestId": "req-12345",
@@ -44,8 +44,8 @@ All logs are in JSON format with consistent schema:
 
 1. **Create Log Group**
 ```bash
-aws logs create-log-group --log-group-name /aws/lambda/claude-projects-api
-aws logs put-retention-policy --log-group-name /aws/lambda/claude-projects-api --retention-in-days 30
+aws logs create-log-group --log-group-name /aws/lambda/stoked-projects-api
+aws logs put-retention-policy --log-group-name /aws/lambda/stoked-projects-api --retention-in-days 30
 ```
 
 2. **IAM Permissions**
@@ -71,7 +71,7 @@ aws logs put-retention-policy --log-group-name /aws/lambda/claude-projects-api -
 Set environment variables:
 ```bash
 CLOUDWATCH_ENABLED=true
-CLOUDWATCH_LOG_GROUP=/aws/lambda/claude-projects-api
+CLOUDWATCH_LOG_GROUP=/aws/lambda/stoked-projects-api
 AWS_REGION=us-east-1
 ```
 
@@ -170,7 +170,7 @@ input {
 
 filter {
   mutate {
-    add_field => { "[@metadata][index_name]" => "claude-projects-%{+YYYY.MM.dd}" }
+    add_field => { "[@metadata][index_name]" => "stoked-projects-%{+YYYY.MM.dd}" }
   }
 }
 
@@ -264,7 +264,7 @@ datadogLogs.init({
   applicationId: 'YOUR_APPLICATION_ID',
   clientToken: 'YOUR_CLIENT_TOKEN',
   site: 'datadoghq.com',
-  service: 'claude-projects-api',
+  service: 'stoked-projects-api',
   env: 'production',
   sessionSampleRate: 100,
   version: '1.0.0'

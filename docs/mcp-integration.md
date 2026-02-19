@@ -22,7 +22,7 @@ Complete setup walkthrough for integrating Claude Code with the MCP server, stat
 
 ## Overview
 
-The Claude Projects MCP integration connects four key components:
+The Stoked Projects MCP integration connects four key components:
 
 ```mermaid
 graph LR
@@ -66,7 +66,7 @@ graph LR
 
 ### Network Requirements
 
-- Outbound HTTPS access to `claude-projects.truapi.com` (state tracking API)
+- Outbound HTTPS access to `localhost:8167` (state tracking API)
 - Outbound HTTPS access to `api.github.com` (GitHub GraphQL API)
 - Localhost WebSocket connection on port `8080` (MCP server ↔ VSCode extension)
 
@@ -138,7 +138,7 @@ Verify your API key works:
 
 ```bash
 curl -H "Authorization: Bearer sk_your_api_key_here" \
-     https://claude-projects.truapi.com/api/projects
+     http://localhost:8167/api/projects
 ```
 
 Expected response: JSON array of projects or empty array `[]`
@@ -153,7 +153,7 @@ If you get a `401 Unauthorized` error, your API key is invalid or expired.
 
 ```bash
 # Navigate to monorepo root
-cd /path/to/claude-projects-project-72
+cd /path/to/stoked-projects-project-72
 
 # Install all dependencies (including mcp-server)
 pnpm install
@@ -178,7 +178,7 @@ STATE_TRACKING_API_KEY=sk_your_api_key_here
 WS_API_KEY=ws_your_websocket_key_here
 
 # Optional: API URL (default shown)
-STATE_TRACKING_API_URL=https://claude-projects.truapi.com
+STATE_TRACKING_API_URL=http://localhost:8167
 
 # Optional: Logging verbosity (debug, info, warn, error)
 LOG_LEVEL=info
@@ -255,10 +255,10 @@ Edit the configuration file to add the MCP server:
 ```json
 {
   "mcpServers": {
-    "claude-projects": {
+    "stoked-projects": {
       "command": "node",
       "args": [
-        "/absolute/path/to/claude-projects-project-72/packages/mcp-server/dist/index.js"
+        "/absolute/path/to/stoked-projects-project-72/packages/mcp-server/dist/index.js"
       ],
       "env": {
         "STATE_TRACKING_API_KEY": "sk_your_api_key_here",
@@ -282,10 +282,10 @@ Edit the configuration file to add the MCP server:
 ```json
 {
   "mcpServers": {
-    "claude-projects": {
+    "stoked-projects": {
       "command": "node",
       "args": [
-        "/Users/you/repos/claude-projects-project-72/packages/mcp-server/dist/index.js"
+        "/Users/you/repos/stoked-projects-project-72/packages/mcp-server/dist/index.js"
       ],
       "env": {
         "STATE_TRACKING_API_KEY": "sk_your_key",
@@ -327,7 +327,7 @@ If tools don't appear, check Claude Desktop logs (location varies by OS).
 **Option A: From Source (Development)**
 
 ```bash
-cd /path/to/claude-projects-project-72/apps/code-ext
+cd /path/to/stoked-projects-project-72/apps/code-ext
 pnpm install
 pnpm compile
 ```
@@ -339,13 +339,13 @@ Press `F5` to launch Extension Development Host.
 ```bash
 cd apps/code-ext
 pnpm package
-code --install-extension claude-projects-vscode-0.0.1.vsix
+code --install-extension stoked-projects-vscode-0.0.1.vsix
 ```
 
 #### Configure WebSocket Connection
 
 1. Open VSCode Settings (`Cmd+,` or `Ctrl+,`)
-2. Search for "Claude Projects"
+2. Search for "Stoked Projects"
 3. Configure the following settings:
 
 ```json
@@ -422,8 +422,8 @@ Claude should respond with:
 #### 3. Verify VSCode Extension
 
 1. Open VSCode with a workspace containing a Git repository
-2. Open the **Claude Projects** panel (bottom panel area)
-3. Check the Output panel (`Cmd+Shift+U` or `Ctrl+Shift+U`) → "Claude Projects" channel
+2. Open the **Stoked Projects** panel (bottom panel area)
+3. Check the Output panel (`Cmd+Shift+U` or `Ctrl+Shift+U`) → "Stoked Projects" channel
 4. Look for: `WebSocket connected to ws://localhost:8080/notifications`
 
 #### 4. Test Real-Time Notifications
@@ -557,7 +557,7 @@ Claude will use the `update_issue_status` tool. The MCP server will:
 
 4. **Check VSCode Output panel**:
    - Open Output panel (`Cmd+Shift+U`)
-   - Select "Claude Projects" from dropdown
+   - Select "Stoked Projects" from dropdown
    - Look for connection errors
 
 **Common Issues**:
@@ -578,7 +578,7 @@ Claude will use the `update_issue_status` tool. The MCP server will:
 
    ```bash
    curl -H "Authorization: Bearer $STATE_TRACKING_API_KEY" \
-        https://claude-projects.truapi.com/health
+        http://localhost:8167/health
    ```
 
 2. **Check API key has correct permissions**:
@@ -606,7 +606,7 @@ Claude will use the `update_issue_status` tool. The MCP server will:
    ```bash
    # Time a simple API call
    time curl -H "Authorization: Bearer $STATE_TRACKING_API_KEY" \
-             https://claude-projects.truapi.com/api/projects
+             http://localhost:8167/api/projects
    ```
 
 2. **Enable debug logging**:
@@ -626,8 +626,8 @@ Claude will use the `update_issue_status` tool. The MCP server will:
 
 4. **Check network latency**:
    ```bash
-   ping claude-projects.truapi.com
-   traceroute claude-projects.truapi.com
+   ping localhost:8167
+   traceroute localhost:8167
    ```
 
 ---
@@ -668,7 +668,7 @@ For staging or self-hosted environments:
 
 ```bash
 # .env
-STATE_TRACKING_API_URL=https://staging.claude-projects.example.com
+STATE_TRACKING_API_URL=https://staging.stoked-projects.example.com
 ```
 
 ### Multiple MCP Servers
@@ -678,7 +678,7 @@ Run MCP servers on different ports for development/production:
 ```json
 {
   "mcpServers": {
-    "claude-projects-dev": {
+    "stoked-projects-dev": {
       "command": "node",
       "args": ["/path/to/dev/packages/mcp-server/dist/index.js"],
       "env": {
@@ -687,7 +687,7 @@ Run MCP servers on different ports for development/production:
         "WS_PORT": "8080"
       }
     },
-    "claude-projects-prod": {
+    "stoked-projects-prod": {
       "command": "node",
       "args": ["/path/to/prod/packages/mcp-server/dist/index.js"],
       "env": {
@@ -711,13 +711,13 @@ Configure VSCode extension to connect to the appropriate port.
 LOG_LEVEL=debug
 
 # VSCode Extension
-# Open Output panel and watch "Claude Projects" channel
+# Open Output panel and watch "Stoked Projects" channel
 ```
 
 **Log Locations**:
 
 - **MCP Server**: stderr (visible in Claude Desktop logs or standalone terminal)
-- **VSCode Extension**: VSCode Output panel → "Claude Projects"
+- **VSCode Extension**: VSCode Output panel → "Stoked Projects"
 - **Claude Desktop**: Platform-specific log files
   - macOS: `~/Library/Logs/Claude/`
   - Windows: `%APPDATA%\Claude\Logs\`

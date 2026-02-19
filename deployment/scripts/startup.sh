@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ==============================================================================
-# Claude Projects MCP Server - Container Startup Script
+# Stoked Projects MCP Server - Container Startup Script
 # ==============================================================================
 # Initializes and starts the MCP server with proper configuration
 # This script runs inside the Docker container
@@ -68,7 +68,7 @@ set_defaults() {
 
   export NODE_ENV="${NODE_ENV:-production}"
   export LOG_LEVEL="${LOG_LEVEL:-warn}"
-  export STATE_TRACKING_API_URL="${STATE_TRACKING_API_URL:-https://api.claude-projects.example.com}"
+  export STATE_TRACKING_API_URL="${STATE_TRACKING_API_URL:-https://api.stoked-projects.example.com}"
   export REQUEST_TIMEOUT_MS="${REQUEST_TIMEOUT_MS:-20000}"
   export RETRY_ATTEMPTS="${RETRY_ATTEMPTS:-5}"
   export WS_PORT="${WS_PORT:-8080}"
@@ -83,7 +83,7 @@ show_startup_info() {
   cat << EOF
 
 ╔════════════════════════════════════════════════════════════╗
-║  Claude Projects MCP Server - Starting Up                 ║
+║  Stoked Projects MCP Server - Starting Up                 ║
 ╚════════════════════════════════════════════════════════════╝
 
 Environment Configuration:

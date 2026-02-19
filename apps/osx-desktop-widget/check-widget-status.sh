@@ -5,7 +5,7 @@
 echo "🔍 Checking ClaudeProjects widget status..."
 echo ""
 
-BUILD_APP="/Users/stoked/work/claude-projects/apps/osx-desktop-widget/build/Build/Products/Release/ClaudeProjects.app"
+BUILD_APP="/Users/stoked/work/stoked-projects/apps/osx-desktop-widget/build/Build/Products/Release/ClaudeProjects.app"
 INSTALL_PATH="/Applications/ClaudeProjects.app"
 
 # Check build
@@ -75,7 +75,7 @@ fi
 echo ""
 echo "📋 Summary:"
 if [ -d "$INSTALL_PATH/Contents/PlugIns/ClaudeProjectsWidgetExtension.appex" ]; then
-    echo "   ✅ Widget should appear in widget gallery as 'Claude Projects'"
+    echo "   ✅ Widget should appear in widget gallery as 'Stoked Projects'"
     echo ""
     echo "   If you don't see it:"
     echo "   1. Restart Dock: killall Dock"

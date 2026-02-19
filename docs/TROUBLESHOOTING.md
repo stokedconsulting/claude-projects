@@ -1,6 +1,6 @@
 # Troubleshooting Guide
 
-Comprehensive troubleshooting guide for all components of the Claude Projects system.
+Comprehensive troubleshooting guide for all components of the Stoked Projects system.
 
 ## Table of Contents
 
@@ -24,7 +24,7 @@ Run this quick check to diagnose common issues:
 #!/bin/bash
 # health-check.sh
 
-echo "=== Claude Projects Health Check ==="
+echo "=== Stoked Projects Health Check ==="
 
 # Check Node.js
 if command -v node &> /dev/null; then
@@ -75,7 +75,7 @@ curl http://localhost:3000/health
 mongosh --eval "db.adminCommand('ping')"
 
 # VSCode Extension
-# Open VSCode → View → Output → Claude Projects
+# Open VSCode → View → Output → Stoked Projects
 ```
 
 **2. Check environment variables:**
@@ -97,7 +97,7 @@ cat .env | grep -v "^#" | grep -v "^$"
 tail -f packages/api/logs/*.log
 
 # VSCode Extension logs
-# View → Output → Claude Projects
+# View → Output → Stoked Projects
 
 # MCP Server logs
 tail -f deployment/logs/mcp-server.log
@@ -109,14 +109,14 @@ tail -f deployment/logs/mcp-server.log
 
 **Symptoms:**
 - Extension doesn't appear in sidebar
-- "Claude Projects" panel is missing
+- "Stoked Projects" panel is missing
 - Extension commands not available
 
 **Diagnosis:**
 
 ```bash
 # Check extension is installed
-code --list-extensions | grep claude-projects
+code --list-extensions | grep stoked-projects
 
 # Check for errors in extension host
 # Open: Help → Toggle Developer Tools → Console
@@ -133,12 +133,12 @@ code --list-extensions | grep claude-projects
    ```bash
    cd apps/code-ext
    pnpm run package
-   code --install-extension claude-projects-*.vsix --force
+   code --install-extension stoked-projects-*.vsix --force
    ```
 
 3. **Check Extension Logs:**
    ```
-   View → Output → Select "Claude Projects"
+   View → Output → Select "Stoked Projects"
    ```
 
 4. **Clear Extension Cache:**
@@ -167,7 +167,7 @@ gh auth status
 gh project list --owner myorg --repo myrepo
 
 # Check extension logs for errors
-# View → Output → Claude Projects
+# View → Output → Stoked Projects
 ```
 
 **Solutions:**
@@ -193,8 +193,8 @@ gh project list --owner myorg --repo myrepo
 
 4. **Clear Cache:**
    ```
-   Click trash icon in Claude Projects panel
-   Or: Cmd+Shift+P → "Claude Projects: Clear Cache"
+   Click trash icon in Stoked Projects panel
+   Or: Cmd+Shift+P → "Stoked Projects: Clear Cache"
    ```
 
 ### Extension Crashes
@@ -448,7 +448,7 @@ echo $MONGODB_URI
 1. **Fix Connection String:**
    ```bash
    # Local MongoDB
-   echo "MONGODB_URI=mongodb://localhost:27017/claude-projects" >> .env
+   echo "MONGODB_URI=mongodb://localhost:27017/stoked-projects" >> .env
 
    # MongoDB Atlas
    echo "MONGODB_URI=mongodb+srv://user:pass@cluster.mongodb.net/dbname" >> .env
@@ -472,7 +472,7 @@ echo $MONGODB_URI
    mongosh
 
    # Create database
-   use claude-projects
+   use stoked-projects
 
    # Verify
    show dbs
@@ -754,7 +754,7 @@ gh auth refresh -s repo,read:org,read:project,project
 brew services start mongodb-community
 
 # Or update connection string
-echo "MONGODB_URI=mongodb://localhost:27017/claude-projects" >> .env
+echo "MONGODB_URI=mongodb://localhost:27017/stoked-projects" >> .env
 ```
 
 ### "Port 3000 already in use"
@@ -808,7 +808,7 @@ git remote add origin https://github.com/owner/repo.git
 
 2. **View Extension Logs:**
    ```
-   View → Output → Select "Claude Projects"
+   View → Output → Select "Stoked Projects"
    ```
 
 3. **Inspect Webview:**
@@ -858,7 +858,7 @@ git remote add origin https://github.com/owner/repo.git
 1. **Query MongoDB:**
    ```bash
    mongosh
-   use claude-projects
+   use stoked-projects
    db.sessions.find().pretty()
    ```
 
@@ -896,7 +896,7 @@ curl http://localhost:3000/health
 mongosh --eval "db.adminCommand('ping')"
 
 # Extension logs
-# Copy from: View → Output → Claude Projects
+# Copy from: View → Output → Stoked Projects
 
 # API logs
 tail -100 packages/api/logs/error.log
@@ -909,7 +909,7 @@ cat .env | sed 's/=.*/=REDACTED/'
 
 1. **GitHub Issues**: For bugs and feature requests
 2. **Documentation**: Check all docs in `docs/` folder
-3. **Stack Overflow**: Tag with `claude-projects`
+3. **Stack Overflow**: Tag with `stoked-projects`
 4. **Team Chat**: Internal team channels
 
 ### Creating a Bug Report

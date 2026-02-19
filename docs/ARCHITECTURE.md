@@ -1,6 +1,6 @@
 # System Architecture
 
-This document provides a comprehensive overview of the Claude Projects system architecture, focusing on the unified GitHub CLI service layer introduced in Project #77.
+This document provides a comprehensive overview of the Stoked Projects system architecture, focusing on the unified GitHub CLI service layer introduced in Project #77.
 
 ## Table of Contents
 
@@ -17,7 +17,7 @@ This document provides a comprehensive overview of the Claude Projects system ar
 
 ## Overview
 
-The Claude Projects system is a distributed application for managing GitHub Projects with Claude AI integration. The system consists of three main components:
+The Stoked Projects system is a distributed application for managing GitHub Projects with Claude AI integration. The system consists of three main components:
 
 1. **VSCode Extension** - User interface and GitHub integration
 2. **State Tracking API** - Centralized state management and GitHub operations

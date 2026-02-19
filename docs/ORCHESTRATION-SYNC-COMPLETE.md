@@ -47,7 +47,7 @@ Created a new WebSocket client specifically for orchestration synchronization:
 **Configuration**:
 ```typescript
 {
-  url: string,           // Base API URL (e.g., 'https://claude-projects.truapi.com')
+  url: string,           // Base API URL (e.g., 'http://localhost:8167')
   apiKey?: string,       // GitHub token (optional for localhost)
   workspaceId: string    // Absolute path to workspace directory
 }
@@ -191,7 +191,7 @@ this._view?.webview.postMessage({ type: 'orchestrationData', data });
 
 ### Debug Logging
 
-Check VSCode Output panel → "Claude Projects":
+Check VSCode Output panel → "Stoked Projects":
 ```
 [OrchestrationSync] WebSocket connected and handlers registered
 [OrchestrationSync] Global update received: running=0, desired=3

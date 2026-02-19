@@ -1,6 +1,6 @@
 # Developer Guide
 
-Welcome to the Claude Projects development guide. This document will help you get started with development, understand the codebase structure, and follow best practices.
+Welcome to the Stoked Projects development guide. This document will help you get started with development, understand the codebase structure, and follow best practices.
 
 ## Table of Contents
 
@@ -33,8 +33,8 @@ Before you begin, ensure you have the following installed:
 1. **Clone the repository:**
 
 ```bash
-git clone https://github.com/your-org/claude-projects.git
-cd claude-projects
+git clone https://github.com/your-org/stoked-projects.git
+cd stoked-projects
 ```
 
 2. **Install dependencies:**
@@ -165,7 +165,7 @@ module.exports = {
 ### Monorepo Layout
 
 ```
-claude-projects/
+stoked-projects/
 ├── apps/
 │   └── code-ext/                # VSCode Extension
 │       ├── src/
@@ -264,7 +264,7 @@ cd apps/code-ext
 pnpm run package
 
 # Install locally
-code --install-extension claude-projects-*.vsix
+code --install-extension stoked-projects-*.vsix
 ```
 
 **Debugging:**
@@ -299,7 +299,7 @@ Create `packages/api/.env`:
 
 ```env
 # MongoDB
-MONGODB_URI=mongodb://localhost:27017/claude-projects
+MONGODB_URI=mongodb://localhost:27017/stoked-projects
 
 # GitHub Authentication
 GITHUB_TOKEN=ghp_your_personal_access_token
@@ -679,7 +679,7 @@ LOG_LEVEL=debug
 
 ```bash
 # VSCode Extension logs
-# Open: View → Output → Claude Projects
+# Open: View → Output → Stoked Projects
 
 # API logs
 # Stdout when running locally
@@ -962,11 +962,11 @@ pnpm run build
 Cmd+Shift+P → "Developer: Reload Window"
 
 # Check extension logs
-View → Output → Claude Projects
+View → Output → Stoked Projects
 
 # Reinstall extension
-code --uninstall-extension your-publisher.claude-projects
-code --install-extension claude-projects-*.vsix
+code --uninstall-extension your-publisher.stoked-projects
+code --install-extension stoked-projects-*.vsix
 ```
 
 **3. API Connection Errors:**
@@ -1012,7 +1012,7 @@ For more troubleshooting, see [Troubleshooting Guide](./TROUBLESHOOTING.md).
 - **Internal Documentation**: Check `docs/` directory
 - **Code Comments**: Read inline documentation in source files
 - **GitHub Issues**: Search existing issues or create new one
-- **Team Chat**: Ask in #claude-projects channel
+- **Team Chat**: Ask in #stoked-projects channel
 
 ## Contributing
 

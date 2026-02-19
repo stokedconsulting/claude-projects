@@ -2,7 +2,7 @@
 
 ## Summary
 
-I've implemented a comprehensive cross-platform service management system for the Claude Projects VSCode extension. The extension now automatically installs and manages a system-level API service that runs as a background service on Windows, macOS, and Linux.
+I've implemented a comprehensive cross-platform service management system for the Stoked Projects VSCode extension. The extension now automatically installs and manages a system-level API service that runs as a background service on Windows, macOS, and Linux.
 
 ## What Was Implemented
 
@@ -60,21 +60,21 @@ Each installer handles:
 ## Platform Support
 
 ### ✅ macOS (launchd)
-- Service file: `~/Library/LaunchAgents/claude-projects-api.plist`
-- Logs: `~/Library/Logs/claude-projects/`
+- Service file: `~/Library/LaunchAgents/stoked-projects-api.plist`
+- Logs: `~/Library/Logs/stoked-projects/`
 - Auto-start on login: Supported
 - Status: **Fully implemented and tested**
 
 ### ✅ Linux (systemd)
-- Service file: `~/.config/systemd/user/claude-projects-api.service`
-- Logs: `~/.local/share/claude-projects/logs/`
+- Service file: `~/.config/systemd/user/stoked-projects-api.service`
+- Logs: `~/.local/share/stoked-projects/logs/`
 - Auto-start on login: Supported (user service)
 - Status: **Fully implemented** (not tested on Linux yet)
 
 ### ✅ Windows (NSSM)
 - Service: Registered in Windows Service Manager
-- Config: `%APPDATA%/claude-projects/service-config.xml`
-- Logs: `%APPDATA%/claude-projects/logs/`
+- Config: `%APPDATA%/stoked-projects/service-config.xml`
+- Logs: `%APPDATA%/stoked-projects/logs/`
 - **Requirement**: NSSM must be installed
 - Status: **Fully implemented** (not tested on Windows yet)
 
@@ -93,7 +93,7 @@ All settings use the `claudeProjects.*` prefix:
   "claudeProjects.mongodb.atlas.username": "",
   "claudeProjects.mongodb.atlas.password": "",
   "claudeProjects.mongodb.atlas.cluster": "",
-  "claudeProjects.mongodb.customUri": "mongodb://localhost:27017/claude-projects",
+  "claudeProjects.mongodb.customUri": "mongodb://localhost:27017/stoked-projects",
 
   // Notification settings
   "claudeProjects.notifications.enabled": true,
@@ -225,7 +225,7 @@ Extension Activation
 1. Build API: `cd packages/api && npm run build`
 2. Build extension: `cd apps/code-ext && npm run compile`
 3. Test in VSCode: Press F5 to launch Extension Development Host
-4. Check logs: View → Output → "Claude Projects - API Service"
+4. Check logs: View → Output → "Stoked Projects - API Service"
 
 ### Manual Service Control
 See `SERVICE_MANAGEMENT.md` for platform-specific commands.

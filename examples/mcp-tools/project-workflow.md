@@ -1,6 +1,6 @@
 # MCP Tools: Complete Project Workflow Examples
 
-This document provides complete end-to-end workflow examples for managing Claude Projects using MCP Tools.
+This document provides complete end-to-end workflow examples for managing Stoked Projects using MCP Tools.
 
 ---
 
@@ -13,7 +13,7 @@ This document provides complete end-to-end workflow examples for managing Claude
 export MCP_API_KEY="your-api-key-here"
 
 # Verify it works
-curl -X GET https://claude-projects.truapi.com/health \
+curl -X GET http://localhost:8167/health \
   -H "X-API-Key: ${MCP_API_KEY}"
 ```
 
@@ -26,7 +26,7 @@ curl -X GET https://claude-projects.truapi.com/health \
 PROJECT_ID="72"
 MACHINE_ID="$(hostname)"
 
-SESSION=$(curl -s -X POST https://claude-projects.truapi.com/api/sessions \
+SESSION=$(curl -s -X POST http://localhost:8167/api/sessions \
   -H "X-API-Key: ${MCP_API_KEY}" \
   -H "Content-Type: application/json" \
   -d "{
@@ -42,7 +42,7 @@ echo "Session created: $SESSION_ID"
 
 ```bash
 # Create a task
-TASK=$(curl -s -X POST https://claude-projects.truapi.com/api/tasks \
+TASK=$(curl -s -X POST http://localhost:8167/api/tasks \
   -H "X-API-Key: ${MCP_API_KEY}" \
   -H "Content-Type: application/json" \
   -d "{
@@ -55,7 +55,7 @@ TASK=$(curl -s -X POST https://claude-projects.truapi.com/api/tasks \
 TASK_ID=$(echo "$TASK" | jq -r '.task_id')
 
 # Start the task
-curl -s -X PATCH https://claude-projects.truapi.com/api/tasks/${TASK_ID} \
+curl -s -X PATCH http://localhost:8167/api/tasks/${TASK_ID} \
   -H "X-API-Key: ${MCP_API_KEY}" \
   -H "Content-Type: application/json" \
   -d '{"status": "in_progress"}' > /dev/null
@@ -63,7 +63,7 @@ curl -s -X PATCH https://claude-projects.truapi.com/api/tasks/${TASK_ID} \
 # ... do your work ...
 
 # Mark as completed
-curl -s -X PATCH https://claude-projects.truapi.com/api/tasks/${TASK_ID} \
+curl -s -X PATCH http://localhost:8167/api/tasks/${TASK_ID} \
   -H "X-API-Key: ${MCP_API_KEY}" \
   -H "Content-Type: application/json" \
   -d '{"status": "completed"}' > /dev/null
@@ -76,7 +76,7 @@ echo "Task completed!"
 ```bash
 # Send heartbeat every 60 seconds
 while true; do
-  curl -s -X POST https://claude-projects.truapi.com/api/sessions/${SESSION_ID}/heartbeat \
+  curl -s -X POST http://localhost:8167/api/sessions/${SESSION_ID}/heartbeat \
     -H "X-API-Key: ${MCP_API_KEY}" \
     -H "Content-Type: application/json" \
     -d '{}' > /dev/null
@@ -96,7 +96,7 @@ done
 
 set -e
 
-API_BASE="https://claude-projects.truapi.com"
+API_BASE="http://localhost:8167"
 API_KEY="${MCP_API_KEY}"
 PROJECT_ID="70"
 ISSUE_ID="10"
@@ -205,7 +205,7 @@ echo -e "${BLUE}✅ Workflow complete!${NC}\n"
 
 set -e
 
-API_BASE="https://claude-projects.truapi.com"
+API_BASE="http://localhost:8167"
 API_KEY="${MCP_API_KEY}"
 PROJECT_ID="72"
 MACHINE_ID="$(hostname)"
@@ -328,7 +328,7 @@ echo "✅ All issues completed!"
 
 set -e
 
-API_BASE="https://claude-projects.truapi.com"
+API_BASE="http://localhost:8167"
 API_KEY="${MCP_API_KEY}"
 PROJECT_ID="72"
 
@@ -440,7 +440,7 @@ echo "$FINAL_STATUS" | jq '.'
 #!/bin/bash
 # monitor-workflow.sh - Monitor and observe a running workflow
 
-API_BASE="https://claude-projects.truapi.com"
+API_BASE="http://localhost:8167"
 API_KEY="${MCP_API_KEY}"
 
 # Function to display formatted metrics
@@ -511,7 +511,7 @@ fi
 
 set -e
 
-API_BASE="https://claude-projects.truapi.com"
+API_BASE="http://localhost:8167"
 API_KEY="${MCP_API_KEY}"
 PROJECT_ID="${CI_PROJECT_ID:-72}"
 CI_BUILD_ID="${CI_JOB_ID:-unknown}"

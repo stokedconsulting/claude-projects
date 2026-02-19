@@ -2,8 +2,8 @@ version: '3.8'
 
 services:
   mcp-server:
-    image: claude-projects-mcp-server:latest
-    container_name: claude-projects-mcp-server
+    image: stoked-projects-mcp-server:latest
+    container_name: stoked-projects-mcp-server
     build:
       context: ..
       dockerfile: deployment/Dockerfile
@@ -14,7 +14,7 @@ services:
       NODE_ENV: ${NODE_ENV:-production}
 
       # API Configuration
-      STATE_TRACKING_API_URL: ${STATE_TRACKING_API_URL:-https://api.claude-projects.example.com}
+      STATE_TRACKING_API_URL: ${STATE_TRACKING_API_URL:-https://api.stoked-projects.example.com}
       STATE_TRACKING_API_KEY: ${STATE_TRACKING_API_KEY}
 
       # GitHub Configuration
@@ -75,14 +75,14 @@ services:
 
     # Labels for monitoring and management
     labels:
-      - "com.claude-projects.service=mcp-server"
-      - "com.claude-projects.version=0.1.0"
-      - "com.claude-projects.component=mcp"
+      - "com.stoked-projects.service=mcp-server"
+      - "com.stoked-projects.version=0.1.0"
+      - "com.stoked-projects.component=mcp"
 
   # Optional: Reverse proxy (Nginx) for load balancing or SSL termination
   nginx:
     image: nginx:latest
-    container_name: claude-projects-nginx
+    container_name: stoked-projects-nginx
     ports:
       - "443:443"
       - "80:80"
@@ -103,7 +103,7 @@ services:
   # Optional: Redis for caching (if needed in future)
   redis:
     image: redis:7-alpine
-    container_name: claude-projects-redis
+    container_name: stoked-projects-redis
     ports:
       - "6379:6379"
     volumes:
@@ -127,5 +127,5 @@ volumes:
 
 networks:
   default:
-    name: claude-projects-network
+    name: stoked-projects-network
     driver: bridge

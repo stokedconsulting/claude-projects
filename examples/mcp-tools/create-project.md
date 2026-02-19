@@ -17,7 +17,7 @@ Project creation in the MCP Tools approach involves:
 ```
 I need to set up a new Claude Project with the following details:
 - Project ID: 72
-- Project name: Build Claude Projects State Tracking API
+- Project name: Build Stoked Projects State Tracking API
 - Machine: my-development-machine
 - Tasks to track:
   1. Initialize project structure
@@ -25,7 +25,7 @@ I need to set up a new Claude Project with the following details:
   3. Implement API endpoints
   4. Deploy to production
 
-Use the MCP Tools State Tracking API at https://claude-projects.truapi.com to:
+Use the MCP Tools State Tracking API at http://localhost:8167 to:
 1. Create a session for this project
 2. Create task entries for each work item
 3. Set up heartbeat monitoring every 60 seconds
@@ -54,7 +54,7 @@ Please provide:
 set -e
 
 # Configuration
-API_BASE="${MCP_API_BASE:-https://claude-projects.truapi.com}"
+API_BASE="${MCP_API_BASE:-http://localhost:8167}"
 API_KEY="${MCP_API_KEY}"
 PROJECT_ID=""
 PROJECT_NAME=""
@@ -271,7 +271,7 @@ echo "Documentation: See docs/mcp-migration-guide.md"
 const https = require('https');
 const { v4: uuidv4 } = require('uuid');
 
-const API_BASE = process.env.MCP_API_BASE || 'https://claude-projects.truapi.com';
+const API_BASE = process.env.MCP_API_BASE || 'http://localhost:8167';
 const API_KEY = process.env.MCP_API_KEY;
 
 if (!API_KEY) {
@@ -457,7 +457,7 @@ import sys
 from datetime import datetime
 from typing import List, Optional
 
-API_BASE = os.getenv('MCP_API_BASE', 'https://claude-projects.truapi.com')
+API_BASE = os.getenv('MCP_API_BASE', 'http://localhost:8167')
 API_KEY = os.getenv('MCP_API_KEY')
 
 if not API_KEY:
@@ -646,7 +646,7 @@ if __name__ == '__main__':
 ### Create a Session
 
 ```bash
-curl -X POST https://claude-projects.truapi.com/api/sessions \
+curl -X POST http://localhost:8167/api/sessions \
   -H "X-API-Key: ${MCP_API_KEY}" \
   -H "Content-Type: application/json" \
   -d '{
@@ -659,7 +659,7 @@ curl -X POST https://claude-projects.truapi.com/api/sessions \
 ### Create a Task
 
 ```bash
-curl -X POST https://claude-projects.truapi.com/api/tasks \
+curl -X POST http://localhost:8167/api/tasks \
   -H "X-API-Key: ${MCP_API_KEY}" \
   -H "Content-Type: application/json" \
   -d '{
@@ -672,7 +672,7 @@ curl -X POST https://claude-projects.truapi.com/api/tasks \
 ### Send Heartbeat
 
 ```bash
-curl -X POST https://claude-projects.truapi.com/api/sessions/550e8400-e29b-41d4-a716-446655440000/heartbeat \
+curl -X POST http://localhost:8167/api/sessions/550e8400-e29b-41d4-a716-446655440000/heartbeat \
   -H "X-API-Key: ${MCP_API_KEY}" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -681,7 +681,7 @@ curl -X POST https://claude-projects.truapi.com/api/sessions/550e8400-e29b-41d4-
 ### Check Health
 
 ```bash
-curl -X GET https://claude-projects.truapi.com/api/sessions/health \
+curl -X GET http://localhost:8167/api/sessions/health \
   -H "X-API-Key: ${MCP_API_KEY}"
 ```
 

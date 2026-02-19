@@ -795,7 +795,7 @@ describe('Configuration Validation Tests', () => {
   it('should provide default values for optional settings', () => {
     // Optional settings should have sensible defaults
     const defaults = {
-      STATE_TRACKING_API_URL: 'https://claude-projects.truapi.com',
+      STATE_TRACKING_API_URL: 'http://localhost:8167',
       LOG_LEVEL: 'info',
       REQUEST_TIMEOUT_MS: 10000,
       RETRY_ATTEMPTS: 3,

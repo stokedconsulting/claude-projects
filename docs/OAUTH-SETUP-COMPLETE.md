@@ -52,7 +52,7 @@
 
 ### 4. ✅ GitHub Pages Landing Page
 
-**Live at:** `https://stokedconsulting.github.io/claude-projects/`
+**Live at:** `https://stokedconsulting.github.io/stoked-projects/`
 
 **Features:**
 - Professional gradient design
@@ -84,7 +84,7 @@
 
 **Your GitHub OAuth App:**
 - App name: (whatever you named it)
-- Homepage URL: `https://stokedconsulting.github.io/claude-projects/`
+- Homepage URL: `https://stokedconsulting.github.io/stoked-projects/`
 - Callback URL: `http://localhost:8167/api/auth/github/callback`
 
 **Note:** For production deployment, you'll need to:

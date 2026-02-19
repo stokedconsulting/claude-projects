@@ -52,7 +52,7 @@ Other IDE Windows: Update their Global displays
 cd packages/api
 
 # Set MongoDB connection (or use default localhost)
-export MONGODB_URI="mongodb://localhost:27017/claude-projects"
+export MONGODB_URI="mongodb://localhost:27017/stoked-projects"
 
 # Start API in dev mode
 npm run start:dev
@@ -83,10 +83,10 @@ Press `Cmd+Shift+P` → "Developer: Reload Window"
 ### 4. Test Synchronization
 
 **Single Window Test:**
-1. Open the Claude Projects panel
+1. Open the Stoked Projects panel
 2. Change "Workspace Desired" to 1
 3. Watch "Global Desired" update to 1 **immediately**
-4. Check Output panel (View → Output → Claude Projects) for API logs
+4. Check Output panel (View → Output → Stoked Projects) for API logs
 
 **Multi-Window Test:**
 1. Open VSCode Window A in folder `/Users/you/project-a`
@@ -132,7 +132,7 @@ Expected output:
 **Check:**
 1. Is the API running? Check `http://localhost:3000/health`
 2. Is `useAPIService` set to `true` in settings?
-3. Check Output panel for errors: View → Output → Claude Projects
+3. Check Output panel for errors: View → Output → Stoked Projects
 
 **Fix:**
 ```bash
@@ -142,7 +142,7 @@ npm run start:dev
 
 # Check MongoDB connection
 echo $MONGODB_URI
-# Should show: mongodb://localhost:27017/claude-projects
+# Should show: mongodb://localhost:27017/stoked-projects
 ```
 
 ### "Orchestration not supported in direct GraphQL mode"

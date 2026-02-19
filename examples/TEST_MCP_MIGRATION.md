@@ -79,7 +79,7 @@ Set it with: export GITHUB_TOKEN=your_github_token
 
 **Command:**
 ```bash
-cd /path/to/claude-projects
+cd /path/to/stoked-projects
 ./examples/mcp-client.js list-issues --limit 5
 ```
 
@@ -235,7 +235,7 @@ export MCP_API_KEY=your_key
 **Verify:**
 ```bash
 # Query State Tracking API
-curl -X GET "https://claude-projects.truapi.com/api/tasks?session_id=SESSION_ID" \
+curl -X GET "http://localhost:8167/api/tasks?session_id=SESSION_ID" \
   -H "X-API-Key: $MCP_API_KEY"
 
 # Should see task entry

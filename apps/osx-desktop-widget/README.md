@@ -123,4 +123,4 @@ For local development without paid developer account:
 
 ## License
 
-Part of the claude-projects monorepo.
+Part of the stoked-projects monorepo.

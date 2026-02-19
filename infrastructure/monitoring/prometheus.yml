@@ -2,7 +2,7 @@ global:
   scrape_interval: 15s
   evaluation_interval: 15s
   external_labels:
-    monitor: 'claude-projects'
+    monitor: 'stoked-projects'
     environment: 'production'
 
 # Alertmanager configuration
@@ -17,8 +17,8 @@ rule_files:
   - '/etc/prometheus/alerts.yml'
 
 scrape_configs:
-  # Claude Projects API
-  - job_name: 'claude-projects-api'
+  # Stoked Projects API
+  - job_name: 'stoked-projects-api'
     static_configs:
       - targets: ['localhost:3000']
     metrics_path: '/metrics'
@@ -30,7 +30,7 @@ scrape_configs:
         target_label: instance
 
   # Health checks (scrape every 10s for quick failure detection)
-  - job_name: 'claude-projects-api-health'
+  - job_name: 'stoked-projects-api-health'
     static_configs:
       - targets: ['localhost:3000']
     metrics_path: '/health/detailed'

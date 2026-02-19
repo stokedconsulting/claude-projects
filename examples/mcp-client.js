@@ -8,7 +8,7 @@
  * Usage:
  *   ./mcp-client.js close-issue --number 123
  *   ./mcp-client.js update-issue --number 123 --status "Done"
- *   ./mcp-client.js list-projects --owner stoked --repo claude-projects
+ *   ./mcp-client.js list-projects --owner stoked --repo stoked-projects
  *
  * Environment:
  *   GITHUB_TOKEN - GitHub personal access token (required)

@@ -402,7 +402,7 @@ export class ProjectsViewProvider {
 {
   "contributes": {
     "configuration": {
-      "title": "Claude Projects",
+      "title": "Stoked Projects",
       "properties": {
         "claudeProjects.apiUrl": {
           "type": "string",
@@ -486,7 +486,7 @@ pnpm run test:integration
 # Test extension with new API
 # 1. Open VSCode
 # 2. Load extension
-# 3. Open Claude Projects panel
+# 3. Open Stoked Projects panel
 # 4. Verify projects load correctly
 # 5. Try marking issue as done
 # 6. Verify issue closes and project updates
@@ -787,7 +787,7 @@ A: Yes, but it's not recommended. Unified service provides better performance an
 
 **Q: How do I debug API calls?**
 
-A: Enable debug logging in extension settings and check Output panel (View → Output → Claude Projects).
+A: Enable debug logging in extension settings and check Output panel (View → Output → Stoked Projects).
 
 **Q: What if I find a bug in the API?**
 

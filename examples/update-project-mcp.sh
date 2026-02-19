@@ -13,7 +13,7 @@
 # Environment:
 #   GITHUB_TOKEN      - GitHub personal access token (required)
 #   MCP_API_KEY       - API key for State Tracking API (optional but recommended)
-#   MCP_API_BASE      - State Tracking API base URL (default: https://claude-projects.truapi.com)
+#   MCP_API_BASE      - State Tracking API base URL (default: http://localhost:8167)
 #
 
 set -e
@@ -40,7 +40,7 @@ if [[ -z "$GITHUB_TOKEN" && -z "$GH_TOKEN" ]]; then
 fi
 
 # Configuration
-API_BASE="${MCP_API_BASE:-https://claude-projects.truapi.com}"
+API_BASE="${MCP_API_BASE:-http://localhost:8167}"
 API_KEY="${MCP_API_KEY}"
 
 # Parse arguments

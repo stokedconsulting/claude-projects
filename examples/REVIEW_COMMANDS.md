@@ -147,7 +147,7 @@ claude /review-project 70
 
 **Example Output:**
 ```
-🎯 PROJECT HEALTH REPORT: Build Claude Projects State Tracking API
+🎯 PROJECT HEALTH REPORT: Build Stoked Projects State Tracking API
 
 Project: #70
 Last Updated: 2026-01-20 10:30 UTC
@@ -270,7 +270,7 @@ The review commands automatically notify the VSCode extension when they make cha
 - **GitHub CLI**: `brew install gh` (must be authenticated)
 - **Git repository**: Must be in a git repo with GitHub remote
 - **Claude Code**: Latest version with skills support
-- **VSCode Extension**: Claude Projects extension installed
+- **VSCode Extension**: Stoked Projects extension installed
 
 ## Tips
 

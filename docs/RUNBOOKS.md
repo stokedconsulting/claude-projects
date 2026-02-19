@@ -21,14 +21,14 @@ This document provides step-by-step procedures for responding to alerts and comm
 **Alert**: Error rate > 5% for 5 minutes
 
 ### Step 1: Assess Situation
-1. Navigate to Grafana dashboard: http://grafana:3001/d/claude-projects-overview
+1. Navigate to Grafana dashboard: http://grafana:3001/d/stoked-projects-overview
 2. Check error rate gauge
 3. Identify time when error rate increased
 4. Check for recent deployments
 
 ```bash
 # Check error logs in last hour
-kubectl logs -f deployment/claude-projects-api --since=1h | grep ERROR
+kubectl logs -f deployment/stoked-projects-api --since=1h | grep ERROR
 ```
 
 ### Step 2: Identify Error Type
@@ -54,7 +54,7 @@ kubectl exec -it mongodb-0 -- mongosh
 db.adminCommand('ping')
 
 # Check connection pool
-kubectl exec deployment/claude-projects-api -- curl localhost:3000/health/detailed | jq '.database'
+kubectl exec deployment/stoked-projects-api -- curl localhost:3000/health/detailed | jq '.database'
 
 # Restart MongoDB if needed
 kubectl rollout restart sts/mongodb
@@ -74,13 +74,13 @@ curl -H "Authorization: token $GITHUB_TOKEN" https://api.github.com/rate_limit
 **If Application Errors**:
 ```bash
 # Check for recent deployments
-kubectl rollout history deployment/claude-projects-api
+kubectl rollout history deployment/stoked-projects-api
 
 # Review application logs for stack traces
-kubectl logs -f deployment/claude-projects-api --tail=100 | grep -A 5 ERROR
+kubectl logs -f deployment/stoked-projects-api --tail=100 | grep -A 5 ERROR
 
 # If critical: rollback to previous version
-kubectl rollout undo deployment/claude-projects-api
+kubectl rollout undo deployment/stoked-projects-api
 ```
 
 ### Step 4: Verify Resolution
@@ -122,16 +122,16 @@ fields @timestamp, @message, duration, context
 ### Step 2: Check Resource Usage
 ```bash
 # CPU usage
-kubectl top pod -l app=claude-projects-api
+kubectl top pod -l app=stoked-projects-api
 
 # Memory usage
-kubectl top pod -l app=claude-projects-api
+kubectl top pod -l app=stoked-projects-api
 
 # Disk I/O
-kubectl exec deployment/claude-projects-api -- iostat -x 1
+kubectl exec deployment/stoked-projects-api -- iostat -x 1
 
 # Network I/O
-kubectl exec deployment/claude-projects-api -- ss -s
+kubectl exec deployment/stoked-projects-api -- ss -s
 ```
 
 ### Step 3: Check Database Performance
@@ -169,19 +169,19 @@ db.sessions.createIndex({status: 1, createdAt: -1})
 kubectl top pod <pod-name>
 
 # If > 90%, restart pod
-kubectl rollout restart deployment/claude-projects-api
+kubectl rollout restart deployment/stoked-projects-api
 
 # Or scale up if load is high
-kubectl scale deployment/claude-projects-api --replicas=3
+kubectl scale deployment/stoked-projects-api --replicas=3
 ```
 
 **If High CPU Usage**:
 ```bash
 # Scale up replicas
-kubectl scale deployment/claude-projects-api --replicas=3
+kubectl scale deployment/stoked-projects-api --replicas=3
 
 # Monitor if CPU reduces
-kubectl top pod -l app=claude-projects-api
+kubectl top pod -l app=stoked-projects-api
 ```
 
 ### Step 5: Verify Resolution
@@ -218,24 +218,24 @@ kubectl logs mongodb-0
 ### Step 2: Verify Connectivity
 ```bash
 # From API pod, test MongoDB connection
-kubectl exec -it deployment/claude-projects-api -- \
+kubectl exec -it deployment/stoked-projects-api -- \
   mongosh $MONGODB_URI
 
 # Check connection string
-kubectl exec deployment/claude-projects-api -- echo $MONGODB_URI
+kubectl exec deployment/stoked-projects-api -- echo $MONGODB_URI
 ```
 
 ### Step 3: Check Network
 
 ```bash
 # Verify DNS resolution
-kubectl exec deployment/claude-projects-api -- nslookup mongodb
+kubectl exec deployment/stoked-projects-api -- nslookup mongodb
 
 # Check network policies
 kubectl get networkpolicy
 
 # Test port connectivity
-kubectl exec deployment/claude-projects-api -- telnet mongodb 27017
+kubectl exec deployment/stoked-projects-api -- telnet mongodb 27017
 ```
 
 ### Step 4: Restart Services
@@ -248,10 +248,10 @@ kubectl rollout restart sts/mongodb
 kubectl wait --for=condition=Ready pod -l app=mongodb --timeout=300s
 
 # Restart API
-kubectl rollout restart deployment/claude-projects-api
+kubectl rollout restart deployment/stoked-projects-api
 
 # Verify connection
-kubectl logs -f deployment/claude-projects-api | grep -i connected
+kubectl logs -f deployment/stoked-projects-api | grep -i connected
 ```
 
 ### Step 5: Verify Health
@@ -272,7 +272,7 @@ kubectl logs mongodb-0 | tail -100
 
 2. Check API configuration
 ```bash
-kubectl exec deployment/claude-projects-api -- env | grep MONGODB
+kubectl exec deployment/stoked-projects-api -- env | grep MONGODB
 ```
 
 3. Verify credentials
@@ -311,9 +311,9 @@ curl -H "Authorization: token $GITHUB_TOKEN" \
 export GITHUB_TOKEN=$BACKUP_GITHUB_TOKEN
 
 # Restart API with new token
-kubectl set env deployment/claude-projects-api \
+kubectl set env deployment/stoked-projects-api \
   GITHUB_TOKEN=$BACKUP_GITHUB_TOKEN
-kubectl rollout restart deployment/claude-projects-api
+kubectl rollout restart deployment/stoked-projects-api
 ```
 
 ### Step 3: Reduce API Calls
@@ -384,7 +384,7 @@ cache_misses > cache_hits
 
 2. Check cache configuration:
 ```bash
-kubectl exec deployment/claude-projects-api -- env | grep CACHE
+kubectl exec deployment/stoked-projects-api -- env | grep CACHE
 ```
 
 3. Review cache keys:
@@ -404,7 +404,7 @@ const CACHE_TTL = 900; // 15 minutes
 **Expand Cache Size**:
 ```bash
 # If using Redis
-kubectl set env deployment/claude-projects-api \
+kubectl set env deployment/stoked-projects-api \
   REDIS_MAX_MEMORY=512m
 ```
 
@@ -469,7 +469,7 @@ db.sessions.updateMany(
 **Scale API If Legitimate Load**:
 ```bash
 # Increase replicas
-kubectl scale deployment/claude-projects-api --replicas=5
+kubectl scale deployment/stoked-projects-api --replicas=5
 ```
 
 ### Step 4: Prevent Future Issues
@@ -509,16 +509,16 @@ curl http://api:3000/health/live
 ### Logs
 ```bash
 # Recent logs
-kubectl logs -f deployment/claude-projects-api
+kubectl logs -f deployment/stoked-projects-api
 
 # Last 100 lines
-kubectl logs deployment/claude-projects-api --tail=100
+kubectl logs deployment/stoked-projects-api --tail=100
 
 # Last hour
-kubectl logs deployment/claude-projects-api --since=1h
+kubectl logs deployment/stoked-projects-api --since=1h
 
 # Errors only
-kubectl logs deployment/claude-projects-api | grep ERROR
+kubectl logs deployment/stoked-projects-api | grep ERROR
 ```
 
 ### Metrics

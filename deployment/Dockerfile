@@ -1,4 +1,4 @@
-# Multi-stage build for Claude Projects MCP Server
+# Multi-stage build for Stoked Projects MCP Server
 # Stage 1: Builder
 FROM node:18-alpine AS builder
 
@@ -66,6 +66,6 @@ CMD ["node", "dist/index.js"]
 EXPOSE 8080
 
 # Labels for metadata
-LABEL maintainer="Claude Projects Team"
-LABEL description="MCP Server for Claude Projects integration"
+LABEL maintainer="Stoked Projects Team"
+LABEL description="MCP Server for Stoked Projects integration"
 LABEL version="0.1.0"

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ==============================================================================
-# Claude Projects MCP Server - Deployment Script
+# Stoked Projects MCP Server - Deployment Script
 # ==============================================================================
 # Deploys the MCP server to production or staging environment
 # Usage: ./deploy.sh [environment] [options]
@@ -167,7 +167,7 @@ log_success "Configuration loaded"
 if [ "$BUILD_IMAGE" = true ]; then
   log_info "Building Docker image..."
 
-  IMAGE_NAME="claude-projects-mcp-server"
+  IMAGE_NAME="stoked-projects-mcp-server"
   IMAGE_TAG="${REGISTRY:+$REGISTRY/}$IMAGE_NAME:$VERSION"
 
   docker build \
@@ -246,7 +246,7 @@ if [ -z "$CONTAINERS" ]; then
 fi
 
 # Check health status
-HEALTH_STATUS=$(docker-compose exec -T mcp-server docker inspect claude-projects-mcp-server --format='{{.State.Health.Status}}' 2>/dev/null || echo "unknown")
+HEALTH_STATUS=$(docker-compose exec -T mcp-server docker inspect stoked-projects-mcp-server --format='{{.State.Health.Status}}' 2>/dev/null || echo "unknown")
 
 case "$HEALTH_STATUS" in
   healthy)

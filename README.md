@@ -1,4 +1,4 @@
-# Claude Projects
+# Stoked Projects
 
 A comprehensive system for managing GitHub Projects with Claude AI integration.
 
@@ -6,7 +6,7 @@ A comprehensive system for managing GitHub Projects with Claude AI integration.
 
 ### 1. VSCode Extension (`apps/code-ext`)
 
-**Claude Projects** - VSCode extension for managing GitHub Projects with real-time sync and Claude AI orchestration.
+**Stoked Projects** - VSCode extension for managing GitHub Projects with real-time sync and Claude AI orchestration.
 
 **Features:**
 - View repository and organization projects
@@ -138,7 +138,7 @@ pnpm install
 pnpm run build
 ```
 
-Reload VSCode and open the "Claude Projects" panel.
+Reload VSCode and open the "Stoked Projects" panel.
 
 ### 2. Install Review Commands
 
@@ -158,7 +158,7 @@ Reload VSCode and open the "Claude Projects" panel.
 
 ### Managing Projects in VSCode
 
-1. **View Projects**: Open Claude Projects panel (bottom panel)
+1. **View Projects**: Open Stoked Projects panel (bottom panel)
 2. **Link Project**: Right-click org project → "Link to Current Project"
 3. **Start Work**: Right-click project → "Start Project"
 4. **Auto-Refresh**: Extension updates when Claude completes tasks
@@ -326,7 +326,7 @@ npm run start:dev
 ### Extension not showing projects
 1. Check you're in a git repository
 2. Check GitHub authentication via VSCode
-3. Check Output panel: View → Output → Claude Projects
+3. Check Output panel: View → Output → Stoked Projects
 4. Clear cache: Right-click in panel → Clear Cache
 
 ### Review commands not working

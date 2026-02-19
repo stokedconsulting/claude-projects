@@ -217,9 +217,9 @@ await this._wsClient.connect({
 Set the following environment variable:
 
 ```bash
-MONGODB_URI=mongodb://localhost:27017/claude-projects
+MONGODB_URI=mongodb://localhost:27017/stoked-projects
 # or
-MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/claude-projects
+MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/stoked-projects
 ```
 
 The orchestration data will be stored in the `orchestration` collection with a TTL index that automatically removes workspace entries inactive for 7 days.

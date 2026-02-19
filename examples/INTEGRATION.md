@@ -1,6 +1,6 @@
 # Claude Code Integration with VSCode Extension
 
-This document explains how Claude Code can integrate with the Claude Projects VSCode extension to keep project status in sync.
+This document explains how Claude Code can integrate with the Stoked Projects VSCode extension to keep project status in sync.
 
 ## Overview
 
@@ -157,7 +157,7 @@ Claude Code should call this script at these points:
 ### Extension doesn't update
 
 1. Check that signal files are being created in `.claude-sessions/`
-2. Check Output panel: **View → Output → Claude Projects**
+2. Check Output panel: **View → Output → Stoked Projects**
 3. Check Developer Console for errors: **Help → Toggle Developer Tools**
 
 ### Signal file not found

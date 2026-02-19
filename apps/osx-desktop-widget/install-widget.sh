@@ -6,7 +6,7 @@ set -e
 
 echo "📦 Installing ClaudeProjects widget..."
 
-BUILD_APP="/Users/stoked/work/claude-projects/apps/osx-desktop-widget/build/Build/Products/Release/ClaudeProjects.app"
+BUILD_APP="/Users/stoked/work/stoked-projects/apps/osx-desktop-widget/build/Build/Products/Release/ClaudeProjects.app"
 INSTALL_PATH="/Applications/ClaudeProjects.app"
 
 # Check if build exists
@@ -56,7 +56,7 @@ echo "✨ Done! Now add the widget:"
 echo ""
 echo "   1. Click on your Desktop"
 echo "   2. Click 'Edit Widgets' or press Fn+F5"
-echo "   3. Search for 'Claude Projects'"
+echo "   3. Search for 'Stoked Projects'"
 echo "   4. Drag the widget to your desktop"
 echo ""
 echo "   If it doesn't appear, restart your Mac."

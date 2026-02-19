@@ -40,8 +40,8 @@ echo "📋 Next steps:"
 echo "   1. Open System Settings > Desktop & Dock > Widgets"
 echo "   2. Remove any old 'OrchestrationHUD' widgets from your desktop"
 echo "   3. Click the '+' button to add new widgets"
-echo "   4. Look for 'Claude Projects' in the widget gallery"
-echo "   5. Add the 'Claude Projects' widget to your desktop"
+echo "   4. Look for 'Stoked Projects' in the widget gallery"
+echo "   5. Add the 'Stoked Projects' widget to your desktop"
 echo ""
 echo "   Or use the widget picker (Cmd+Space, type 'widget', click notification center)"
 echo ""
@@ -54,4 +54,4 @@ if [ -f "ClaudeProjects.xcodeproj/xcuserdata/$(whoami).xcuserdatad/xcschemes/xcs
         "ClaudeProjects.xcodeproj/xcuserdata/$(whoami).xcuserdatad/xcschemes/xcschememanagement.plist" 2>/dev/null || true
 fi
 
-echo "✨ All done! The 'Claude Projects' widget should now appear in your widget gallery."
+echo "✨ All done! The 'Stoked Projects' widget should now appear in your widget gallery."

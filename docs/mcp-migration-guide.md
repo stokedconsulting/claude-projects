@@ -2,7 +2,7 @@
 
 ## Overview
 
-This guide helps you migrate from the **signal file approach** (using `update-project.sh`) to the **MCP Tools approach** for managing Claude Projects state. The new MCP tools provide real-time session tracking, automatic failure detection, and recovery capabilities through a dedicated state tracking API.
+This guide helps you migrate from the **signal file approach** (using `update-project.sh`) to the **MCP Tools approach** for managing Stoked Projects state. The new MCP tools provide real-time session tracking, automatic failure detection, and recovery capabilities through a dedicated state tracking API.
 
 ### What's Changing?
 
@@ -81,7 +81,7 @@ The new system provides:
 
 ```bash
 # Create session via MCP API
-curl -X POST https://claude-projects.truapi.com/api/sessions \
+curl -X POST http://localhost:8167/api/sessions \
   -H "X-API-Key: your-api-key" \
   -H "Content-Type: application/json" \
   -d '{
@@ -127,7 +127,7 @@ curl -X POST https://claude-projects.truapi.com/api/sessions \
 
 ```bash
 # Create task for session
-curl -X POST https://claude-projects.truapi.com/api/tasks \
+curl -X POST http://localhost:8167/api/tasks \
   -H "X-API-Key: your-api-key" \
   -H "Content-Type: application/json" \
   -d '{
@@ -148,7 +148,7 @@ curl -X POST https://claude-projects.truapi.com/api/tasks \
 }
 
 # Update task status
-curl -X PATCH https://claude-projects.truapi.com/api/tasks/660f9511-f41d-52e5-b826-557766551111 \
+curl -X PATCH http://localhost:8167/api/tasks/660f9511-f41d-52e5-b826-557766551111 \
   -H "X-API-Key: your-api-key" \
   -H "Content-Type: application/json" \
   -d '{
@@ -157,7 +157,7 @@ curl -X PATCH https://claude-projects.truapi.com/api/tasks/660f9511-f41d-52e5-b8
   }'
 
 # Mark completed
-curl -X PATCH https://claude-projects.truapi.com/api/tasks/660f9511-f41d-52e5-b826-557766551111 \
+curl -X PATCH http://localhost:8167/api/tasks/660f9511-f41d-52e5-b826-557766551111 \
   -H "X-API-Key: your-api-key" \
   -H "Content-Type: application/json" \
   -d '{
@@ -199,7 +199,7 @@ curl -X PATCH https://claude-projects.truapi.com/api/tasks/660f9511-f41d-52e5-b8
 # No manual action required
 
 # Check current health status
-curl -X GET "https://claude-projects.truapi.com/api/sessions/health" \
+curl -X GET "http://localhost:8167/api/sessions/health" \
   -H "X-API-Key: your-api-key"
 
 # Response:
@@ -213,7 +213,7 @@ curl -X GET "https://claude-projects.truapi.com/api/sessions/health" \
 }
 
 # List stalled sessions
-curl -X GET "https://claude-projects.truapi.com/api/sessions/stalled" \
+curl -X GET "http://localhost:8167/api/sessions/stalled" \
   -H "X-API-Key: your-api-key"
 
 # Response:
@@ -231,7 +231,7 @@ curl -X GET "https://claude-projects.truapi.com/api/sessions/stalled" \
 }
 
 # Get detailed health status for specific session
-curl -X GET "https://claude-projects.truapi.com/api/sessions/550e8400-e29b-41d4-a716-446655440000/health" \
+curl -X GET "http://localhost:8167/api/sessions/550e8400-e29b-41d4-a716-446655440000/health" \
   -H "X-API-Key: your-api-key"
 
 # Response:
@@ -277,7 +277,7 @@ curl -X GET "https://claude-projects.truapi.com/api/sessions/550e8400-e29b-41d4-
 
 ```bash
 # Get recovery state automatically
-curl -X GET "https://claude-projects.truapi.com/api/sessions/550e8400-e29b-41d4-a716-446655440000/recovery-state" \
+curl -X GET "http://localhost:8167/api/sessions/550e8400-e29b-41d4-a716-446655440000/recovery-state" \
   -H "X-API-Key: your-api-key"
 
 # Response:
@@ -311,11 +311,11 @@ curl -X GET "https://claude-projects.truapi.com/api/sessions/550e8400-e29b-41d4-
 }
 
 # Prepare for recovery
-curl -X POST "https://claude-projects.truapi.com/api/sessions/550e8400-e29b-41d4-a716-446655440000/prepare-recovery" \
+curl -X POST "http://localhost:8167/api/sessions/550e8400-e29b-41d4-a716-446655440000/prepare-recovery" \
   -H "X-API-Key: your-api-key"
 
 # Initiate recovery with new machine/resources
-curl -X POST "https://claude-projects.truapi.com/api/sessions/550e8400-e29b-41d4-a716-446655440000/recover" \
+curl -X POST "http://localhost:8167/api/sessions/550e8400-e29b-41d4-a716-446655440000/recover" \
   -H "X-API-Key: your-api-key" \
   -H "Content-Type: application/json" \
   -d '{
@@ -354,7 +354,7 @@ curl -X POST "https://claude-projects.truapi.com/api/sessions/550e8400-e29b-41d4
 export MCP_API_KEY="your-api-key-here"
 
 # 2. Verify API is accessible
-curl -X GET "https://claude-projects.truapi.com/health" \
+curl -X GET "http://localhost:8167/health" \
   -H "X-API-Key: ${MCP_API_KEY}"
 
 # Expected response: {"status":"ok","uptime":12345}
@@ -381,7 +381,7 @@ curl -X GET "https://claude-projects.truapi.com/health" \
 # new-orchestration.sh
 
 API_KEY="${MCP_API_KEY}"
-API_BASE="https://claude-projects.truapi.com"
+API_BASE="http://localhost:8167"
 PROJECT_ID="70"
 MACHINE_ID="$(hostname)"
 
@@ -484,15 +484,15 @@ trap 'cleanup "Unhandled error"' ERR
 
 ```bash
 # Check session was created
-curl -X GET "https://claude-projects.truapi.com/api/sessions?limit=1" \
+curl -X GET "http://localhost:8167/api/sessions?limit=1" \
   -H "X-API-Key: ${MCP_API_KEY}"
 
 # Check health metrics
-curl -X GET "https://claude-projects.truapi.com/api/sessions/health" \
+curl -X GET "http://localhost:8167/api/sessions/health" \
   -H "X-API-Key: ${MCP_API_KEY}"
 
 # Check recent tasks
-curl -X GET "https://claude-projects.truapi.com/api/tasks?limit=10" \
+curl -X GET "http://localhost:8167/api/tasks?limit=10" \
   -H "X-API-Key: ${MCP_API_KEY}"
 ```
 
@@ -542,17 +542,17 @@ curl: (28) Operation timed out after 5000 milliseconds
 **Solutions:**
 1. Verify API is accessible:
    ```bash
-   curl -v https://claude-projects.truapi.com/health
+   curl -v http://localhost:8167/health
    ```
 
 2. Check network connectivity:
    ```bash
-   ping claude-projects.truapi.com
+   ping localhost:8167
    ```
 
 3. Verify API key is valid:
    ```bash
-   curl -X GET https://claude-projects.truapi.com/api/sessions \
+   curl -X GET http://localhost:8167/api/sessions \
      -H "X-API-Key: invalid-key"
    # Should return 401 if key is invalid
    ```
@@ -567,7 +567,7 @@ curl: (28) Operation timed out after 5000 milliseconds
 1. Verify heartbeat is being sent:
    ```bash
    # Enable debug logging
-   curl -v -X POST https://claude-projects.truapi.com/api/sessions/${SESSION_ID}/heartbeat \
+   curl -v -X POST http://localhost:8167/api/sessions/${SESSION_ID}/heartbeat \
      -H "X-API-Key: ${API_KEY}" \
      -H "Content-Type: application/json" \
      -d '{}'
@@ -575,7 +575,7 @@ curl: (28) Operation timed out after 5000 milliseconds
 
 2. Check session status:
    ```bash
-   curl -X GET https://claude-projects.truapi.com/api/sessions/${SESSION_ID}/health \
+   curl -X GET http://localhost:8167/api/sessions/${SESSION_ID}/health \
      -H "X-API-Key: ${API_KEY}"
    ```
 
@@ -590,20 +590,20 @@ curl: (28) Operation timed out after 5000 milliseconds
 **Solutions:**
 1. Check original session is in failed state:
    ```bash
-   curl -X GET https://claude-projects.truapi.com/api/sessions/${SESSION_ID} \
+   curl -X GET http://localhost:8167/api/sessions/${SESSION_ID} \
      -H "X-API-Key: ${API_KEY}"
    # status should be "failed" or "stalled"
    ```
 
 2. Get recovery state first:
    ```bash
-   curl -X GET https://claude-projects.truapi.com/api/sessions/${SESSION_ID}/recovery-state \
+   curl -X GET http://localhost:8167/api/sessions/${SESSION_ID}/recovery-state \
      -H "X-API-Key: ${API_KEY}"
    ```
 
 3. Verify new_machine_id is available:
    ```bash
-   curl -X GET https://claude-projects.truapi.com/api/machines \
+   curl -X GET http://localhost:8167/api/machines \
      -H "X-API-Key: ${API_KEY}"
    ```
 
@@ -727,15 +727,15 @@ curl: (28) Operation timed out after 5000 milliseconds
 **A:** Yes:
 ```bash
 # Query sessions by project
-curl -X GET "https://claude-projects.truapi.com/api/sessions?project_id=70&status=completed" \
+curl -X GET "http://localhost:8167/api/sessions?project_id=70&status=completed" \
   -H "X-API-Key: ${API_KEY}"
 
 # Query sessions by machine
-curl -X GET "https://claude-projects.truapi.com/api/sessions?machine_id=my-machine" \
+curl -X GET "http://localhost:8167/api/sessions?machine_id=my-machine" \
   -H "X-API-Key: ${API_KEY}"
 
 # Query tasks for a session
-curl -X GET "https://claude-projects.truapi.com/api/tasks?session_id=${SESSION_ID}" \
+curl -X GET "http://localhost:8167/api/tasks?session_id=${SESSION_ID}" \
   -H "X-API-Key: ${API_KEY}"
 ```
 
@@ -766,7 +766,7 @@ curl -X GET "https://claude-projects.truapi.com/api/tasks?session_id=${SESSION_I
 1. **API Documentation:** `/docs/api-reference.md`
 2. **Examples:** `/examples/mcp-tools/`
 3. **Integration Guide:** `/examples/INTEGRATION.md` (updated for MCP tools)
-4. **Health Monitoring:** `https://claude-projects.truapi.com/health/detailed`
+4. **Health Monitoring:** `http://localhost:8167/health/detailed`
 
 ### Contact Support
 
@@ -781,7 +781,7 @@ Track your migration progress:
 
 ```bash
 # Check how many sessions are using MCP tools
-curl -X GET "https://claude-projects.truapi.com/api/sessions/health" \
+curl -X GET "http://localhost:8167/api/sessions/health" \
   -H "X-API-Key: ${API_KEY}"
 
 # Compare with legacy signal file sessions

@@ -1,10 +1,10 @@
 # Monitoring and Alerting Setup
 
-This document describes the monitoring and alerting infrastructure for the Claude Projects API.
+This document describes the monitoring and alerting infrastructure for the Stoked Projects API.
 
 ## Overview
 
-The Claude Projects API includes comprehensive monitoring capabilities:
+The Stoked Projects API includes comprehensive monitoring capabilities:
 
 - **Prometheus Metrics**: Detailed application and system metrics
 - **Grafana Dashboards**: Visual monitoring of key metrics
@@ -108,10 +108,10 @@ global:
   scrape_interval: 15s
   evaluation_interval: 15s
   external_labels:
-    monitor: 'claude-projects'
+    monitor: 'stoked-projects'
 
 scrape_configs:
-  - job_name: 'claude-projects-api'
+  - job_name: 'stoked-projects-api'
     static_configs:
       - targets: ['localhost:3000']
     metrics_path: '/metrics'
@@ -164,7 +164,7 @@ volumes:
 
 ### Available Dashboards
 
-#### Claude Projects API Overview
+#### Stoked Projects API Overview
 **File**: `grafana-dashboard-overview.json`
 
 Key visualizations:
@@ -366,7 +366,7 @@ Returns system information:
 
 **Investigation**:
 1. Check error types: `sum(http_errors_total) by (endpoint)`
-2. Review error logs: `kubectl logs -f deployment/claude-projects-api`
+2. Review error logs: `kubectl logs -f deployment/stoked-projects-api`
 3. Check database health: `GET /health/detailed`
 
 **Resolution**:
@@ -405,7 +405,7 @@ Returns system information:
 **Investigation**:
 1. Check MongoDB status: `kubectl exec -it mongodb-0 -- mongosh`
 2. Verify connection string: `echo $MONGODB_URI`
-3. Check network connectivity: `kubectl logs deployment/claude-projects-api | grep -i mongo`
+3. Check network connectivity: `kubectl logs deployment/stoked-projects-api | grep -i mongo`
 
 **Resolution**:
 - Restart MongoDB: `kubectl rollout restart sts/mongodb`

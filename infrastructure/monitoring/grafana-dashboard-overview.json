@@ -546,7 +546,7 @@
   "schemaVersion": 27,
   "style": "dark",
   "tags": [
-    "claude-projects",
+    "stoked-projects",
     "api",
     "monitoring"
   ],
@@ -559,7 +559,7 @@
   },
   "timepicker": {},
   "timezone": "",
-  "title": "Claude Projects API Overview",
-  "uid": "claude-projects-overview",
+  "title": "Stoked Projects API Overview",
+  "uid": "stoked-projects-overview",
   "version": 0
 }

@@ -1,6 +1,6 @@
 # Security Audit Checklist
 
-**Project:** Claude Projects State Tracking API
+**Project:** Stoked Projects State Tracking API
 **Version:** 0.1.0
 **Last Updated:** 2026-01-20
 **Audit Status:** Pre-Production
@@ -9,7 +9,7 @@
 
 ## Executive Summary
 
-This document provides a comprehensive security audit checklist for the Claude Projects State Tracking API. It covers authentication, authorization, data protection, network security, vulnerability management, and compliance requirements.
+This document provides a comprehensive security audit checklist for the Stoked Projects State Tracking API. It covers authentication, authorization, data protection, network security, vulnerability management, and compliance requirements.
 
 ### Security Posture Overview
 - **Authentication:** API key-based authentication

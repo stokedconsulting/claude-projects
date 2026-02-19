@@ -26,7 +26,7 @@
 
 ### 5. ✅ Registered with Claude CLI
 - Added MCP server: `claude mcp add ...`
-- Server name: `claude-projects`
+- Server name: `stoked-projects`
 - Status: ✓ Connected
 - Scope: Local config (this project only)
 
@@ -122,7 +122,7 @@ claude mcp list
 
 Should show:
 ```
-claude-projects: ✓ Connected
+stoked-projects: ✓ Connected
 ```
 
 ### 2. Test WebSocket Server
@@ -144,7 +144,7 @@ In Claude CLI, the following tool should be available:
 ### 4. Test the Full Flow
 
 1. Open VSCode in a repository
-2. Open the Claude Projects panel
+2. Open the Stoked Projects panel
 3. Run `/project-create` in Claude CLI (in the same repo)
 4. After project is created, the skill calls `notify_project_created`
 5. The VSCode extension should automatically refresh and show the new project
@@ -160,7 +160,7 @@ To activate the updated extension:
 
 ### VSCode Extension Logs
 
-View → Output → Select "Claude Projects - Notifications"
+View → Output → Select "Stoked Projects - Notifications"
 
 Look for:
 - `[WebSocket] Connected successfully`
@@ -189,13 +189,13 @@ Look for:
 4. Verify API key matches in `.env` and VSCode settings
 
 **MCP tool not found?**
-1. Verify server is connected: `claude mcp get claude-projects`
+1. Verify server is connected: `claude mcp get stoked-projects`
 2. Rebuild server: `cd packages/mcp-server && pnpm build`
 3. Restart Claude CLI session
 
 **Port 8080 in use?**
 1. Change port in `.env`: `WS_PORT=8081`
-2. Update MCP server config: `claude mcp remove claude-projects -s local` then re-add
+2. Update MCP server config: `claude mcp remove stoked-projects -s local` then re-add
 3. Update VSCode settings
 
 ## Files Changed

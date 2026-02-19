@@ -8,7 +8,7 @@ All requested features have been implemented and deployed!
 
 **Created**: `packages/api/scripts/deploy-local.sh`
 - Builds the API
-- Copies to `/Users/stoked/work/claude-projects/apps/code-ext/dist/api/`
+- Copies to `/Users/stoked/work/stoked-projects/apps/code-ext/dist/api/`
 - Installs production dependencies
 - Restarts the launchd service
 
@@ -97,7 +97,7 @@ curl -X PUT \
 
 ### API Service
 
-**Status**: Running as launchd service `claude-projects-api`
+**Status**: Running as launchd service `stoked-projects-api`
 **Port**: 8167
 **Database**: MongoDB Atlas
 **Health Check**: http://localhost:8167/health
@@ -107,7 +107,7 @@ curl -X PUT \
 ### Build Everything
 
 ```bash
-cd /Users/stoked/work/claude-projects
+cd /Users/stoked/work/stoked-projects
 pnpm run build
 ```
 
@@ -124,7 +124,7 @@ After building:
 
 ### Test Orchestration
 
-1. Open Claude Projects panel
+1. Open Stoked Projects panel
 2. Change "Workspace Desired" value
 3. Watch "Global Desired" update immediately
 4. Open another VSCode window
