@@ -9,3 +9,4 @@ export * from './execution-agent';
 export * from './review-agent';
 export * from './ideation-agent';
 export * from './agent-loop';
+export * from './orchestrator';
