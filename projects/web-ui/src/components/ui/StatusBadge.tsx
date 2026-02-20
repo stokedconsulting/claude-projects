@@ -1,4 +1,4 @@
-type StatusType = 'success' | 'warning' | 'error' | 'neutral' | 'info';
+import type { StatusType } from '@/types';
 
 interface StatusBadgeProps {
   status: string;
