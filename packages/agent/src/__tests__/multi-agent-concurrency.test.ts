@@ -68,19 +68,21 @@ async function startOrchestrator(orchestrator: AgentOrchestrator): Promise<void>
 }
 
 /**
- * Stops an orchestrator by advancing fake time past the 30-second stop
- * grace period so that _stopAgentWithTimeout resolves via its timeout branch.
+ * Stops an orchestrator by running all pending fake timers so that both the
+ * idle sleep inside each AgentLoop and the 30-second stop grace period in
+ * _stopAgentWithTimeout resolve.
  *
- * Also advances past the idle sleep inside any still-running AgentLoop so
- * that loopDonePromise resolves cleanly.
+ * Uses vi.runAllTimersAsync() which recursively drains the timer queue,
+ * processing new timers that are registered as side-effects of earlier ones.
  */
 async function stopOrchestrator(orchestrator: AgentOrchestrator): Promise<void> {
   // Call stop() — it will wait for agents to stop or for the 30s timeout.
   const stopPromise = orchestrator.stop();
 
-  // Advance fake time past both the 30-second stop grace period and the
-  // 30-second idle sleep so all pending timers resolve.
-  await vi.advanceTimersByTimeAsync(35_000);
+  // Run all pending timers (sleep + stop-timeout) to completion.
+  // The cleanup setInterval was already cleared synchronously inside stop(),
+  // so runAllTimersAsync will terminate once the finite timers are drained.
+  await vi.runAllTimersAsync();
 
   await stopPromise;
 }
@@ -94,7 +96,11 @@ describe('Multi-Agent Concurrency', () => {
 
   beforeEach(() => {
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agent-multi-'));
-    vi.useFakeTimers();
+    // Only fake timer functions — leave process.nextTick and queueMicrotask
+    // real so that Promise resolution chains work correctly with async code.
+    vi.useFakeTimers({
+      toFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval', 'Date'],
+    });
   });
 
   afterEach(async () => {
@@ -348,10 +354,9 @@ describe('Multi-Agent Concurrency', () => {
     expect(statusBefore.agents.length).toBe(2);
 
     // emergencyStop calls agent.stop() on each agent and clears the map.
-    // We fire stopOrchestrator semantics inline here since emergencyStop is the
-    // subject — we advance timers so all stop operations complete.
+    // We run all timers so all stop operations (including idle sleeps) complete.
     const stopPromise = orchestrator.emergencyStop();
-    await vi.advanceTimersByTimeAsync(35_000);
+    await vi.runAllTimersAsync();
     await stopPromise;
 
     const statusAfter = orchestrator.getStatus();
@@ -464,8 +469,14 @@ describe('Multi-Agent Concurrency', () => {
         expect(ids1).toEqual([1, 2]);
         expect(ids2).toEqual([1, 2]);
       } finally {
-        await stopOrchestrator(orch1);
-        await stopOrchestrator(orch2);
+        // Stop both orchestrators concurrently before advancing timers,
+        // to avoid an infinite timer loop where one orchestrator's agents
+        // keep re-sleeping while the other drains.
+        const stop1 = orch1.stop();
+        const stop2 = orch2.stop();
+        await vi.runAllTimersAsync();
+        await stop1;
+        await stop2;
       }
     } finally {
       fs.rmSync(tmpDir2, { recursive: true, force: true });

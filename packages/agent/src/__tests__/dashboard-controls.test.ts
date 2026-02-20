@@ -4,53 +4,39 @@
  * Tests the AgentOrchestrator control surface that the dashboard relies on
  * via AgentLifecycleManager delegation.
  *
- * Implementation note: AgentLoop instances start in Idle state and call
- * sleep(30_000) between work-queue polls. When stop() is called the
- * orchestrator races that sleep against a 30-second grace-period timer.
- * Each test therefore needs up to ~35 seconds to complete cleanly.
- * All tests declare an explicit timeout of 40_000 ms to stay well clear
- * of the default 5 000 ms vitest limit.
+ * Uses fake timers (setTimeout/setInterval/Date only — NOT nextTick or
+ * queueMicrotask) so the 30-second sleep/grace-period timers inside
+ * AgentLoop and AgentOrchestrator resolve instantly via vi.runAllTimersAsync().
  *
  * Agent loops will not make real SDK or GitHub API calls because
  * _findNextWorkItem() always returns null (stub), so agents stay in Idle
- * sleeping until stop() races the grace period.
+ * sleeping until stop() drains all pending timers.
  */
 
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { AgentOrchestrator } from '../orchestrator';
 import type { OrchestratorConfig } from '../types';
 import { AgentState } from '../types';
 
 // ---------------------------------------------------------------------------
-// Constants
-// ---------------------------------------------------------------------------
-
-/**
- * Per-test timeout in ms. Must exceed STOP_GRACE_PERIOD_MS (30 000) inside
- * the orchestrator to let stop() complete before vitest declares a timeout.
- */
-const TEST_TIMEOUT_MS = 40_000;
-
-// ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
-/** Wait for a predicate to become true, polling every `interval` ms. */
-async function waitFor(
-  predicate: () => boolean,
-  timeoutMs = 5_000,
-  interval = 50,
-): Promise<void> {
-  const deadline = Date.now() + timeoutMs;
-  while (!predicate()) {
-    if (Date.now() >= deadline) {
-      throw new Error('waitFor timed out');
-    }
-    await new Promise<void>((resolve) => setTimeout(resolve, interval));
-  }
+/** Stop an orchestrator cleanly by draining all pending fake timers. */
+async function stopOrchestrator(orchestrator: AgentOrchestrator): Promise<void> {
+  const stopPromise = orchestrator.stop();
+  await vi.runAllTimersAsync();
+  await stopPromise;
+}
+
+/** Emergency-stop an orchestrator by draining all pending fake timers. */
+async function emergencyStopOrchestrator(orchestrator: AgentOrchestrator): Promise<void> {
+  const stopPromise = orchestrator.emergencyStop();
+  await vi.runAllTimersAsync();
+  await stopPromise;
 }
 
 // ---------------------------------------------------------------------------
@@ -78,9 +64,13 @@ describe('Dashboard Controls via Orchestrator', () => {
 
   beforeEach(() => {
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'dashboard-test-'));
+    vi.useFakeTimers({
+      toFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval', 'Date'],
+    });
   });
 
-  afterEach(async () => {
+  afterEach(() => {
+    vi.useRealTimers();
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
@@ -95,11 +85,11 @@ describe('Dashboard Controls via Orchestrator', () => {
     // Verify agents were spawned before we stop.
     expect(orchestrator.getStatus().agents.length).toBe(2);
 
-    await orchestrator.stop();
+    await stopOrchestrator(orchestrator);
 
     const status = orchestrator.getStatus();
     expect(status.agents.length).toBe(0);
-  }, TEST_TIMEOUT_MS);
+  });
 
   // -------------------------------------------------------------------------
   // AC-6.4.d — setDesiredInstances scales agent count up and down
@@ -115,9 +105,9 @@ describe('Dashboard Controls via Orchestrator', () => {
     orchestrator.setDesiredInstances(3);
     expect(orchestrator.getStatus().agents.length).toBe(3);
 
-    await orchestrator.stop();
+    await stopOrchestrator(orchestrator);
     expect(orchestrator.getStatus().agents.length).toBe(0);
-  }, TEST_TIMEOUT_MS);
+  });
 
   it('AC-6.4.d: setDesiredInstances scales down by removing highest-ID agents (LIFO)', async () => {
     const orchestrator = new AgentOrchestrator(makeConfig({ desiredInstances: 3 }));
@@ -134,9 +124,9 @@ describe('Dashboard Controls via Orchestrator', () => {
     // Agent 1 must be the survivor.
     expect(after.agents[0].id).toBe(1);
 
-    await orchestrator.stop();
+    await stopOrchestrator(orchestrator);
     expect(orchestrator.getStatus().agents.length).toBe(0);
-  }, TEST_TIMEOUT_MS);
+  });
 
   it('AC-6.4.d: setDesiredInstances to 0 removes all agents', async () => {
     const orchestrator = new AgentOrchestrator(makeConfig({ desiredInstances: 3 }));
@@ -147,8 +137,8 @@ describe('Dashboard Controls via Orchestrator', () => {
     orchestrator.setDesiredInstances(0);
     expect(orchestrator.getStatus().agents.length).toBe(0);
 
-    await orchestrator.stop();
-  }, TEST_TIMEOUT_MS);
+    await stopOrchestrator(orchestrator);
+  });
 
   // -------------------------------------------------------------------------
   // AC-6.4.e — emergencyStop() clears all agents
@@ -160,11 +150,11 @@ describe('Dashboard Controls via Orchestrator', () => {
 
     expect(orchestrator.getStatus().agents.length).toBe(3);
 
-    await orchestrator.emergencyStop();
+    await emergencyStopOrchestrator(orchestrator);
 
     const status = orchestrator.getStatus();
     expect(status.agents.length).toBe(0);
-  }, TEST_TIMEOUT_MS);
+  });
 
   // -------------------------------------------------------------------------
   // AC-6.4.a — pauseAgent(id) pauses a specific agent
@@ -177,8 +167,8 @@ describe('Dashboard Controls via Orchestrator', () => {
     // Calling pauseAgent with a non-existent ID logs a warning but does not throw.
     expect(() => orchestrator.pauseAgent(9999)).not.toThrow();
 
-    await orchestrator.stop();
-  }, TEST_TIMEOUT_MS);
+    await stopOrchestrator(orchestrator);
+  });
 
   it('AC-6.4.a: pauseAgent() transitions a live agent to Paused state', async () => {
     const orchestrator = new AgentOrchestrator(makeConfig({ desiredInstances: 1 }));
@@ -195,8 +185,8 @@ describe('Dashboard Controls via Orchestrator', () => {
     expect(agent).toBeDefined();
     expect(agent!.state).toBe(AgentState.Paused);
 
-    await orchestrator.stop();
-  }, TEST_TIMEOUT_MS);
+    await stopOrchestrator(orchestrator);
+  });
 
   // -------------------------------------------------------------------------
   // AC-6.4.b — resumeAgent(id) resumes a specific paused agent
@@ -208,8 +198,8 @@ describe('Dashboard Controls via Orchestrator', () => {
 
     expect(() => orchestrator.resumeAgent(9999)).not.toThrow();
 
-    await orchestrator.stop();
-  }, TEST_TIMEOUT_MS);
+    await stopOrchestrator(orchestrator);
+  });
 
   it('AC-6.4.b: resumeAgent() on a paused agent transitions it out of Paused', async () => {
     const orchestrator = new AgentOrchestrator(makeConfig({ desiredInstances: 1 }));
@@ -224,8 +214,8 @@ describe('Dashboard Controls via Orchestrator', () => {
     orchestrator.resumeAgent(agentId);
     expect(orchestrator.getStatus().agents.find((a) => a.id === agentId)!.state).not.toBe(AgentState.Paused);
 
-    await orchestrator.stop();
-  }, TEST_TIMEOUT_MS);
+    await stopOrchestrator(orchestrator);
+  });
 
   // -------------------------------------------------------------------------
   // pauseAll() / resumeAll()
@@ -243,8 +233,8 @@ describe('Dashboard Controls via Orchestrator', () => {
       expect(agent.state).toBe(AgentState.Paused);
     }
 
-    await orchestrator.stop();
-  }, TEST_TIMEOUT_MS);
+    await stopOrchestrator(orchestrator);
+  });
 
   it('resumeAll() transitions all paused agents back to non-Paused state', async () => {
     const orchestrator = new AgentOrchestrator(makeConfig({ desiredInstances: 2 }));
@@ -258,8 +248,8 @@ describe('Dashboard Controls via Orchestrator', () => {
       expect(agent.state).not.toBe(AgentState.Paused);
     }
 
-    await orchestrator.stop();
-  }, TEST_TIMEOUT_MS);
+    await stopOrchestrator(orchestrator);
+  });
 
   it('pauseAll() on empty agent pool completes without throwing', async () => {
     // Start with 0 instances — pauseAll should be a no-op.
@@ -269,8 +259,8 @@ describe('Dashboard Controls via Orchestrator', () => {
     await expect(orchestrator.pauseAll()).resolves.toBeUndefined();
     await expect(orchestrator.resumeAll()).resolves.toBeUndefined();
 
-    await orchestrator.stop();
-  }, TEST_TIMEOUT_MS);
+    await stopOrchestrator(orchestrator);
+  });
 
   // -------------------------------------------------------------------------
   // getStatus() returns correct OrchestratorStatus structure
@@ -304,8 +294,8 @@ describe('Dashboard Controls via Orchestrator', () => {
     // activeWorktrees is non-negative
     expect(status.activeWorktrees).toBeGreaterThanOrEqual(0);
 
-    await orchestrator.stop();
-  }, TEST_TIMEOUT_MS);
+    await stopOrchestrator(orchestrator);
+  });
 
   it('getStatus() agents array entries have id and state fields', async () => {
     const orchestrator = new AgentOrchestrator(makeConfig({ desiredInstances: 2 }));
@@ -321,8 +311,8 @@ describe('Dashboard Controls via Orchestrator', () => {
       expect(Object.values(AgentState)).toContain(agent.state);
     }
 
-    await orchestrator.stop();
-  }, TEST_TIMEOUT_MS);
+    await stopOrchestrator(orchestrator);
+  });
 
   // -------------------------------------------------------------------------
   // Double-start prevention — calling start() twice is idempotent
@@ -347,8 +337,8 @@ describe('Dashboard Controls via Orchestrator', () => {
       expect(idsAfterFirstStart.has(id)).toBe(true);
     }
 
-    await orchestrator.stop();
-  }, TEST_TIMEOUT_MS);
+    await stopOrchestrator(orchestrator);
+  });
 
   // -------------------------------------------------------------------------
   // Negative value handling — setDesiredInstances(-1) is ignored
@@ -369,8 +359,8 @@ describe('Dashboard Controls via Orchestrator', () => {
     const after = orchestrator.getStatus().agents.length;
     expect(after).toBe(before);
 
-    await orchestrator.stop();
-  }, TEST_TIMEOUT_MS);
+    await stopOrchestrator(orchestrator);
+  });
 
   // -------------------------------------------------------------------------
   // stop() after emergencyStop() is safe (idempotent cleanup)
@@ -382,13 +372,13 @@ describe('Dashboard Controls via Orchestrator', () => {
 
     expect(orchestrator.getStatus().agents.length).toBe(2);
 
-    await orchestrator.emergencyStop();
+    await emergencyStopOrchestrator(orchestrator);
     expect(orchestrator.getStatus().agents.length).toBe(0);
 
     // stop() on an already-stopped orchestrator should be safe.
-    await expect(orchestrator.stop()).resolves.toBeUndefined();
+    await stopOrchestrator(orchestrator);
     expect(orchestrator.getStatus().agents.length).toBe(0);
-  }, TEST_TIMEOUT_MS);
+  });
 
   // -------------------------------------------------------------------------
   // Scale up then down in sequence
@@ -410,8 +400,8 @@ describe('Dashboard Controls via Orchestrator', () => {
     const ids = orchestrator.getStatus().agents.map((a) => a.id).sort((a, b) => a - b);
     expect(ids).toEqual([1, 2]);
 
-    await orchestrator.stop();
-  }, TEST_TIMEOUT_MS);
+    await stopOrchestrator(orchestrator);
+  });
 
   // -------------------------------------------------------------------------
   // setDesiredInstances with same count does not change agents
@@ -427,14 +417,14 @@ describe('Dashboard Controls via Orchestrator', () => {
 
     expect(idsAfter).toEqual(idsBefore);
 
-    await orchestrator.stop();
-  }, TEST_TIMEOUT_MS);
+    await stopOrchestrator(orchestrator);
+  });
 
   // -------------------------------------------------------------------------
-  // waitFor helper: agents that crash are removed from the map
+  // Crash resilience: orchestrator is still usable after agent stops
   // -------------------------------------------------------------------------
 
-  it('crashed agents are eventually removed from the status map', async () => {
+  it('orchestrator remains usable after agents are stopped', async () => {
     let errorFired = false;
     const orchestrator = new AgentOrchestrator(
       makeConfig({
@@ -448,22 +438,13 @@ describe('Dashboard Controls via Orchestrator', () => {
     );
     await orchestrator.start();
 
-    // Give the agent loop time to crash (e.g. if SDK init fails).
-    // If it doesn't crash within 3 s the orchestrator still passes the test.
-    try {
-      await waitFor(() => orchestrator.getStatus().agents.length === 0, 3_000);
-      // If it crashed, the onError callback must have fired.
-      expect(errorFired).toBe(true);
-    } catch {
-      // Agent is still running (Idle polling) — that's also fine.
-      expect(orchestrator.getStatus().agents.length).toBeGreaterThanOrEqual(0);
-    }
-
-    // After crash or stop, the orchestrator itself must still be usable.
+    // With fake timers the agent stays Idle (no real crash path).
+    // Verify the orchestrator is in a good state.
     const status = orchestrator.getStatus();
     expect(Array.isArray(status.agents)).toBe(true);
+    expect(status.agents.length).toBeGreaterThanOrEqual(0);
 
-    await orchestrator.stop();
+    await stopOrchestrator(orchestrator);
     expect(orchestrator.getStatus().agents.length).toBe(0);
-  }, TEST_TIMEOUT_MS);
+  });
 });
