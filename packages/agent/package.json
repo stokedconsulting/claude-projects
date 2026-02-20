@@ -11,13 +11,15 @@
     "build": "tsc",
     "compile": "tsc --noEmit",
     "dev": "tsc --watch",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "test": "vitest run"
   },
   "dependencies": {
     "@anthropic-ai/claude-agent-sdk": "*"
   },
   "devDependencies": {
     "@types/node": "^20.10.6",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "vitest": "^2.1.8"
   }
 }
