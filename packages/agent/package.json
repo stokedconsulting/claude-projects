@@ -9,7 +9,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "compile": "tsc --noEmit",
+    "compile": "tsc",
     "dev": "tsc --watch",
     "clean": "rm -rf dist",
     "test": "vitest run"

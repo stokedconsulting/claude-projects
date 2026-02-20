@@ -47,6 +47,10 @@ async function installClaudeCommands(context: vscode.ExtensionContext) {
     "project-start.md",
     "project-create.md",
     "project-integrate.md",
+    "project-lifecycle.md",
+    "task-create.md",
+    "task-start.md",
+    "task-review.md",
   ];
 
   // Prompt files (installed to ~/.claude/commands/prompts/)
@@ -62,6 +66,7 @@ async function installClaudeCommands(context: vscode.ExtensionContext) {
   const templates = [
     "PRODUCT_REQUIREMENTS_DOCUMENT.md",
     "PRODUCT_FEATURE_BRIEF.md",
+    "TASK_ISSUE.md",
   ];
 
   // Build a flat list of { sourcePath, targetPath } for all files
@@ -222,6 +227,45 @@ async function installCategoryPrompts(context: vscode.ExtensionContext) {
   }
 }
 
+async function installMcpServer() {
+  const workspaceFolders = vscode.workspace.workspaceFolders;
+  if (!workspaceFolders || workspaceFolders.length === 0) {
+    return;
+  }
+
+  const workspaceRoot = workspaceFolders[0].uri.fsPath;
+  const mcpServerDir = path.join(workspaceRoot, "packages", "mcp-server");
+  const mcpServerEntry = path.join(mcpServerDir, "dist", "index.js");
+
+  // Only register if packages/mcp-server exists in this workspace
+  if (!fs.existsSync(mcpServerDir)) {
+    return;
+  }
+
+  const serverConfig = JSON.stringify({
+    type: "stdio",
+    command: "node",
+    args: [mcpServerEntry],
+    cwd: mcpServerDir,
+    env: {
+      NODE_ENV: "development",
+      LOG_LEVEL: "info",
+    },
+  });
+
+  try {
+    const { execSync } = require("child_process");
+    execSync(
+      `claude mcp add-json --scope local stoked-projects '${serverConfig}'`,
+      { cwd: workspaceRoot, timeout: 10000, stdio: "pipe" }
+    );
+    console.log("[stoked-projects] MCP server registered with Claude Code");
+  } catch (error: any) {
+    // Claude CLI not available or command failed — not fatal
+    console.warn("[stoked-projects] Could not register MCP server with Claude Code:", error.message);
+  }
+}
+
 export function activate(context: vscode.ExtensionContext) {
   console.log(
     'Congratulations, your extension "stoked-projects-vscode" is now active!',
@@ -240,6 +284,11 @@ export function activate(context: vscode.ExtensionContext) {
   // Install category prompts to ~/.stoked-projects/generic/
   installCategoryPrompts(context).catch((err) => {
     console.error("[stoked-projects] Failed to install category prompts:", err);
+  });
+
+  // Register MCP server with Claude Code
+  installMcpServer().catch((err) => {
+    console.error("[stoked-projects] Failed to register MCP server:", err);
   });
 
   // Create output channel for meta evaluation
@@ -396,7 +445,7 @@ export function activate(context: vscode.ExtensionContext) {
       dispose: () => {
         heartbeatManager.stopAllHeartbeats();
         if (orchestrator) {
-          orchestrator.stop().catch((err) => {
+          orchestrator.stop().catch((err: unknown) => {
             console.error("[stoked-projects] Error stopping orchestrator during deactivation:", err);
           });
         }
